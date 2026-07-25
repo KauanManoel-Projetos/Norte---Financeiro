@@ -2381,13 +2381,19 @@ function renderAiChat(){
   if (!SUPA_ON) return;
   renderChatMessages();
 }
+function formatChatText(text){
+  let safe = escapeHtml(text);
+  safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); // **negrito**
+  safe = safe.replace(/(^|[^*])\*(?!\*)(.+?)\*(?!\*)/g, '$1<em>$2</em>'); // *itálico*
+  return safe;
+}
 function renderChatMessages(){
   const wrap = $('chatMessages');
   if (!state.aiChatMessages.length){
     wrap.innerHTML = `<div class="empty-state" style="padding:30px 10px;">${ICONS.aichat}<p>Pergunte algo como "como está minha saúde financeira esse mês?" ou "o que posso cortar pra guardar mais dinheiro?".</p></div>`;
     return;
   }
-  wrap.innerHTML = state.aiChatMessages.map(m => `<div class="chat-msg ${m.role}"><div class="chat-bubble">${escapeHtml(m.content)}</div></div>`).join('');
+  wrap.innerHTML = state.aiChatMessages.map(m => `<div class="chat-msg ${m.role}"><div class="chat-bubble">${formatChatText(m.content)}</div></div>`).join('');
   wrap.scrollTop = wrap.scrollHeight;
 }
 function showChatTyping(){
