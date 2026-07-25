@@ -463,6 +463,10 @@ tr:hover td{background:var(--surface-2);}
 .color-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;}
 .color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
 .color-swatch.sel{border-color:var(--text);}
+.color-swatch-custom{position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px dashed var(--border-soft);}
+.color-swatch-custom::after{content:"+"; color:var(--text-dim); font-size:14px; font-weight:700; pointer-events:none;}
+.color-swatch-custom.sel::after{content:""; }
+.color-swatch-custom input[type=color]{position:absolute; inset:-4px; width:calc(100% + 8px); height:calc(100% + 8px); border:none; padding:0; cursor:pointer; opacity:0;}
 .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:4px;}
 .checkbox-row input{width:auto;}
 .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:11px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:100; box-shadow:var(--shadow-3); opacity:0; pointer-events:none; transition:opacity .25s var(--ease), transform .25s var(--ease);}
@@ -531,7 +535,8 @@ body.readonly-mode [data-action="del-tag"], body.readonly-mode [data-action="edi
 body.readonly-mode [data-action="del-cat"], body.readonly-mode [data-action="add-funds"],
 body.readonly-mode [data-action="onb-account"], body.readonly-mode [data-action="onb-tx"],
 body.readonly-mode [data-action="add-profile"],
-body.readonly-mode #chatSendBtn, body.readonly-mode #clearChatBtn
+body.readonly-mode #chatSendBtn, body.readonly-mode #clearChatBtn,
+body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 { opacity:.4; pointer-events:none; cursor:not-allowed; }
 </style>
 </head>
@@ -1011,7 +1016,8 @@ const fmtBRL = (v) => (Number(v) || 0).toLocaleString('pt-BR', { style: 'currenc
 const fmtDate = (iso) => { if(!iso) return ''; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
 const todayISO = () => new Date().toISOString().slice(0,10);
 const monthKey = (isoDate) => isoDate.slice(0,7); // YYYY-MM
-const CAT_PALETTE = ['#D2AC47','#5FB699','#E07C6B','#7C9CD9','#B58CD9','#5FA8A0','#D98E73','#9AA0AC','#6EA6C9','#C97AA0'];
+const CAT_PALETTE = ['#D2AC47','#5FB699','#E07C6B','#7C9CD9','#B58CD9','#5FA8A0','#D98E73','#9AA0AC','#6EA6C9','#C97AA0',
+  '#C9954B','#4F9E8C','#B0724A','#8593C9','#A6789A','#6F9C6E','#C77B7B','#7FA6A0','#B8A05E','#8B7FB0'];
 const TX_REACTIONS = [
   { key: 'happy', emoji: '😊', label: 'Valeu a pena' },
   { key: 'neutral', emoji: '😐', label: 'Neutro' },
@@ -2384,6 +2390,7 @@ function renderAiChat(){
 function formatChatText(text){
   let safe = escapeHtml(text);
   safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); // **negrito**
+  safe = safe.replace(/^[*-] +/gm, '• '); // listas "* item" ou "- item" viram bolinha
   safe = safe.replace(/(^|[^*])\*(?!\*)(.+?)\*(?!\*)/g, '$1<em>$2</em>'); // *itálico*
   return safe;
 }
@@ -3691,7 +3698,23 @@ function openTransactionModal(id, prefill){
         <div class="field" id="fDescWrap"><label>Descrição</label><input type="text" id="fDesc" value="${src?escapeHtml(src.description||''):''}" placeholder="Ex: Supermercado">
           <div class="horizon-hint hidden" id="categorySuggestHint"></div>
         </div>
-        <div class="field" id="fCatWrap"><label>Categoria</label><select id="fCat">${categoryOptions(type)}</select></div>
+        <div class="field" id="fCatWrap">
+          <label>Categoria</label>
+          <div style="display:flex; gap:8px;">
+            <select id="fCat" style="flex:1;">${categoryOptions(type)}</select>
+            <button type="button" class="btn btn-icon btn-ghost" id="fCatNewBtn" title="Nova categoria" aria-label="Criar nova categoria">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div class="hidden" id="fCatNewPanel" style="margin-top:10px; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--bg-elev);">
+            <div class="field" style="margin-bottom:10px;"><input type="text" id="fCatNewName" placeholder="Nome da nova categoria"></div>
+            <div class="color-row" id="fCatNewColorRow" style="margin-bottom:12px;"></div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-primary btn-sm" id="fCatNewAddBtn">Adicionar categoria</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="fCatNewCancelBtn">Cancelar</button>
+            </div>
+          </div>
+        </div>
         <div class="form-row" id="fAccWrap">
           <div class="field"><label id="fAccLabel">Conta</label><select id="fAcc">${accountOptions()}</select></div>
           <div class="field hidden" id="fToAccWrap"><label>Conta destino</label><select id="fToAcc">${accountOptions()}</select></div>
@@ -3792,6 +3815,43 @@ function openTransactionModal(id, prefill){
     root.querySelectorAll('#txTypeToggle button').forEach(b => b.classList.toggle('active', b===btn));
     syncFieldsForType();
   }));
+
+  // Criar categoria nova sem sair do formulário de transação
+  let newCatColor = CAT_PALETTE[state.categories.length % CAT_PALETTE.length];
+  function renderNewCatColorRow(){
+    const row = root.querySelector('#fCatNewColorRow');
+    row.innerHTML = CAT_PALETTE.map(c => `<span class="color-swatch ${c===newCatColor?'sel':''}" data-color="${c}" style="background:${c}"></span>`).join('');
+    row.querySelectorAll('.color-swatch').forEach(sw => sw.addEventListener('click', () => {
+      newCatColor = sw.dataset.color;
+      row.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('sel', s===sw));
+    }));
+  }
+  root.querySelector('#fCatNewBtn').addEventListener('click', () => {
+    if (readOnlyMode){ showToast('Modo leitura ativado — desative para criar categorias.'); return; }
+    const panel = root.querySelector('#fCatNewPanel');
+    const opening = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    if (opening){ renderNewCatColorRow(); root.querySelector('#fCatNewName').focus(); }
+  });
+  root.querySelector('#fCatNewCancelBtn').addEventListener('click', () => {
+    root.querySelector('#fCatNewPanel').classList.add('hidden');
+    root.querySelector('#fCatNewName').value = '';
+  });
+  root.querySelector('#fCatNewName').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); root.querySelector('#fCatNewAddBtn').click(); } });
+  root.querySelector('#fCatNewAddBtn').addEventListener('click', () => {
+    const name = root.querySelector('#fCatNewName').value.trim();
+    if (!name){ showToast('Dê um nome para a categoria.'); return; }
+    const catType = type === 'transfer' ? 'expense' : type;
+    const newCat = { id: uid(), name, type: catType, color: newCatColor, parentId: null };
+    state.categories.push(newCat);
+    mutate();
+    root.querySelector('#fCat').innerHTML = categoryOptions(catType);
+    root.querySelector('#fCat').value = newCat.id;
+    categoryManuallyPicked = true;
+    root.querySelector('#fCatNewPanel').classList.add('hidden');
+    root.querySelector('#fCatNewName').value = '';
+    showToast('Categoria "' + name + '" criada.');
+  });
   root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="cancel"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="save"]').addEventListener('click', () => {
@@ -3889,7 +3949,11 @@ function openCategoryModal(id){
         <div class="horizon-hint">Use para criar uma subcategoria (ex: Alimentação › Mercado).</div>
       </div>
       <div class="field"><label>Cor</label>
-        <div class="color-row" id="colorRow">${CAT_PALETTE.map(c => `<span class="color-swatch ${c===color?'sel':''}" data-color="${c}" style="background:${c}"></span>`).join('')}</div>
+        <div class="color-row" id="colorRow">${CAT_PALETTE.map(c => `<span class="color-swatch ${c===color?'sel':''}" data-color="${c}" style="background:${c}"></span>`).join('')}
+          <label class="color-swatch color-swatch-custom" id="customColorLabel" title="Escolher outra cor" style="background:${CAT_PALETTE.includes(color)?'var(--surface-2)':color};">
+            <input type="color" id="customColorInput" value="${CAT_PALETTE.includes(color)?'#888888':color}">
+          </label>
+        </div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-action="cancel">Cancelar</button><button class="btn btn-primary" data-action="save">${editing?'Salvar':'Adicionar'}</button></div>`;
@@ -3901,10 +3965,17 @@ function openCategoryModal(id){
     root.querySelectorAll('#catTypeToggle button').forEach(b => b.classList.toggle('active', b===btn));
     root.querySelector('#fParent').innerHTML = '<option value="">Nenhuma — categoria principal</option>' + parentOptions(type);
   }));
-  root.querySelectorAll('.color-swatch').forEach(sw => sw.addEventListener('click', () => {
+  root.querySelectorAll('.color-swatch[data-color]').forEach(sw => sw.addEventListener('click', () => {
     selColor = sw.dataset.color;
-    root.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('sel', s===sw));
+    root.querySelectorAll('.color-swatch[data-color]').forEach(s => s.classList.toggle('sel', s===sw));
+    root.querySelector('#customColorLabel').classList.remove('sel');
   }));
+  root.querySelector('#customColorInput').addEventListener('input', (e) => {
+    selColor = e.target.value;
+    root.querySelector('#customColorLabel').style.background = selColor;
+    root.querySelectorAll('.color-swatch[data-color]').forEach(s => s.classList.remove('sel'));
+    root.querySelector('#customColorLabel').classList.add('sel');
+  });
   root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="cancel"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="save"]').addEventListener('click', () => {
