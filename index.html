@@ -1207,9 +1207,9 @@ function suggestCategoryForDescription(desc, type){
   return { categoryId: ids[0] };
 }
 
-function showToast(msg){
+function showToast(msg, duration){
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(showToast._t); showToast._t = setTimeout(() => t.classList.remove('show'), 2400);
+  clearTimeout(showToast._t); showToast._t = setTimeout(() => t.classList.remove('show'), duration || 2400);
 }
 
 /* -------------------- CAIXA DE NOTAS PRIVADAS (criptografia local) --------------------
@@ -1529,23 +1529,34 @@ const LOCAL_KEY = 'razao_finance_state_v1';
 const THEME_KEY = 'razao_theme';
 let saveTimer = null;
 
+/* IMPORTANTE: o cache local é só uma rede de segurança (funciona offline e
+   evita perder dados se a internet cair no meio de um salvamento). Ele
+   PRECISA ser isolado por conta — cada usuário logado tem sua própria chave,
+   nunca uma chave compartilhada — senão uma conta nova acaba lendo (ou
+   sobrescrevendo) os dados salvos localmente por outra conta que já usou
+   este mesmo navegador. Só no modo 100% local (sem Supabase configurado,
+   sem login) é que faz sentido usar uma chave única. */
+function localCacheKey(){
+  return (SUPA_ON && currentUser) ? `${LOCAL_KEY}_u_${currentUser.id}` : LOCAL_KEY;
+}
 function loadLocal(){
   try {
-    const raw = localStorage.getItem(LOCAL_KEY);
+    const raw = localStorage.getItem(localCacheKey());
     if (raw) return JSON.parse(raw);
   } catch(e){ console.error(e); }
   return null;
 }
 function persistLocalCache(){
-  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(appData)); } catch(e){ console.error(e); }
+  try { localStorage.setItem(localCacheKey(), JSON.stringify(appData)); } catch(e){ console.error(e); }
 }
-function setSaveStatus(mode){
+function setSaveStatus(mode, detail){
   const dot = $('saveDot'), txt = $('saveText');
-  if (mode === 'busy'){ dot.className = 'save-dot busy'; txt.textContent = 'Salvando...'; }
-  else if (mode === 'ok'){ dot.className = 'save-dot ok'; txt.textContent = 'Salvo às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); }
-  else if (mode === 'local'){ dot.className = 'save-dot'; txt.textContent = 'Modo local (neste navegador)'; }
-  else if (mode === 'error'){ dot.className = 'save-dot'; dot.style.background = 'var(--negative)'; txt.textContent = 'Falha ao salvar na nuvem — dados a salvo localmente'; }
+  if (mode === 'busy'){ dot.className = 'save-dot busy'; txt.textContent = 'Salvando...'; dot.title = ''; }
+  else if (mode === 'ok'){ dot.className = 'save-dot ok'; txt.textContent = 'Salvo às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); dot.title = ''; }
+  else if (mode === 'local'){ dot.className = 'save-dot'; txt.textContent = 'Modo local (neste navegador)'; dot.title = ''; }
+  else if (mode === 'error'){ dot.className = 'save-dot'; dot.style.background = 'var(--negative)'; txt.textContent = 'Falha ao salvar na nuvem — dados a salvo localmente'; dot.title = detail || ''; }
 }
+let saveErrorNotified = false;
 function scheduleSave(){
   persistLocalCache();
   if (!SUPA_ON || !currentUser){ setSaveStatus('local'); return; }
@@ -1553,19 +1564,51 @@ function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
+      // onConflict explícito: sem isso, se a tabela não tiver "user_id" como
+      // chave/índice único, o Supabase tenta INSERIR uma linha nova a cada
+      // salvamento em vez de atualizar a existente — e cada usuário deveria
+      // ter só 1 linha. Isso também faz o erro (se a coluna não for única)
+      // aparecer de forma clara, em vez de falhar em silêncio.
       const { error } = await supa.from('user_finance_data').upsert({
         user_id: currentUser.id, data: appData, updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'user_id' });
       if (error) throw error;
       setSaveStatus('ok');
-    } catch(e){ console.error(e); setSaveStatus('error'); }
+      saveErrorNotified = false;
+    } catch(e){
+      const detail = (e && (e.message || e.details || e.hint)) || String(e);
+      console.error('Falha ao salvar na nuvem:', e);
+      setSaveStatus('error', detail);
+      // Avisa uma vez por sessão — assim a pessoa percebe na hora que algo não
+      // está indo pra nuvem, em vez de só notar dias depois que sumiu um lançamento.
+      // Mostra o erro técnico mesmo, de propósito: sem isso não dá pra saber se
+      // falta criar a tabela no Supabase, a política de RLS, ou outra coisa.
+      if (!saveErrorNotified){
+        saveErrorNotified = true;
+        showToast('Não foi possível salvar na nuvem: ' + detail, 8000);
+      }
+    }
   }, 600);
 }
 async function loadFromSupabase(){
-  const { data, error } = await supa.from('user_finance_data').select('data').eq('user_id', currentUser.id).maybeSingle();
-  if (error){ console.error(error); return normalizeAppData(loadLocal()); }
-  if (data && data.data && Object.keys(data.data).length){ return normalizeAppData(data.data); }
-  return normalizeAppData(loadLocal());
+  // Nunca usa o cache local de OUTRA conta como ponto de partida: se não há
+  // linha salva na nuvem para este usuário (conta nova, ou 1º acesso deste
+  // aparelho), o cache local só é aproveitado se já pertencer a este mesmo
+  // usuário (localCacheKey() é isolada por user_id); caso contrário o perfil
+  // começa 100% vazio, do zero.
+  try {
+    const { data, error } = await supa.from('user_finance_data').select('data').eq('user_id', currentUser.id).maybeSingle();
+    if (error) throw error;
+    if (data && data.data && Object.keys(data.data).length) return normalizeAppData(data.data);
+    const cached = loadLocal();
+    return cached ? normalizeAppData(cached) : defaultAppData();
+  } catch(e){
+    const detail = (e && (e.message || e.details || e.hint)) || String(e);
+    console.error('Falha ao carregar dados da nuvem:', e);
+    showToast('Não foi possível ler os dados da nuvem: ' + detail, 8000);
+    const cached = loadLocal();
+    return cached ? normalizeAppData(cached) : defaultAppData();
+  }
 }
 
 /* -------------------- AUTENTICAÇÃO -------------------- */
