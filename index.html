@@ -451,6 +451,13 @@ tr:hover td{background:var(--surface-2);}
 .profile-chip.active .avatar{border-color:var(--text);}
 .profile-chip .pname{font-size:9.5px; color:var(--text-dim); max-width:46px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600;}
 .profile-chip.add .avatar{background:var(--surface-2); color:var(--text-dim); border:1px dashed var(--border); font-size:16px;}
+.profile-chip .avatar img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
+.account-avatar-wrap{position:relative; width:76px; height:76px; flex:none; cursor:pointer;}
+.account-avatar{width:76px; height:76px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:30px; font-weight:400; overflow:hidden; border:2px solid var(--border-soft);}
+.account-avatar img{width:100%; height:100%; object-fit:cover;}
+.account-avatar-edit{position:absolute; right:-2px; bottom:-2px; width:28px; height:28px; border-radius:50%; background:var(--surface); border:2px solid var(--bg-elev); display:flex; align-items:center; justify-content:center; color:var(--text-dim); transition:background .2s var(--ease), color .2s var(--ease);}
+.account-avatar-edit .icon{width:14px; height:14px;}
+.account-avatar-wrap:hover .account-avatar-edit{background:var(--accent); color:var(--accent-ink);}
 .chat-msg{display:flex; margin-bottom:14px;}
 .chat-msg.user{justify-content:flex-end;}
 .chat-bubble{max-width:75%; padding:11px 15px; border-radius:14px; font-size:13.5px; line-height:1.55; white-space:pre-wrap;}
@@ -614,6 +621,8 @@ body.readonly-mode #addTxBtn, body.readonly-mode #addAccountBtn, body.readonly-m
 body.readonly-mode #addFixedBillBtn, body.readonly-mode #addBudgetBtn, body.readonly-mode #addGoalBtn,
 body.readonly-mode #addTransferBtn, body.readonly-mode #addGroupBtn, body.readonly-mode #addNoteBtn,
 body.readonly-mode #importJsonBtn, body.readonly-mode #clearAllBtn,
+body.readonly-mode #accountAvatarWrap, body.readonly-mode #removeAvatarBtn, body.readonly-mode #changePasswordBtn,
+body.readonly-mode #driveUploadBtn, body.readonly-mode #dropboxUploadBtn,
 body.readonly-mode [data-action="edit-tx"], body.readonly-mode [data-action="del-tx"],
 body.readonly-mode [data-action="duplicate-tx"],
 body.readonly-mode [data-action="edit"], body.readonly-mode [data-action="del"],
@@ -1099,6 +1108,20 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 
       <!-- SETTINGS / BACKUP -->
       <section class="view" id="view-settings">
+        <div class="card" style="margin-bottom:16px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+          <div class="account-avatar-wrap" id="accountAvatarWrap" title="Alterar foto de perfil">
+            <div class="account-avatar" id="accountAvatarPreview"></div>
+            <div class="account-avatar-edit">${ICONS.camera}</div>
+            <input type="file" id="accountAvatarInput" accept="image/*" class="hidden">
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <div style="font-family:var(--font-display); font-size:20px; font-weight:400;">Minha conta</div>
+            <div style="color:var(--text-dim); font-size:13px; margin-top:4px;" id="accountEmailLine">—</div>
+          </div>
+          <button class="btn btn-sm" id="removeAvatarBtn">Remover foto</button>
+          <button class="btn btn-sm" id="changePasswordBtn">${ICONS.key} Redefinir senha</button>
+        </div>
+
         <div class="card" style="margin-bottom:16px;">
           <h4 style="margin-bottom:6px;">Backup dos dados</h4>
           <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Exporte todos os seus dados em um arquivo .json, envie direto pro Google Drive/Dropbox/e-mail pelo menu de compartilhar do seu celular ou computador, ou restaure a partir de um backup anterior.</p>
@@ -1109,7 +1132,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             </button>
             <button class="btn" id="shareBackupBtn">
               <svg class="icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
-              Enviar para Drive/Dropbox/e-mail...
+              Compartilhar (apps do celular)
             </button>
             <button class="btn" id="importJsonBtn">
               <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -1117,8 +1140,25 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             </button>
             <input type="file" id="importFileInput" accept="application/json" class="hidden">
           </div>
-          <p id="shareUnsupportedNote" class="hidden" style="font-size:11.5px; color:var(--text-faint); margin:10px 0 0;">Seu navegador não suporta o menu de compartilhamento nativo — use "Baixar backup" e envie o arquivo manualmente para o Drive, Dropbox etc.</p>
+          <p id="shareUnsupportedNote" class="hidden" style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">Seu navegador não suporta o menu de compartilhamento nativo — use "Baixar backup" e envie o arquivo manualmente para o Drive, Dropbox etc.</p>
         </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <h4 style="margin-bottom:6px;">Enviar backup direto para a nuvem</h4>
+          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Conecte sua conta do Google ou Dropbox uma vez e envie o backup com um clique, sem precisar baixar e anexar manualmente.</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;" id="cloudUploadButtons">
+            <button class="btn" id="driveUploadBtn">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M7.5 3h9L22 12l-4.5 8h-9L4 12z"/><line x1="7.5" y1="3" x2="12" y2="12"/><line x1="16.5" y1="3" x2="12" y2="12"/></svg>
+              Enviar para o Google Drive
+            </button>
+            <button class="btn" id="dropboxUploadBtn">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M7 3l5 3.2L7 9.4 2 6.2zM17 3l5 3.2-5 3.2-5-3.2zM2 12.6l5-3.2 5 3.2-5 3.2zM17 9.4l5 3.2-5 3.2-5-3.2zM7 16.8l5 3 5-3"/></svg>
+              Enviar para o Dropbox
+            </button>
+          </div>
+          <p style="font-size:12px; color:var(--text-faint); margin:12px 0 0; line-height:1.5;" id="cloudUploadNote"></p>
+        </div>
+
         <div class="card" style="border-color:var(--negative);">
           <h4 style="margin-bottom:6px; color:var(--negative);">Zona de risco</h4>
           <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Apaga permanentemente todas as contas, transações, orçamentos e metas.</p>
@@ -1154,6 +1194,35 @@ if (SUPA_ON) {
   try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
   catch (e) { console.error('Falha ao iniciar Supabase', e); }
 }
+
+/* -------------------- ENVIO DIRETO PARA GOOGLE DRIVE / DROPBOX (opcional) --------------------
+   Assim como o Supabase, isso é opcional — sem configurar, os botões de
+   Drive/Dropbox na tela "Conta" simplesmente não aparecem, e o backup
+   continua funcionando normalmente por download/compartilhamento.
+
+   GOOGLE DRIVE:
+   1) Crie um projeto em https://console.cloud.google.com
+   2) Em "APIs e serviços" → Biblioteca, ative a "Google Drive API"
+   3) Em "APIs e serviços" → Credenciais → Criar credenciais →
+      "ID do cliente OAuth" → tipo "Aplicativo da Web"
+   4) Em "Origens JavaScript autorizadas", adicione o endereço onde este
+      app fica hospedado (ex: https://seuusuario.github.io)
+   5) Cole o Client ID gerado em GOOGLE_CLIENT_ID abaixo.
+   O escopo usado (drive.file) só dá acesso a arquivos criados por este
+   app — nunca ao resto do seu Drive.
+
+   DROPBOX:
+   1) Crie um app em https://www.dropbox.com/developers/apps → "Create app"
+   2) Tipo de acesso: "App folder" (o app só enxerga uma pasta própria,
+      nunca o resto do seu Dropbox)
+   3) Em "OAuth 2" → "Redirect URIs", adicione o endereço onde este app
+      fica hospedado (o mesmo que você acessa no navegador)
+   4) Cole a "App key" em DROPBOX_APP_KEY abaixo. Não precisa do App
+      secret — o envio usa o fluxo PKCE, sem segredo nenhum no código. */
+const GOOGLE_CLIENT_ID = '';
+const DROPBOX_APP_KEY = '';
+const GDRIVE_ON = !!GOOGLE_CLIENT_ID;
+const DROPBOX_ON = !!DROPBOX_APP_KEY;
 
 /* -------------------- HELPERS -------------------- */
 const $ = (id) => document.getElementById(id);
@@ -1334,6 +1403,8 @@ const ICONS = {
   reports: '<svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
   settings: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg>',
   edit: '<svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
+  camera: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg>',
+  key: '<svg class="icon" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.5 12.5L20 3M16 7l3 3M13 4l3 3"/></svg>',
   trash: '<svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>',
   wallet: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>',
   alert: '<svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -1389,7 +1460,7 @@ const NAV_ITEMS = [
   { id: 'calculator', label: 'Calculadora & Simulações' },
   { id: 'aichat', label: 'Chat com IA' },
   { id: 'notes', label: 'Notas & Lembretes' },
-  { id: 'settings', label: 'Backup' },
+  { id: 'settings', label: 'Conta' },
 ];
 
 function defaultState(){
@@ -1453,6 +1524,7 @@ function getActiveProfile(){
 }
 function ensureAppIntegrity(){
   const savedActive = appData.activeProfileId;
+  if (appData.avatarData === undefined) appData.avatarData = null;
   if (!appData.profiles.some(p => p.isMain)) appData.profiles[0].isMain = true;
   appData.profiles.forEach(p => {
     if (!p.color) p.color = CAT_PALETTE[0];
@@ -1479,8 +1551,11 @@ function switchProfile(id){
 function renderProfileSwitcher(){
   const wrap = $('profileSwitcher');
   if (!wrap) return;
+  const avatarInner = (color) => appData.avatarData
+    ? `<img src="${appData.avatarData}" alt="">`
+    : '';
   wrap.innerHTML = appData.profiles.map(p => `<div class="profile-chip ${p.id===appData.activeProfileId?'active':''}" data-action="switch-profile" data-id="${p.id}" title="Clique duas vezes para editar">
-      <div class="avatar" style="background:${p.color}">${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}</div>
+      <div class="avatar" style="background:${p.color}">${appData.avatarData ? avatarInner(p.color) : escapeHtml((p.name||'?').slice(0,1).toUpperCase())}</div>
       <div class="pname">${escapeHtml(p.name)}</div>
     </div>`).join('') +
     `<div class="profile-chip add" data-action="add-profile" title="Novo perfil"><div class="avatar">+</div><div class="pname">Novo</div></div>`;
@@ -1939,6 +2014,7 @@ function renderCurrentView(){
   else if (currentView === 'aichat') renderAiChat();
   else if (currentView === 'health') renderHealth();
   else if (currentView === 'calculator') initCalculatorView();
+  else if (currentView === 'settings') renderAccountView();
 }
 function renderAll(){
   renderNav();
@@ -4833,6 +4909,174 @@ $('clearAllBtn').addEventListener('click', async () => {
   showUndoToast('Todos os dados foram apagados.', () => { state = previous; getActiveProfile().data = state; mutate(); renderAll(); });
 });
 
+/* -------------------- CONTA: e-mail, foto de perfil, senha, nuvem -------------------- */
+function renderAccountAvatarPreview(){
+  const el = $('accountAvatarPreview');
+  if (!el) return;
+  if (appData.avatarData){ el.innerHTML = `<img src="${appData.avatarData}" alt="">`; }
+  else {
+    const name = getActiveProfile().name || (currentUser && currentUser.email) || '?';
+    el.textContent = name.slice(0,1).toUpperCase();
+  }
+}
+function renderAccountView(){
+  $('accountEmailLine').textContent = currentUser
+    ? currentUser.email
+    : 'Modo local — sem login (os dados ficam só neste navegador)';
+  $('changePasswordBtn').style.display = currentUser ? '' : 'none';
+  renderAccountAvatarPreview();
+  $('removeAvatarBtn').style.display = appData.avatarData ? '' : 'none';
+  $('driveUploadBtn').style.display = GDRIVE_ON ? '' : 'none';
+  $('dropboxUploadBtn').style.display = DROPBOX_ON ? '' : 'none';
+  const noteEl = $('cloudUploadNote');
+  if (!GDRIVE_ON && !DROPBOX_ON){
+    $('cloudUploadButtons').style.display = 'none';
+    noteEl.textContent = 'Nenhuma conta de nuvem conectada ainda — enquanto isso, use "Baixar backup" ou "Compartilhar" acima.';
+  } else {
+    $('cloudUploadButtons').style.display = 'flex';
+    noteEl.textContent = '';
+  }
+}
+$('accountAvatarWrap').addEventListener('click', () => $('accountAvatarInput').click());
+$('accountAvatarInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    appData.avatarData = await compressImageToDataURL(file, 320, 0.85);
+    mutate();
+    renderAccountView();
+    renderProfileSwitcher();
+    showToast('Foto de perfil atualizada.');
+  } catch(err){ console.error(err); showToast('Não foi possível carregar essa imagem.'); }
+  e.target.value = '';
+});
+$('removeAvatarBtn').addEventListener('click', async () => {
+  const ok = await confirmModal('Remover foto', 'Remover a foto de perfil?', { confirmLabel: 'Remover' });
+  if (!ok) return;
+  appData.avatarData = null;
+  mutate();
+  renderAccountView();
+  renderProfileSwitcher();
+  showToast('Foto removida.');
+});
+$('changePasswordBtn').addEventListener('click', async () => {
+  if (!currentUser){ showToast('Redefinir senha só está disponível para contas na nuvem.'); return; }
+  const ok = await confirmModal('Redefinir senha', `Enviar um e-mail de redefinição de senha para ${escapeHtml(currentUser.email)}?`, { confirmLabel: 'Enviar e-mail' });
+  if (!ok) return;
+  try {
+    const { error } = await supa.auth.resetPasswordForEmail(currentUser.email);
+    if (error) throw error;
+    showToast('E-mail de redefinição enviado! Verifique sua caixa de entrada.', 5000);
+  } catch(e){
+    showToast('Não foi possível enviar o e-mail: ' + (e.message || e), 6000);
+  }
+});
+
+/* ---- Google Drive: envio direto do backup via OAuth (client-side, sem backend) ---- */
+function loadGisScript(){
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Não foi possível carregar o script do Google.'));
+    document.head.appendChild(s);
+  });
+}
+async function uploadBackupToDrive(){
+  if (!GDRIVE_ON){ showToast('Google Drive não está configurado neste app.'); return; }
+  const btn = $('driveUploadBtn');
+  const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Conectando com o Google...';
+  try {
+    await loadGisScript();
+    const accessToken = await new Promise((resolve, reject) => {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (resp) => resp.error ? reject(new Error(resp.error)) : resolve(resp.access_token),
+      });
+      client.requestAccessToken();
+    });
+    btn.textContent = 'Enviando...';
+    const filename = 'norte_backup_' + todayISO() + '.json';
+    const fileContent = JSON.stringify(appData, null, 2);
+    const boundary = 'norte_boundary_' + uid();
+    const body =
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name: filename, mimeType: 'application/json' })}\r\n` +
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${fileContent}\r\n--${boundary}--`;
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body,
+    });
+    if (!res.ok) throw new Error('O Google Drive respondeu com erro ' + res.status);
+    showToast('Backup enviado para o Google Drive!');
+  } catch(e){
+    console.error(e);
+    showToast('Não foi possível enviar para o Google Drive: ' + (e.message || JSON.stringify(e)), 6000);
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+$('driveUploadBtn').addEventListener('click', uploadBackupToDrive);
+
+/* ---- Dropbox: envio direto do backup via OAuth PKCE (client-side, sem app secret) ---- */
+function b64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+async function sha256Base64Url(str){
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return b64url(new Uint8Array(hash));
+}
+function dropboxRedirectUri(){ return window.location.origin + window.location.pathname; }
+async function startDropboxAuth(){
+  if (!DROPBOX_ON){ showToast('Dropbox não está configurado neste app.'); return; }
+  const verifierBytes = crypto.getRandomValues(new Uint8Array(64));
+  const verifier = b64url(verifierBytes);
+  sessionStorage.setItem('dbx_verifier', verifier);
+  sessionStorage.setItem('dbx_pending_upload', '1');
+  const challenge = await sha256Base64Url(verifier);
+  const url = `https://www.dropbox.com/oauth2/authorize?client_id=${encodeURIComponent(DROPBOX_APP_KEY)}&response_type=code&code_challenge=${challenge}&code_challenge_method=S256&redirect_uri=${encodeURIComponent(dropboxRedirectUri())}&token_access_type=online`;
+  window.location.href = url;
+}
+async function finishDropboxUpload(code){
+  try {
+    const verifier = sessionStorage.getItem('dbx_verifier');
+    const tokenRes = await fetch('https://api.dropboxapi.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ code, grant_type: 'authorization_code', client_id: DROPBOX_APP_KEY, code_verifier: verifier, redirect_uri: dropboxRedirectUri() }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok) throw new Error(tokenData.error_description || 'Falha ao autenticar com o Dropbox.');
+    const filename = '/norte_backup_' + todayISO() + '.json';
+    const uploadRes = await fetch('https://content.dropboxapi.com/2/files/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + tokenData.access_token,
+        'Content-Type': 'application/octet-stream',
+        'Dropbox-API-Arg': JSON.stringify({ path: filename, mode: 'add', autorename: true, mute: false }),
+      },
+      body: JSON.stringify(appData, null, 2),
+    });
+    if (!uploadRes.ok) throw new Error('O Dropbox respondeu com erro ' + uploadRes.status);
+    showToast('Backup enviado para o Dropbox!');
+  } catch(e){
+    console.error(e);
+    showToast('Não foi possível enviar para o Dropbox: ' + (e.message || e), 6000);
+  }
+}
+$('dropboxUploadBtn').addEventListener('click', startDropboxAuth);
+// Ao voltar do redirecionamento de login do Dropbox, retoma o envio automaticamente.
+function checkDropboxRedirect(){
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (code && sessionStorage.getItem('dbx_pending_upload') === '1'){
+    sessionStorage.removeItem('dbx_pending_upload');
+    window.history.replaceState({}, '', window.location.pathname);
+    switchView('settings');
+    finishDropboxUpload(code);
+  }
+}
+
 /* -------------------- THEME -------------------- */
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
@@ -4976,7 +5220,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   });
 }
 
-boot();
+boot().then(checkDropboxRedirect);
 </script>
 </body>
 </html>
