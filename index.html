@@ -245,6 +245,18 @@ html[data-theme="dark"] .sidebar{background:#0A0B0D;}
 .topbar h2{font-size:19px; font-family:var(--font-display); font-weight:400; letter-spacing:.01em;}
 .topbar .spacer{flex:1;}
 .hamburger{display:none;}
+.fab{
+  display:none; position:fixed; right:20px; bottom:24px; z-index:40;
+  width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--accent); color:var(--accent-ink); align-items:center; justify-content:center;
+  box-shadow:0 10px 28px -6px color-mix(in srgb, var(--accent) 55%, transparent), var(--shadow-2);
+  transition:transform .22s var(--ease), box-shadow .22s var(--ease), background .22s var(--ease);
+}
+.fab:hover{background:var(--accent-hover); transform:translateY(-2px) scale(1.03); box-shadow:0 14px 34px -6px color-mix(in srgb, var(--accent) 65%, transparent), var(--shadow-3);}
+.fab:active{transform:scale(.95);}
+.fab .icon{width:24px; height:24px; stroke-width:2;}
+@media(max-width:860px){ .fab{display:flex;} }
+body.readonly-mode .fab{display:none !important;}
 .content{padding:28px 28px 64px; max-width:1240px; width:100%; margin:0 auto;}
 .view{display:none; animation:fadein .35s var(--ease);}
 .view.active{display:block;}
@@ -598,7 +610,7 @@ tr:hover td{background:var(--surface-2);}
 /* Modo leitura/apresentação: bloqueia visualmente qualquer controle que crie,
    edite ou apague dados. Funciona em conteúdo renderizado dinamicamente
    porque os seletores casam por atributo, não por referência ao elemento. */
-body.readonly-mode #addTxBtn, body.readonly-mode #addAccountBtn, body.readonly-mode #addCategoryBtn, body.readonly-mode #addCreditCardBtn, body.readonly-mode #fGroupAddBtn,
+body.readonly-mode #addTxBtn, body.readonly-mode #addAccountBtn, body.readonly-mode #addCategoryBtn, body.readonly-mode #addCreditCardBtn, body.readonly-mode #fGroupAddBtn, body.readonly-mode #dashboardAddTxBtn, body.readonly-mode #dashboardFab,
 body.readonly-mode #addFixedBillBtn, body.readonly-mode #addBudgetBtn, body.readonly-mode #addGoalBtn,
 body.readonly-mode #addTransferBtn, body.readonly-mode #addGroupBtn, body.readonly-mode #addNoteBtn,
 body.readonly-mode #importJsonBtn, body.readonly-mode #clearAllBtn,
@@ -684,8 +696,15 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
       <!-- DASHBOARD -->
       <section class="view" id="view-dashboard">
         <div id="dashboardOnboarding"></div>
+        <button class="fab" id="dashboardFab" aria-label="Nova transação" title="Nova transação">
+          <svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
         <div id="dashboardMain">
-        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
+          <button class="btn btn-primary btn-sm" id="dashboardAddTxBtn">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova transação
+          </button>
           <button class="btn btn-ghost btn-sm" id="numbersOnlyToggle">Só números</button>
         </div>
         <div class="grid grid-2">
@@ -1358,17 +1377,17 @@ const ICONS = {
 /* -------------------- ESTADO -------------------- */
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard' },
-  { id: 'health', label: 'Saúde Financeira' },
-  { id: 'calculator', label: 'Calculadora & Simulações' },
-  { id: 'aichat', label: 'Chat com IA' },
   { id: 'transactions', label: 'Transações' },
+  { id: 'cards', label: 'Cartões' },
   { id: 'fixedbills', label: 'Contas fixas' },
   { id: 'budgets', label: 'Orçamentos' },
   { id: 'goals', label: 'Metas' },
-  { id: 'groups', label: 'Grupos' },
+  { id: 'health', label: 'Saúde Financeira' },
   { id: 'accounts', label: 'Contas & Categorias' },
-  { id: 'cards', label: 'Cartões' },
+  { id: 'groups', label: 'Grupos' },
   { id: 'reports', label: 'Relatórios' },
+  { id: 'calculator', label: 'Calculadora & Simulações' },
+  { id: 'aichat', label: 'Chat com IA' },
   { id: 'notes', label: 'Notas & Lembretes' },
   { id: 'settings', label: 'Backup' },
 ];
@@ -2910,6 +2929,8 @@ $('txFilterClearBtn').addEventListener('click', () => {
   $(id).addEventListener('change', () => { txCurrentPage = 1; renderTransactions(); });
 });
 $('addTxBtn').addEventListener('click', () => openTransactionModal());
+$('dashboardAddTxBtn').addEventListener('click', () => openTransactionModal());
+$('dashboardFab').addEventListener('click', () => openTransactionModal());
 $('exportCsvBtn').addEventListener('click', exportCsv);
 
 async function deleteTransaction(id){
