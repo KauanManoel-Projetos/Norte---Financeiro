@@ -75,6 +75,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 /* ============================= TOKENS ============================= */
@@ -1111,7 +1112,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         <div class="card" style="margin-bottom:16px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
           <div class="account-avatar-wrap" id="accountAvatarWrap" title="Alterar foto de perfil">
             <div class="account-avatar" id="accountAvatarPreview"></div>
-            <div class="account-avatar-edit">${ICONS.camera}</div>
+            <div class="account-avatar-edit"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg></div>
             <input type="file" id="accountAvatarInput" accept="image/*" class="hidden">
           </div>
           <div style="flex:1; min-width:180px;">
@@ -1119,7 +1120,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             <div style="color:var(--text-dim); font-size:13px; margin-top:4px;" id="accountEmailLine">—</div>
           </div>
           <button class="btn btn-sm" id="removeAvatarBtn">Remover foto</button>
-          <button class="btn btn-sm" id="changePasswordBtn">${ICONS.key} Redefinir senha</button>
+          <button class="btn btn-sm" id="changePasswordBtn"><svg class="icon" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Redefinir senha</button>
         </div>
 
         <div class="card" style="margin-bottom:16px;">
@@ -1138,8 +1139,13 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
               <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Importar backup
             </button>
+            <button class="btn" id="exportExcelBtn">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+              Exportar planilha (Excel)
+            </button>
             <input type="file" id="importFileInput" accept="application/json" class="hidden">
           </div>
+          <p style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">A planilha Excel é só para consulta/análise — para restaurar seus dados no app, use sempre o backup em .json.</p>
           <p id="shareUnsupportedNote" class="hidden" style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">Seu navegador não suporta o menu de compartilhamento nativo — use "Baixar backup" e envie o arquivo manualmente para o Drive, Dropbox etc.</p>
         </div>
 
@@ -1149,11 +1155,11 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
           <div style="display:flex; gap:10px; flex-wrap:wrap;" id="cloudUploadButtons">
             <button class="btn" id="driveUploadBtn">
               <svg class="icon" viewBox="0 0 24 24"><path d="M7.5 3h9L22 12l-4.5 8h-9L4 12z"/><line x1="7.5" y1="3" x2="12" y2="12"/><line x1="16.5" y1="3" x2="12" y2="12"/></svg>
-              Enviar para o Google Drive
+              <span id="driveUploadBtnLabel">Conectar Google Drive</span>
             </button>
             <button class="btn" id="dropboxUploadBtn">
               <svg class="icon" viewBox="0 0 24 24"><path d="M7 3l5 3.2L7 9.4 2 6.2zM17 3l5 3.2-5 3.2-5-3.2zM2 12.6l5-3.2 5 3.2-5 3.2zM17 9.4l5 3.2-5 3.2-5-3.2zM7 16.8l5 3 5-3"/></svg>
-              Enviar para o Dropbox
+              <span id="dropboxUploadBtnLabel">Conectar Dropbox</span>
             </button>
           </div>
           <p style="font-size:12px; color:var(--text-faint); margin:12px 0 0; line-height:1.5;" id="cloudUploadNote"></p>
@@ -1404,7 +1410,7 @@ const ICONS = {
   settings: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg>',
   edit: '<svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
   camera: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg>',
-  key: '<svg class="icon" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.5 12.5L20 3M16 7l3 3M13 4l3 3"/></svg>',
+  key: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
   trash: '<svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>',
   wallet: '<svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>',
   alert: '<svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -4859,22 +4865,105 @@ $('exportJsonBtn').addEventListener('click', () => {
 /* "Enviar para Drive/Dropbox" usa o menu de compartilhar nativo do sistema
    (Web Share API) — não existe integração direta com contas de nuvem sem
    configurar OAuth de cada serviço (um passo de backend, tipo o Supabase),
-   mas o menu do celular/computador já resolve isso em um toque. */
-const canShareFiles = !!(navigator.canShare && navigator.share);
+   mas o menu do celular/computador já resolve isso em um toque.
+   IMPORTANTE: a maioria dos navegadores só aceita compartilhar arquivos de
+   alguns tipos (imagem, texto simples, PDF, áudio, vídeo) — "application/json"
+   costuma ser rejeitado mesmo em navegadores que suportam compartilhar
+   arquivos. Usar "text/plain" contorna isso sem mudar o conteúdo nem a
+   extensão do arquivo (continua um .json de verdade). */
+function makeShareableBackupFile(){
+  const filename = 'norte_backup_' + todayISO() + '.json';
+  return new File([JSON.stringify(state, null, 2)], filename, { type: 'text/plain' });
+}
+const canShareFiles = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [makeShareableBackupFile()] }));
 if (!canShareFiles) $('shareUnsupportedNote').classList.remove('hidden');
 $('shareBackupBtn').addEventListener('click', async () => {
-  const filename = 'norte_backup_' + todayISO() + '.json';
-  const file = new File([JSON.stringify(state, null, 2)], filename, { type: 'application/json' });
-  if (canShareFiles && navigator.canShare({ files: [file] })){
+  if (canShareFiles){
     try {
-      await navigator.share({ files: [file], title: 'Backup Norte', text: 'Backup dos meus dados financeiros (' + todayISO() + ')' });
-    } catch(err){ if (err.name !== 'AbortError') showToast('Não foi possível abrir o menu de compartilhar.'); }
+      await navigator.share({ files: [makeShareableBackupFile()], title: 'Backup Norte', text: 'Backup dos meus dados financeiros (' + todayISO() + ')' });
+      return;
+    } catch(err){
+      if (err && err.name === 'AbortError') return; // a pessoa só cancelou o menu, tudo certo
+      console.error('Falha ao compartilhar:', err);
+      showToast('Não foi possível abrir o menu de compartilhar — baixando o arquivo para enviar manualmente.', 5000);
+      setTimeout(() => $('exportJsonBtn').click(), 2200);
+      return;
+    }
   } else {
     showToast('Seu navegador não suporta compartilhar arquivos — baixando o backup normalmente.');
-    $('exportJsonBtn').click();
   }
+  $('exportJsonBtn').click();
 });
 $('importJsonBtn').addEventListener('click', () => $('importFileInput').click());
+
+/* -------------------- EXPORTAÇÃO EM EXCEL -------------------- */
+function buildExcelWorkbook(){
+  const wb = XLSX.utils.book_new();
+
+  const txRows = [...state.transactions].sort((a,b) => a.date.localeCompare(b.date)).map(t => {
+    const isTransfer = t.type === 'transfer';
+    const card = t.cardId ? creditCardById(t.cardId) : null;
+    return {
+      'Data': fmtDate(t.date),
+      'Tipo': t.type === 'income' ? 'Receita' : t.type === 'expense' ? 'Despesa' : 'Transferência',
+      'Descrição': t.description || '',
+      'Categoria': isTransfer ? '' : (categoryById(t.categoryId)?.name || ''),
+      'Conta/Cartão': isTransfer ? `${accountById(t.accountId)?.name||''} → ${accountById(t.toAccountId)?.name||''}` : (card ? card.name : (accountById(t.accountId)?.name || '')),
+      'Forma de pagamento': paymentMethodInfo(t.paymentMethod)?.label || '',
+      'Valor (R$)': Number(t.value) || 0,
+      'Grupo': t.tagId ? tagDisplayName(tagById(t.tagId)) : '',
+      'Recorrente': t.recurring ? 'Sim' : '',
+      'Notas': t.notes || '',
+    };
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(txRows.length?txRows:[{'Sem transações':''}]), 'Transações');
+
+  const accRows = state.accounts.map(a => ({ 'Nome': a.name, 'Tipo': a.type, 'Saldo inicial (R$)': Number(a.initialBalance)||0, 'Saldo atual (R$)': accountBalance(a.id) }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(accRows.length?accRows:[{'Sem contas':''}]), 'Contas');
+
+  const cardRows = state.creditCards.map(c => ({
+    'Nome': c.name, 'Tipo': c.kind === 'credit' ? 'Crédito' : 'Débito',
+    'Limite (R$)': c.kind==='credit' ? (Number(c.limit)||0) : '',
+    'Limite usado (R$)': c.kind==='credit' ? cardOpenBalance(c) : '',
+    'Dia de fechamento': c.kind==='credit' ? c.closingDay : '',
+    'Dia de vencimento': c.kind==='credit' ? c.dueDay : '',
+    'Conta vinculada': c.linkedAccountId ? (accountById(c.linkedAccountId)?.name||'') : '',
+  }));
+  if (cardRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cardRows), 'Cartões');
+
+  const catRows = state.categories.map(c => ({ 'Nome': categoryDisplayName(c), 'Tipo': c.type === 'income' ? 'Receita' : 'Despesa' }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(catRows.length?catRows:[{'Sem categorias':''}]), 'Categorias');
+
+  const budgetRows = state.budgets.map(b => ({ 'Categoria': categoryById(b.categoryId)?.name || '', 'Limite mensal (R$)': Number(b.limit)||0 }));
+  if (budgetRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(budgetRows), 'Orçamentos');
+
+  const goalRows = state.goals.map(g => ({
+    'Nome': g.name, 'Valor alvo (R$)': Number(g.target)||0, 'Já economizado (R$)': Number(g.saved)||0,
+    'Conta vinculada': g.accountId ? (accountById(g.accountId)?.name||'') : '',
+    'Prazo': g.deadline ? fmtDate(g.deadline) : '',
+  }));
+  if (goalRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(goalRows), 'Metas');
+
+  const billRows = state.fixedBills.map(b => ({
+    'Nome': b.name, 'Tipo': b.type === 'income' ? 'Receita' : 'Despesa', 'Valor (R$)': Number(b.value)||0,
+    'Frequência': b.frequency === 'weekly' ? 'Semanal' : b.frequency === 'yearly' ? 'Anual' : 'Mensal',
+    'Categoria': categoryById(b.categoryId)?.name || '', 'Conta': accountById(b.accountId)?.name || '',
+  }));
+  if (billRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(billRows), 'Contas fixas');
+
+  return wb;
+}
+$('exportExcelBtn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined'){ showToast('Não foi possível carregar o gerador de planilhas — verifique sua conexão com a internet.', 5000); return; }
+  try {
+    const wb = buildExcelWorkbook();
+    XLSX.writeFile(wb, 'norte_backup_' + todayISO() + '.xlsx');
+    showToast('Planilha Excel baixada.');
+  } catch(e){
+    console.error(e);
+    showToast('Não foi possível gerar a planilha: ' + (e.message || e), 5000);
+  }
+});
 $('importFileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -4926,14 +5015,15 @@ function renderAccountView(){
   $('changePasswordBtn').style.display = currentUser ? '' : 'none';
   renderAccountAvatarPreview();
   $('removeAvatarBtn').style.display = appData.avatarData ? '' : 'none';
-  $('driveUploadBtn').style.display = GDRIVE_ON ? '' : 'none';
-  $('dropboxUploadBtn').style.display = DROPBOX_ON ? '' : 'none';
+  $('driveUploadBtn').style.display = '';
+  $('dropboxUploadBtn').style.display = '';
+  $('cloudUploadButtons').style.display = 'flex';
+  $('driveUploadBtnLabel').textContent = GDRIVE_ON ? 'Enviar para o Google Drive' : 'Conectar Google Drive';
+  $('dropboxUploadBtnLabel').textContent = DROPBOX_ON ? 'Enviar para o Dropbox' : 'Conectar Dropbox';
   const noteEl = $('cloudUploadNote');
   if (!GDRIVE_ON && !DROPBOX_ON){
-    $('cloudUploadButtons').style.display = 'none';
-    noteEl.textContent = 'Nenhuma conta de nuvem conectada ainda — enquanto isso, use "Baixar backup" ou "Compartilhar" acima.';
+    noteEl.textContent = 'Ainda não conectado. Toque em um dos botões acima para ver o passo a passo de como conectar.';
   } else {
-    $('cloudUploadButtons').style.display = 'flex';
     noteEl.textContent = '';
   }
 }
@@ -4983,8 +5073,36 @@ function loadGisScript(){
     document.head.appendChild(s);
   });
 }
+function openCloudSetupModal(provider){
+  const isDrive = provider === 'drive';
+  const title = isDrive ? 'Conectar o Google Drive' : 'Conectar o Dropbox';
+  const steps = isDrive ? [
+    ['Crie um projeto no Google', 'Acesse <b>console.cloud.google.com</b>, crie um projeto (ou use um existente).'],
+    ['Ative a API do Drive', 'No menu, vá em "APIs e serviços" → "Biblioteca" → procure e ative a <b>Google Drive API</b>.'],
+    ['Crie as credenciais', 'Em "APIs e serviços" → "Credenciais" → "Criar credenciais" → <b>"ID do cliente OAuth"</b>, tipo "Aplicativo da Web".'],
+    ['Autorize o endereço do app', 'Em "Origens JavaScript autorizadas", adicione o endereço onde este app fica hospedado.'],
+    ['Cole o Client ID no código', 'Copie o "Client ID" gerado e cole na constante <b>GOOGLE_CLIENT_ID</b>, perto do início do arquivo do app.'],
+  ] : [
+    ['Crie um app no Dropbox', 'Acesse <b>dropbox.com/developers/apps</b> → "Create app".'],
+    ['Escolha acesso restrito', 'Tipo de acesso: <b>"App folder"</b> — assim o app só enxerga uma pasta própria, nunca o resto do seu Dropbox.'],
+    ['Autorize o endereço do app', 'Em "OAuth 2" → "Redirect URIs", adicione o endereço onde este app fica hospedado.'],
+    ['Cole a App key no código', 'Copie a "App key" e cole na constante <b>DROPBOX_APP_KEY</b>, perto do início do arquivo do app. Não precisa da "App secret".'],
+  ];
+  const html = `<div class="modal-head"><h3>${title}</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-dim); font-size:13px; margin:0 0 16px; line-height:1.6;">Essa conexão exige uma configuração única (feita por quem cuida do app, uma vez só) — depois disso, enviar o backup vira um clique só. Passo a passo:</p>
+      ${steps.map((s,i) => `<div style="display:flex; gap:12px; margin-bottom:14px;">
+        <div style="width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:var(--font-mono); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none;">${i+1}</div>
+        <div><div style="font-weight:700; font-size:13.5px; margin-bottom:2px;">${s[0]}</div><div style="font-size:12.5px; color:var(--text-dim); line-height:1.5;">${s[1]}</div></div>
+      </div>`).join('')}
+      <p style="font-size:12px; color:var(--text-faint); margin:6px 0 0; line-height:1.5;">Enquanto isso, use "Baixar backup" ou "Compartilhar" para levar seus dados pro Drive/Dropbox manualmente.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-primary" data-action="close">Entendi</button></div>`;
+  openModal(html);
+  $('modalContent').querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
+}
 async function uploadBackupToDrive(){
-  if (!GDRIVE_ON){ showToast('Google Drive não está configurado neste app.'); return; }
+  if (!GDRIVE_ON){ openCloudSetupModal('drive'); return; }
   const btn = $('driveUploadBtn');
   const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Conectando com o Google...';
   try {
@@ -5028,7 +5146,7 @@ async function sha256Base64Url(str){
 }
 function dropboxRedirectUri(){ return window.location.origin + window.location.pathname; }
 async function startDropboxAuth(){
-  if (!DROPBOX_ON){ showToast('Dropbox não está configurado neste app.'); return; }
+  if (!DROPBOX_ON){ openCloudSetupModal('dropbox'); return; }
   const verifierBytes = crypto.getRandomValues(new Uint8Array(64));
   const verifier = b64url(verifierBytes);
   sessionStorage.setItem('dbx_verifier', verifier);
