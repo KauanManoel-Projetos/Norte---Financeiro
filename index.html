@@ -5529,11 +5529,7 @@ function renderTourStep(step, el, i){
     const cardWidth = Math.min(380, window.innerWidth - 32);
     card.style.width = cardWidth + 'px';
     const cardHeight = card.offsetHeight;
-    let left = Math.min(Math.max(r.left, 16), Math.max(16, window.innerWidth - cardWidth - 16));
-    let top = r.bottom + 16;
-    const maxTop = Math.max(16, window.innerHeight - cardHeight - 16);
-    if (top > maxTop) top = Math.max(16, r.top - cardHeight - 16);
-    top = Math.max(16, Math.min(top, maxTop));
+    const { left, top } = tourCardPosition(r, cardWidth, cardHeight);
     card.style.left = left + 'px';
     card.style.top = top + 'px';
   } else {
@@ -5542,6 +5538,33 @@ function renderTourStep(step, el, i){
     card.classList.add('center');
     card.style.top = ''; card.style.left = '';
   }
+}
+// Escolhe onde colocar o card sem NUNCA sobrepor o elemento destacado (r):
+// tenta embaixo, depois em cima, e só em último caso ao lado — sempre
+// conferindo se realmente cabe antes de aceitar cada posição.
+function tourCardPosition(r, cardWidth, cardHeight){
+  const m = 16; // margem de respiro das bordas da tela
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const clampLeft = (left) => Math.min(Math.max(left, m), Math.max(m, vw - cardWidth - m));
+  // 1) embaixo do elemento
+  if (r.bottom + m + cardHeight + m <= vh){
+    return { left: clampLeft(r.left), top: r.bottom + m };
+  }
+  // 2) em cima do elemento
+  if (r.top - m - cardHeight >= m){
+    return { left: clampLeft(r.left), top: r.top - m - cardHeight };
+  }
+  // 3) à direita do elemento (ex: item estreito na sidebar, sem espaço vertical suficiente)
+  if (r.right + m + cardWidth + m <= vw){
+    return { left: r.right + m, top: Math.max(m, Math.min(r.top, vh - cardHeight - m)) };
+  }
+  // 4) à esquerda do elemento
+  if (r.left - m - cardWidth >= m){
+    return { left: r.left - m - cardWidth, top: Math.max(m, Math.min(r.top, vh - cardHeight - m)) };
+  }
+  // 5) último recurso: não há espaço em nenhum lado sem sobrepor — centraliza na tela,
+  // priorizando nunca ficar por cima do elemento (mesmo que fique longe dele).
+  return { left: clampLeft((vw - cardWidth) / 2), top: r.bottom + m <= vh ? Math.max(m, vh - cardHeight - m) : m };
 }
 // Os textos do tour usam só <b> como marcação — escapa tudo mais e reaplica o negrito.
 function escapeHtmlKeepBold(str){
