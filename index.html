@@ -571,6 +571,38 @@ tr:hover td{background:var(--surface-2);}
 .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:11px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:100; box-shadow:var(--shadow-3); opacity:0; pointer-events:none; transition:opacity .25s var(--ease), transform .25s var(--ease);}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px); pointer-events:auto;}
 
+/* -------------------- TOUR GUIADO -------------------- */
+.tour-spotlight{
+  position:fixed; z-index:201; border-radius:14px; pointer-events:auto;
+  box-shadow:0 0 0 9999px var(--scrim);
+  border:2px solid var(--accent);
+  transition:top .32s var(--ease), left .32s var(--ease), width .32s var(--ease), height .32s var(--ease), opacity .2s var(--ease);
+}
+.tour-spotlight.center-mode{box-shadow:0 0 0 9999px var(--scrim); border-color:transparent;}
+.tour-card{
+  position:fixed; z-index:202; width:100%; max-width:380px; background:var(--card-grad);
+  border:1px solid var(--border-soft); border-radius:var(--radius-l); box-shadow:var(--shadow-3);
+  padding:22px 24px; transition:top .32s var(--ease), left .32s var(--ease); animation:fadein .25s var(--ease);
+}
+.tour-card.center{position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); max-width:420px;}
+.tour-eyebrow{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.tour-eyebrow .dots{display:flex; gap:4px; margin-left:auto;}
+.tour-eyebrow .dots span{width:5px; height:5px; border-radius:50%; background:var(--border);}
+.tour-eyebrow .dots span.on{background:var(--accent);}
+.tour-card h3{font-size:19px; font-family:var(--font-display); font-weight:400; margin-bottom:10px;}
+.tour-card .body{font-size:13.5px; color:var(--text-dim); line-height:1.65; max-height:38vh; overflow-y:auto;}
+.tour-card .body b{color:var(--text); font-weight:600;}
+.tour-card .body .example{
+  margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--surface-2);
+  border-left:2px solid var(--accent); font-size:12.5px; color:var(--text-dim);
+}
+.tour-card .body .example b{color:var(--accent);}
+.tour-foot{display:flex; align-items:center; justify-content:space-between; margin-top:18px; gap:10px;}
+.tour-skip{background:none; border:none; color:var(--text-faint); font-size:12.5px; cursor:pointer; padding:6px 0; font-family:inherit;}
+.tour-skip:hover{color:var(--text-dim);}
+.tour-nav{display:flex; gap:8px;}
+@media(max-width:640px){ .tour-card{width:calc(100vw - 32px) !important; max-width:calc(100vw - 32px) !important; left:16px !important; transform:none !important;} .tour-card.center{top:50%; transform:translate(0,-50%) !important;} }
+
 .horizon-hint{font-size:12.5px; color:var(--text-faint); margin-top:5px;}
 .quick-add-panel{margin-top:12px; padding:14px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border-soft); animation:fadein .22s var(--ease);}
 .quick-add-panel .field{margin-bottom:12px;}
@@ -698,6 +730,9 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
       <span class="tag" id="readOnlyBadge" style="display:none; background:var(--warn-soft); color:var(--warn); margin-left:8px;">Modo leitura</span>
       <div class="spacer"></div>
       <div style="display:flex; align-items:center; gap:2px;">
+        <button class="btn btn-icon" id="tourBtn" title="Tour guiado" aria-label="Iniciar tour guiado">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.2a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+        </button>
         <button class="btn btn-icon" id="shortcutsBtn" title="Atalhos de teclado (?)" aria-label="Ver atalhos de teclado">
           <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
         </button>
@@ -1188,6 +1223,19 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 <!-- ============================= MODAL ============================= -->
 <div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalContent"></div></div>
 <div class="toast" id="toast"></div>
+<div class="tour-spotlight" id="tourSpotlight" style="display:none;"></div>
+<div class="tour-card" id="tourCard" style="display:none;">
+  <div class="tour-eyebrow"><span id="tourStepLabel">Passo 1 de 1</span><div class="dots" id="tourDots"></div></div>
+  <h3 id="tourCardTitle"></h3>
+  <div class="body" id="tourCardBody"></div>
+  <div class="tour-foot">
+    <button class="tour-skip" id="tourSkipBtn">Pular tour</button>
+    <div class="tour-nav">
+      <button class="btn btn-ghost btn-sm" id="tourPrevBtn">Voltar</button>
+      <button class="btn btn-primary btn-sm" id="tourNextBtn">Próximo</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ==========================================================================
@@ -5315,6 +5363,7 @@ function openShortcutsModal(){
 }
 $('shortcutsBtn').addEventListener('click', openShortcutsModal);
 document.addEventListener('keydown', (e) => {
+  if (tourState.active) return; // enquanto o tour guiado estiver ativo, ele tem seu próprio controle de teclado
   if ($('modalBackdrop').classList.contains('show')) return; // o handler do modal já cuida de Esc/Tab
   const tag = (document.activeElement && document.activeElement.tagName) || '';
   if (['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
@@ -5341,7 +5390,200 @@ function initAppUI(){
   renderProfileSwitcher();
   switchView('dashboard');
   setTimeout(checkReminders, 1200);
+  if (!localStorage.getItem(TOUR_SEEN_KEY)) setTimeout(offerTourModal, 900);
 }
+
+/* -------------------- TOUR GUIADO -------------------- */
+const TOUR_SEEN_KEY = 'norte_tour_seen_v1';
+let tourState = { active: false, index: 0 };
+const TOUR_STEPS = [
+  {
+    title: 'Bem-vindo(a) ao Norte',
+    body: `Este é um tour rápido pelas principais funções do app — leva menos de 2 minutos. Você pode sair a qualquer momento clicando em <b>"Pular tour"</b>, e reabrir depois quando quiser clicando no ícone de <b>interrogação (?)</b> no canto superior direito da tela.`,
+  },
+  {
+    view: 'dashboard', target: '#profileSwitcher', title: 'Perfis',
+    body: `Aqui em cima ficam os seus <b>perfis</b>. Cada perfil é um "livro-caixa" completamente separado, com suas próprias contas, transações, orçamentos, metas e cartões — nada se mistura entre um perfil e outro.`,
+    example: `Use um perfil <b>"Pessoal"</b> pro seu dia a dia e outro <b>"Empresa"</b> ou <b>"Família"</b> pra organizar um dinheiro à parte, sem misturar os números. Clique duas vezes num perfil pra editar nome e cor, ou no "+ Novo" pra criar outro. Só o perfil principal (o primeiro que você criou) não pode ser excluído.`,
+  },
+  {
+    view: 'dashboard', target: '[data-nav="dashboard"]', title: 'Dashboard',
+    body: `A tela inicial, com a visão geral do mês: <b>Saldo total</b> das suas contas, <b>Receitas</b>, <b>Despesas</b> e <b>Resultado</b>, além de um <b>"Raio-x financeiro"</b> que destaca automaticamente coisas como seu maior gasto do mês, o dia da semana que mais pesa no bolso e a categoria que mais cresceu em relação ao mês anterior.`,
+    example: `Quando você tiver cartões de crédito e um histórico de meses, também aparecem aqui um resumo da sua <b>Saúde Financeira</b>, o <b>limite usado nos cartões</b> e um gráfico de fluxo de caixa dos últimos 6 meses.`,
+  },
+  {
+    view: 'transactions', target: '#addTxBtn', title: 'Nova transação',
+    body: `Por aqui — ou pelo atalho de teclado <b>N</b>, em qualquer tela do app — você lança receitas, despesas e transferências entre contas. Dá pra marcar como <b>recorrente</b>, <b>parcelar</b> em várias vezes, anexar uma <b>foto do comprovante</b> e escolher a <b>forma de pagamento</b>: Pix, boleto, dinheiro, transferência, cartão de crédito ou débito.`,
+    example: `Uma compra de R$ 900 parcelada em 3x no cartão de crédito vira 3 lançamentos de R$ 300 — cada um cai na fatura certa, e o valor só sai do seu saldo de verdade quando você pagar aquela fatura, não na hora da compra.`,
+  },
+  {
+    view: 'transactions', target: '[data-nav="transactions"]', title: 'Transações',
+    body: `A lista completa de tudo que você já lançou. Dá pra <b>filtrar</b> por tipo, categoria, conta, grupo e período, <b>buscar</b> por descrição, <b>duplicar</b> um lançamento parecido (bom pra gastos repetidos) ou <b>exportar em CSV</b>.`,
+    example: `Filtre só as despesas da categoria "Mercado" no mês passado pra ver rapidinho quanto você gastou especificamente com isso.`,
+  },
+  {
+    view: 'cards', target: '[data-nav="cards"]', title: 'Cartões',
+    body: `Cadastre seus cartões de <b>crédito</b> (com limite, dia de fechamento e de vencimento) ou <b>débito</b>. Nos cartões de crédito, o app acompanha sozinho o <b>limite usado</b> e monta a <b>fatura</b> automaticamente, agrupando as compras lançadas com a forma de pagamento "Cartão de crédito".`,
+    example: `Ao clicar num cartão, você vê a fatura atual detalhada, com cada compra listada, e pode tocar em <b>"Pagar fatura"</b> — isso lança uma despesa na conta que você escolher e marca aquela fatura como paga.`,
+  },
+  {
+    view: 'fixedbills', target: '[data-nav="fixedbills"]', title: 'Contas fixas',
+    body: `Cadastre contas que se repetem (mensal, semanal ou anual), como aluguel, internet, streaming ou salário. O app avisa quando está perto do vencimento e deixa lançar a transação correspondente com um clique.`,
+    example: `Cadastre <b>"Aluguel — R$ 1.800, todo dia 5"</b> uma única vez, e nos meses seguintes é só confirmar o lançamento em vez de digitar tudo de novo.`,
+  },
+  {
+    view: 'budgets', target: '[data-nav="budgets"]', title: 'Orçamentos',
+    body: `Defina um <b>limite mensal de gasto</b> por categoria e acompanhe visualmente quanto já foi consumido daquele limite, com uma barra de progresso.`,
+    example: `Um orçamento de <b>R$ 600 para "Restaurantes"</b> mostra uma barra que fica amarela perto do limite e vermelha se você estourar — assim dá pra frear antes de passar do combinado.`,
+  },
+  {
+    view: 'goals', target: '[data-nav="goals"]', title: 'Metas',
+    body: `Metas de economia com um valor alvo e, se quiser, um prazo — o app mostra o progresso e, quando há prazo, se você está no ritmo certo pra chegar lá a tempo.`,
+    example: `Uma meta <b>"Viagem — R$ 5.000 até dezembro"</b>, vinculada a uma conta poupança específica, mostra o quanto já foi guardado ali e quanto ainda falta por mês pra bater o valor no prazo.`,
+  },
+  {
+    view: 'health', target: '[data-nav="health"]', title: 'Saúde Financeira',
+    body: `Uma nota de 0% a 100%, calculada automaticamente com base em 6 fatores: taxa de poupança do mês, comprometimento com contas fixas, orçamentos respeitados, tendência de patrimônio, dependência de parcelamento e metas em dia.`,
+    example: `Se boa parte da sua renda está comprometida com contas fixas, esse fator específico puxa a nota geral pra baixo — e a tela mostra, fator por fator, exatamente o porquê da nota estar do jeito que está.`,
+  },
+  {
+    view: 'accounts', target: '[data-nav="accounts"]', title: 'Contas & Categorias',
+    body: `Aqui ficam suas <b>contas bancárias</b> (corrente, carteira, poupança, investimentos), cada uma com um saldo inicial, e as <b>categorias</b> usadas pra classificar receitas e despesas.`,
+    example: `Crie uma conta <b>"Carteira"</b> pro dinheiro físico e categorias como "Salário", "Freelance", "Alimentação", "Transporte" — o app já vem com algumas categorias comuns criadas, mas você pode ajustar do seu jeito.`,
+  },
+  {
+    view: 'groups', target: '[data-nav="groups"]', title: 'Grupos',
+    body: `Um jeito de juntar várias transações sob uma mesma "etiqueta", pra ver o gasto total daquilo — independente da categoria de cada lançamento. Dá pra criar um grupo novo direto na tela de nova transação, sem precisar sair dela.`,
+    example: `Crie um grupo <b>"Viagem Nordeste"</b> e marque nele as passagens, a hospedagem e os passeios — mesmo sendo categorias diferentes (Transporte, Lazer), você enxerga o total gasto na viagem inteira num só lugar.`,
+  },
+  {
+    view: 'reports', target: '[data-nav="reports"]', title: 'Relatórios',
+    body: `Análises mais profundas do seu histórico: comparação de receitas x despesas por período, gastos por categoria e evolução do patrimônio ao longo do tempo, com opção de imprimir ou exportar.`,
+  },
+  {
+    view: 'calculator', target: '[data-nav="calculator"]', title: 'Calculadora & Simulações',
+    body: `Ferramentas de simulação financeira, como projeção de juros compostos.`,
+    example: `Simule quanto tempo leva pra juntar R$ 20.000 guardando R$ 500 por mês a uma taxa de juros escolhida — útil pra planejar uma meta antes mesmo de criá-la na aba Metas.`,
+  },
+  {
+    view: 'aichat', target: '[data-nav="aichat"]', title: 'Chat com IA',
+    body: `Um espaço pra tirar dúvidas ou pedir dicas sobre suas próprias finanças, conversando diretamente dentro do app.`,
+  },
+  {
+    view: 'notes', target: '[data-nav="notes"]', title: 'Notas & Lembretes',
+    body: `Anotações soltas e lembretes com data — pra guardar informações que não são bem uma transação financeira.`,
+    example: `Algo como <b>"Ligar pro banco sobre a fatura"</b> ou <b>"Renovar o seguro do carro em outubro"</b> — o app avisa quando a data do lembrete estiver chegando perto.`,
+  },
+  {
+    view: 'settings', target: '[data-nav="settings"]', title: 'Conta',
+    body: `Sua área pessoal: <b>foto de perfil</b>, <b>e-mail</b> cadastrado e botão pra <b>redefinir a senha</b>. É também aqui que fica o <b>backup dos seus dados</b> — baixar em .json, exportar em planilha Excel, compartilhar ou restaurar um backup anterior — além do envio direto pro <b>Google Drive ou Dropbox</b>.`,
+    example: `Antes de "Limpar todos os dados" pra testar algo, sempre vale <b>baixar um backup primeiro</b> — é só um clique em "Baixar backup (.json)".`,
+  },
+  { target: '#tourBtn', title: 'Reabrir este tour quando quiser',
+    body: `Se quiser rever qualquer parte desse tour depois, é só clicar neste ícone, no canto superior direito da tela.` },
+  { target: '#shortcutsBtn', title: 'Atalhos de teclado',
+    body: `Mostra os atalhos disponíveis no app.`,
+    example: `A tecla <b>N</b> abre direto o formulário de nova transação, de qualquer tela — não precisa nem clicar em nada.` },
+  { target: '#readOnlyToggle', title: 'Modo leitura (apresentação)',
+    body: `Ativa um modo em que nada pode ser criado, editado ou apagado — todos os botões de ação ficam bloqueados.`,
+    example: `Ótimo pra <b>mostrar o app pra alguém</b> (numa reunião, print ou tela compartilhada) sem risco de mexer sem querer nos seus dados de verdade.` },
+  { target: '#themeToggle', title: 'Tema claro/escuro',
+    body: `Alterna entre o visual escuro (padrão) e um tema claro, do jeito que for mais confortável pra você.` },
+  { title: 'Pronto! 🎉',
+    body: `Isso cobre as principais funções do Norte. Sempre que quiser rever alguma parte, é só clicar no ícone de <b>interrogação (?)</b> no topo da tela. Bom uso!` },
+];
+function tourEnsureVisible(el){
+  if (!el) return;
+  if (el.closest('.sidebar') && window.innerWidth <= 880) $('sidebar').classList.add('open');
+  el.scrollIntoView({ block: 'center', behavior: 'auto' });
+}
+async function tourGoToStep(i){
+  const step = TOUR_STEPS[i];
+  tourState.index = i;
+  if (step.view) switchView(step.view);
+  await new Promise(r => setTimeout(r, 60));
+  let el = step.target ? document.querySelector(step.target) : null;
+  if (el && el.offsetParent === null) el = null; // existe mas está numa view/aba escondida
+  tourEnsureVisible(el);
+  renderTourStep(step, el, i);
+}
+function renderTourStep(step, el, i){
+  const spot = $('tourSpotlight'), card = $('tourCard');
+  $('tourStepLabel').textContent = `Passo ${i+1} de ${TOUR_STEPS.length}`;
+  $('tourDots').innerHTML = TOUR_STEPS.map((_,idx) => `<span class="${idx===i?'on':''}"></span>`).join('');
+  $('tourCardTitle').textContent = step.title;
+  $('tourCardBody').innerHTML = escapeHtmlKeepBold(step.body) + (step.example ? `<div class="example">${escapeHtmlKeepBold(step.example)}</div>` : '');
+  $('tourPrevBtn').style.visibility = i === 0 ? 'hidden' : 'visible';
+  $('tourNextBtn').textContent = i === TOUR_STEPS.length - 1 ? 'Concluir' : 'Próximo';
+  spot.style.display = 'block';
+  card.style.display = 'block';
+  if (el){
+    const r = el.getBoundingClientRect();
+    const pad = 8;
+    spot.classList.remove('center-mode');
+    spot.style.top = (r.top - pad) + 'px';
+    spot.style.left = (r.left - pad) + 'px';
+    spot.style.width = (r.width + pad*2) + 'px';
+    spot.style.height = (r.height + pad*2) + 'px';
+    card.classList.remove('center');
+    const cardWidth = Math.min(380, window.innerWidth - 32);
+    card.style.width = cardWidth + 'px';
+    const cardHeight = card.offsetHeight;
+    let left = Math.min(Math.max(r.left, 16), Math.max(16, window.innerWidth - cardWidth - 16));
+    let top = r.bottom + 16;
+    const maxTop = Math.max(16, window.innerHeight - cardHeight - 16);
+    if (top > maxTop) top = Math.max(16, r.top - cardHeight - 16);
+    top = Math.max(16, Math.min(top, maxTop));
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+  } else {
+    spot.classList.add('center-mode');
+    spot.style.top = '0px'; spot.style.left = '0px'; spot.style.width = '0px'; spot.style.height = '0px';
+    card.classList.add('center');
+    card.style.top = ''; card.style.left = '';
+  }
+}
+// Os textos do tour usam só <b> como marcação — escapa tudo mais e reaplica o negrito.
+function escapeHtmlKeepBold(str){
+  return String(str).split(/(<\/?b>)/).map(part => (part === '<b>' || part === '</b>') ? part : escapeHtml(part)).join('');
+}
+function startTour(){
+  closeModal();
+  tourState.active = true;
+  tourGoToStep(0);
+}
+function endTour(){
+  tourState.active = false;
+  $('tourSpotlight').style.display = 'none';
+  $('tourCard').style.display = 'none';
+  $('sidebar').classList.remove('open');
+  localStorage.setItem(TOUR_SEEN_KEY, '1');
+}
+function offerTourModal(){
+  if (tourState.active || $('modalBackdrop').classList.contains('show')) return;
+  const html = `<div class="modal-head"><h3>Quer conhecer o Norte?</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-dim); font-size:13.5px; line-height:1.6; margin:0;">Preparei um tour guiado rápido (uns 2 minutos) mostrando onde fica cada função do app — cartões, orçamentos, metas, saúde financeira e mais. Você pode rever isso quando quiser pelo ícone de <b>interrogação (?)</b> no topo da tela.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-action="skip">Agora não</button><button class="btn btn-primary" data-action="start">Começar tour</button></div>`;
+  openModal(html);
+  localStorage.setItem(TOUR_SEEN_KEY, '1');
+  const root = $('modalContent');
+  root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
+  root.querySelector('[data-action="skip"]').addEventListener('click', closeModal);
+  root.querySelector('[data-action="start"]').addEventListener('click', startTour);
+}
+$('tourBtn').addEventListener('click', startTour);
+$('tourNextBtn').addEventListener('click', () => { if (tourState.index >= TOUR_STEPS.length - 1) endTour(); else tourGoToStep(tourState.index + 1); });
+$('tourPrevBtn').addEventListener('click', () => { if (tourState.index > 0) tourGoToStep(tourState.index - 1); });
+$('tourSkipBtn').addEventListener('click', endTour);
+window.addEventListener('resize', () => { if (tourState.active) renderTourStep(TOUR_STEPS[tourState.index], (TOUR_STEPS[tourState.index].target ? document.querySelector(TOUR_STEPS[tourState.index].target) : null), tourState.index); });
+document.addEventListener('keydown', (e) => {
+  if (!tourState.active) return;
+  if (e.key === 'Escape'){ e.preventDefault(); endTour(); }
+  else if (e.key === 'ArrowRight' || e.key === 'Enter'){ e.preventDefault(); $('tourNextBtn').click(); }
+  else if (e.key === 'ArrowLeft'){ e.preventDefault(); $('tourPrevBtn').click(); }
+});
 
 async function boot(){
   if (SUPA_ON && supa){
