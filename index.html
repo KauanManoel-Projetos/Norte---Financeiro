@@ -572,13 +572,18 @@ tr:hover td{background:var(--surface-2);}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px); pointer-events:auto;}
 
 /* -------------------- TOUR GUIADO -------------------- */
-.tour-spotlight{
-  position:fixed; z-index:201; border-radius:14px; pointer-events:auto;
-  box-shadow:0 0 0 9999px var(--scrim);
+/* Em vez de um único box-shadow gigantesco (9999px) pra escurecer a tela ao
+   redor do alvo — técnica que alguns navegadores mobile não rasterizam
+   direito quando o elemento de origem fica fora da tela, deixando botões
+   "furarem" o escurecimento — usamos 4 painéis que cobrem exatamente o
+   resto da viewport ao redor do alvo, sempre com dimensões dentro da tela. */
+.tour-overlay-part{position:fixed; z-index:201; background:var(--scrim); pointer-events:auto; transition:top .32s var(--ease), left .32s var(--ease), width .32s var(--ease), height .32s var(--ease);}
+.tour-highlight-ring{
+  position:fixed; z-index:201; border-radius:14px; pointer-events:auto; box-sizing:border-box;
   border:2px solid var(--accent);
   transition:top .32s var(--ease), left .32s var(--ease), width .32s var(--ease), height .32s var(--ease), opacity .2s var(--ease);
 }
-.tour-spotlight.center-mode{box-shadow:0 0 0 9999px var(--scrim); border-color:transparent;}
+.tour-highlight-ring.center-mode{opacity:0; pointer-events:none;}
 .tour-card{
   position:fixed; z-index:202; width:100%; max-width:380px; background:var(--card-grad);
   border:1px solid var(--border-soft); border-radius:var(--radius-l); box-shadow:var(--shadow-3);
@@ -1223,7 +1228,11 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 <!-- ============================= MODAL ============================= -->
 <div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalContent"></div></div>
 <div class="toast" id="toast"></div>
-<div class="tour-spotlight" id="tourSpotlight" style="display:none;"></div>
+<div class="tour-overlay-part" id="tourOverlayTop" style="display:none;"></div>
+<div class="tour-overlay-part" id="tourOverlayBottom" style="display:none;"></div>
+<div class="tour-overlay-part" id="tourOverlayLeft" style="display:none;"></div>
+<div class="tour-overlay-part" id="tourOverlayRight" style="display:none;"></div>
+<div class="tour-highlight-ring" id="tourRing" style="display:none;"></div>
 <div class="tour-card" id="tourCard" style="display:none;">
   <div class="tour-eyebrow"><span id="tourStepLabel">Passo 1 de 1</span><div class="dots" id="tourDots"></div></div>
   <h3 id="tourCardTitle"></h3>
@@ -5508,33 +5517,62 @@ async function tourGoToStep(i){
   renderTourStep(step, el, i);
 }
 function renderTourStep(step, el, i){
-  const spot = $('tourSpotlight'), card = $('tourCard');
+  const card = $('tourCard');
+  const ring = $('tourRing');
+  const parts = { top: $('tourOverlayTop'), bottom: $('tourOverlayBottom'), left: $('tourOverlayLeft'), right: $('tourOverlayRight') };
   $('tourStepLabel').textContent = `Passo ${i+1} de ${TOUR_STEPS.length}`;
   $('tourDots').innerHTML = TOUR_STEPS.map((_,idx) => `<span class="${idx===i?'on':''}"></span>`).join('');
   $('tourCardTitle').textContent = step.title;
   $('tourCardBody').innerHTML = escapeHtmlKeepBold(step.body) + (step.example ? `<div class="example">${escapeHtmlKeepBold(step.example)}</div>` : '');
   $('tourPrevBtn').style.visibility = i === 0 ? 'hidden' : 'visible';
   $('tourNextBtn').textContent = i === TOUR_STEPS.length - 1 ? 'Concluir' : 'Próximo';
-  spot.style.display = 'block';
   card.style.display = 'block';
+  Object.values(parts).forEach(p => p.style.display = 'block');
+  ring.style.display = 'block';
+  const vw = window.innerWidth, vh = window.innerHeight;
   if (el){
     const r = el.getBoundingClientRect();
     const pad = 8;
-    spot.classList.remove('center-mode');
-    spot.style.top = (r.top - pad) + 'px';
-    spot.style.left = (r.left - pad) + 'px';
-    spot.style.width = (r.width + pad*2) + 'px';
-    spot.style.height = (r.height + pad*2) + 'px';
+    const top = Math.max(0, r.top - pad), left = Math.max(0, r.left - pad);
+    const w = r.width + pad*2, h = r.height + pad*2;
+    ring.classList.remove('center-mode');
+    ring.style.top = top + 'px'; ring.style.left = left + 'px';
+    ring.style.width = w + 'px'; ring.style.height = h + 'px';
+    // 4 painéis cobrindo exatamente o resto da tela ao redor do "buraco" (top/left/w/h)
+    parts.top.style.top = '0px'; parts.top.style.left = '0px'; parts.top.style.width = vw + 'px'; parts.top.style.height = Math.max(0, top) + 'px';
+    parts.bottom.style.top = (top + h) + 'px'; parts.bottom.style.left = '0px'; parts.bottom.style.width = vw + 'px'; parts.bottom.style.height = Math.max(0, vh - (top + h)) + 'px';
+    parts.left.style.top = top + 'px'; parts.left.style.left = '0px'; parts.left.style.width = Math.max(0, left) + 'px'; parts.left.style.height = h + 'px';
+    parts.right.style.top = top + 'px'; parts.right.style.left = (left + w) + 'px'; parts.right.style.width = Math.max(0, vw - (left + w)) + 'px'; parts.right.style.height = h + 'px';
     card.classList.remove('center');
-    const cardWidth = Math.min(380, window.innerWidth - 32);
+    const cardWidth = Math.min(380, vw - 32);
     card.style.width = cardWidth + 'px';
+    const bodyEl = $('tourCardBody');
+    bodyEl.style.maxHeight = ''; // recomeça sem limite pra medir a altura "natural" do conteúdo
+    const m = 16;
+    const spaceBelow = vh - (top + h) - m*2;
+    const spaceAbove = top - m*2;
+    const spaceRight = vw - (left + w) - m*2;
+    const spaceLeft = left - m*2;
+    const fitsBesideWithFullWidth = spaceRight >= cardWidth || spaceLeft >= cardWidth;
+    if (!fitsBesideWithFullWidth){
+      // vai ficar embaixo ou em cima do alvo: limita a altura do corpo ao espaço
+      // realmente disponível naquela direção, deixando o texto rolar aí dentro
+      // se precisar — assim o card NUNCA fica maior que o espaço livre.
+      const chromeHeight = card.offsetHeight - bodyEl.offsetHeight; // cabeçalho + rodapé + paddings
+      const available = Math.max(spaceBelow, spaceAbove) - chromeHeight;
+      if (bodyEl.offsetHeight > available) bodyEl.style.maxHeight = Math.max(70, available) + 'px';
+    }
     const cardHeight = card.offsetHeight;
-    const { left, top } = tourCardPosition(r, cardWidth, cardHeight);
-    card.style.left = left + 'px';
-    card.style.top = top + 'px';
+    const { left: cLeft, top: cTop } = tourCardPosition(r, cardWidth, cardHeight);
+    card.style.left = cLeft + 'px';
+    card.style.top = cTop + 'px';
   } else {
-    spot.classList.add('center-mode');
-    spot.style.top = '0px'; spot.style.left = '0px'; spot.style.width = '0px'; spot.style.height = '0px';
+    ring.classList.add('center-mode');
+    // sem alvo: um único painel (o "top") cobre a tela inteira; os outros ficam vazios
+    parts.top.style.top = '0px'; parts.top.style.left = '0px'; parts.top.style.width = vw + 'px'; parts.top.style.height = vh + 'px';
+    parts.bottom.style.width = '0px'; parts.bottom.style.height = '0px';
+    parts.left.style.width = '0px'; parts.left.style.height = '0px';
+    parts.right.style.width = '0px'; parts.right.style.height = '0px';
     card.classList.add('center');
     card.style.top = ''; card.style.left = '';
   }
@@ -5577,8 +5615,7 @@ function startTour(){
 }
 function endTour(){
   tourState.active = false;
-  $('tourSpotlight').style.display = 'none';
-  $('tourCard').style.display = 'none';
+  ['tourOverlayTop','tourOverlayBottom','tourOverlayLeft','tourOverlayRight','tourRing','tourCard'].forEach(id => $(id).style.display = 'none');
   $('sidebar').classList.remove('open');
   localStorage.setItem(TOUR_SEEN_KEY, '1');
 }
