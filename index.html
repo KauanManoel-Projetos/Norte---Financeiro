@@ -499,7 +499,8 @@ tr:hover td{background:var(--surface-2);}
 .account-card.drag-over{border-color:var(--accent);}
 .drag-handle{cursor:grab; color:var(--text-faint); letter-spacing:-2px; font-size:15px; line-height:1; flex:none; user-select:none; padding:4px;}
 .drag-handle:active{cursor:grabbing;}
-.account-card .icon-wrap{width:46px;height:46px;border-radius:13px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;color:var(--accent);}
+.account-card .icon-wrap{width:46px;height:46px;border-radius:13px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;color:var(--accent);position:relative;overflow:hidden;}
+.account-card .icon-wrap img.bank-logo{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:8px;box-sizing:border-box;}
 .account-card .info{flex:1;}
 .account-card .info .name{font-weight:700; font-size:14.5px;}
 .account-card .info .type{font-size:12.5px; color:var(--text-faint); text-transform:capitalize;}
@@ -1976,6 +1977,55 @@ function pctDelta(cur, prev){
 }
 
 /* -------------------- CARTÕES -------------------- */
+/* -------------------- LOGOS DE BANCOS -------------------- */
+// Reconhece o nome do banco/instituição digitado pela pessoa e retorna o
+// domínio usado pra buscar a logo (via logo.clearbit.com, serviço público
+// e gratuito). Cada entrada tem um domínio e uma lista de apelidos/variações
+// de grafia que devem casar com esse banco.
+const BANK_LOGO_DOMAINS = [
+  { domain: 'nubank.com.br', names: ['nubank', 'nu bank', 'nu'] },
+  { domain: 'itau.com.br', names: ['itau', 'itaú'] },
+  { domain: 'bradesco.com.br', names: ['bradesco'] },
+  { domain: 'santander.com.br', names: ['santander'] },
+  { domain: 'bb.com.br', names: ['banco do brasil', 'bb'] },
+  { domain: 'caixa.gov.br', names: ['caixa economica', 'caixa econômica', 'caixa'] },
+  { domain: 'bancointer.com.br', names: ['inter', 'banco inter'] },
+  { domain: 'c6bank.com.br', names: ['c6', 'c6 bank'] },
+  { domain: 'mercadopago.com.br', names: ['mercado pago', 'mercadopago', 'mercado livre'] },
+  { domain: 'picpay.com', names: ['picpay', 'pic pay'] },
+  { domain: 'neon.com.br', names: ['neon'] },
+  { domain: 'original.com.br', names: ['banco original', 'original'] },
+  { domain: 'safra.com.br', names: ['safra'] },
+  { domain: 'bancopan.com.br', names: ['banco pan', 'pan'] },
+  { domain: 'willbank.com.br', names: ['will bank', 'willbank'] },
+  { domain: 'btgpactual.com', names: ['btg pactual', 'btg'] },
+  { domain: 'xpi.com.br', names: ['xp investimentos', 'xp'] },
+  { domain: 'sicredi.com.br', names: ['sicredi'] },
+  { domain: 'sicoob.com.br', names: ['sicoob'] },
+  { domain: 'bancomodal.com.br', names: ['modal'] },
+  { domain: 'next.me', names: ['next'] },
+  { domain: 'ame.com.br', names: ['ame digital', 'amedigital', 'ame'] },
+  { domain: 'digio.com.br', names: ['digio'] },
+  { domain: 'pagbank.com.br', names: ['pagbank', 'pagseguro'] },
+  { domain: 'bancotopazio.com.br', names: ['topazio', 'topázio'] },
+  { domain: 'agibank.com.br', names: ['agibank', 'agi bank'] },
+  { domain: 'paypal.com', names: ['paypal'] },
+  { domain: 'wise.com', names: ['wise'] },
+  { domain: 'revolut.com', names: ['revolut'] },
+  { domain: 'binance.com', names: ['binance'] },
+];
+function matchBankDomain(name){
+  const stripAccents = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const norm = ' ' + stripAccents((name || '').toLowerCase()).trim() + ' '; // espaços nas pontas p/ casar palavra inteira
+  for (const bank of BANK_LOGO_DOMAINS){
+    if (bank.names.some(n => norm.includes(' ' + stripAccents(n.trim()) + ' '))) return bank.domain;
+  }
+  return null;
+}
+function bankLogoImg(domain){
+  return domain ? `<img class="bank-logo" src="https://logo.clearbit.com/${domain}?size=80" alt="" onerror="this.remove()">` : '';
+}
+
 const PAYMENT_METHODS = [
   { key: 'pix', label: 'Pix', icon: 'pix' },
   { key: 'debit', label: 'Cartão de débito', icon: 'cards' },
@@ -3421,7 +3471,7 @@ function renderAccountsAndCategories(){
     const minBal = Math.min(...withBal.map(a=>a.bal));
     wrap.innerHTML = withBal.map((a) => `<div class="card account-card" draggable="true" data-id="${a.id}">
       <span class="drag-handle" title="Arraste para reordenar" aria-label="Arraste para reordenar">⠿</span>
-      <div class="icon-wrap">${ICONS.wallet}</div>
+      <div class="icon-wrap">${ICONS.wallet}${bankLogoImg(a.bankDomain)}</div>
       <div class="info">
         <div class="name">${escapeHtml(a.name)} ${withBal.length>1 && a.bal===maxBal ? '<span class="rank-pill rank-top">Maior saldo</span>' : ''}${withBal.length>1 && a.bal===minBal && minBal!==maxBal ? '<span class="rank-pill rank-low">Menor saldo</span>' : ''}</div>
         <div class="type">${escapeHtml(a.type)}</div>
@@ -4536,9 +4586,17 @@ $('addTransferBtn').addEventListener('click', () => {
 /* ---- Account modal ---- */
 function openAccountModal(id){
   const editing = id ? state.accounts.find(a => a.id === id) : null;
+  const initialDomain = editing ? (editing.bankDomain || matchBankDomain(editing.name)) : null;
   const html = `<div class="modal-head"><h3>${editing?'Editar conta':'Nova conta'}</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Nome</label><input type="text" id="fName" value="${editing?escapeHtml(editing.name):''}" placeholder="Ex: Conta Corrente"></div>
+      <div class="field">
+        <label>Nome</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div class="icon-wrap" id="fBankLogoPreview" style="width:40px; height:40px; flex:none;">${ICONS.wallet}${bankLogoImg(initialDomain)}</div>
+          <input type="text" id="fName" style="flex:1;" value="${editing?escapeHtml(editing.name):''}" placeholder="Ex: Mercado Pago, Nubank, Itaú, Santander...">
+        </div>
+        <div class="horizon-hint" id="fBankLogoHint">${initialDomain ? 'Logo reconhecida automaticamente.' : 'Reconhecemos a logo de bancos e fintechs comuns automaticamente.'}</div>
+      </div>
       <div class="field"><label>Tipo</label><select id="fType">
         ${['Corrente','Carteira','Poupança','Investimentos','Outro'].map(t => `<option ${editing&&editing.type===t?'selected':''}>${t}</option>`).join('')}
       </select></div>
@@ -4548,12 +4606,21 @@ function openAccountModal(id){
     <div class="modal-foot"><button class="btn btn-ghost" data-action="cancel">Cancelar</button><button class="btn btn-primary" data-action="save">${editing?'Salvar':'Adicionar'}</button></div>`;
   openModal(html);
   const root = $('modalContent');
+  let debounceTimer = null;
+  root.querySelector('#fName').addEventListener('input', (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const domain = matchBankDomain(e.target.value);
+      root.querySelector('#fBankLogoPreview').innerHTML = ICONS.wallet + bankLogoImg(domain);
+      root.querySelector('#fBankLogoHint').textContent = domain ? 'Logo reconhecida automaticamente.' : 'Reconhecemos a logo de bancos e fintechs comuns automaticamente.';
+    }, 250);
+  });
   root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="cancel"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="save"]').addEventListener('click', () => {
     const name = root.querySelector('#fName').value.trim();
     if (!name){ showToast('Informe um nome para a conta.'); return; }
-    const payload = { name, type: root.querySelector('#fType').value, initialBalance: Number(root.querySelector('#fInitBal').value)||0 };
+    const payload = { name, type: root.querySelector('#fType').value, initialBalance: Number(root.querySelector('#fInitBal').value)||0, bankDomain: matchBankDomain(name) };
     if (editing) Object.assign(editing, payload);
     else state.accounts.push({ id: uid(), ...payload });
     mutate(); closeModal(); renderAccountsAndCategories(); showToast(editing?'Conta atualizada.':'Conta adicionada.');
