@@ -2026,7 +2026,15 @@ function matchBankDomain(name){
   return null;
 }
 function bankLogoImg(domain){
-  return domain ? `<img class="bank-logo" src="https://logo.clearbit.com/${domain}?size=80" alt="" onerror="this.remove()">` : '';
+  if (!domain) return '';
+  // O Clearbit Logo API (usado antes) foi desativado de vez pela HubSpot em
+  // dezembro de 2025. Usamos o serviço de favicons do Google como fonte
+  // principal (gratuito, sem chave, o mesmo que o Chrome usa internamente),
+  // com o ícone do DuckDuckGo como segunda tentativa antes de desistir e
+  // voltar pro ícone de maleta.
+  const google = `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+  const ddg = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+  return `<img class="bank-logo" src="${google}" alt="" data-fallback="${ddg}" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback='';}else{this.remove();}">`;
 }
 
 const PAYMENT_METHODS = [
