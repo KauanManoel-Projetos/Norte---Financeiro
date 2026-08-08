@@ -4603,7 +4603,7 @@ function openAccountModal(id){
       <div class="field">
         <label>Nome</label>
         <div style="display:flex; gap:10px; align-items:center;">
-          <div class="icon-wrap" id="fBankLogoPreview" style="width:40px; height:40px; flex:none;">${ICONS.wallet}${bankLogoImg(initialDomain)}</div>
+          <div class="icon-wrap" id="fBankLogoPreview" style="width:40px; height:40px; flex:none; position:relative; overflow:hidden; border-radius:13px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center;">${ICONS.wallet}${bankLogoImg(initialDomain)}</div>
           <input type="text" id="fName" style="flex:1;" value="${editing?escapeHtml(editing.name):''}" placeholder="Ex: Mercado Pago, Nubank, Itaú, Santander...">
         </div>
         <div class="horizon-hint" id="fBankLogoHint">${initialDomain ? 'Logo reconhecida automaticamente.' : 'Reconhecemos a logo de bancos e fintechs comuns automaticamente.'}</div>
