@@ -534,7 +534,7 @@ tr:hover td{background:var(--surface-2);}
 .cc-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px;}
 .cc-sub{font-size:12.5px; color:var(--text-dim);}
 .cc-foot .btn{color:var(--cc-color); font-size:12.5px; padding:6px 4px;}
-.rank-pill{font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; margin-left:8px;}
+.rank-pill{font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; margin-left:8px; white-space:nowrap; display:inline-block;}
 .rank-top{background:var(--positive-soft); color:var(--positive);}
 .rank-low{background:var(--negative-soft); color:var(--negative);}
 
@@ -1882,6 +1882,9 @@ async function onAuthenticated(user){
 /* -------------------- INTEGRIDADE / MIGRAÇÃO -------------------- */
 function ensureIntegrity(){
   state.accounts = state.accounts || [];
+  state.accounts.forEach(a => {
+    if (a.bankDomain === undefined) a.bankDomain = matchBankDomain(a.name);
+  });
   state.categories = state.categories || [];
   state.transactions = state.transactions || [];
   state.fixedBills = state.fixedBills || [];
