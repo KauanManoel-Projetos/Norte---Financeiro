@@ -353,12 +353,17 @@ tr:hover td{background:var(--surface-2);}
 .cat-chip .dot{width:8px;height:8px;border-radius:50%;}
 
 /* Fixed bills */
-.bill-card{display:flex; align-items:center; gap:14px; padding:16px; margin-bottom:10px;}
+.bill-card{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:16px; margin-bottom:10px;}
 .bill-card .icon-wrap{width:46px;height:46px;border-radius:13px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex:none;}
 .bill-card .icon-wrap .icon{width:21px;height:21px;stroke-width:1.6;}
-.bill-card .info{flex:1; min-width:0;}
-.bill-card .info .name{font-weight:700; font-size:14px;}
+.bill-card .info{flex:1 1 180px; min-width:0;}
+.bill-card .info .name{font-weight:700; font-size:14px; display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
 .bill-card .info .meta{font-size:12.5px; color:var(--text-faint); margin-top:2px;}
+.bill-card .bill-actions{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px; margin-left:auto;}
+@media(max-width:520px){
+  .bill-card .info{flex-basis:100%;}
+  .bill-card .bill-actions{flex-basis:100%; margin-left:60px; justify-content:flex-start;}
+}
 .badge-launched{font-size:12px; font-weight:700; color:var(--positive); background:var(--positive-soft); padding:4px 10px; border-radius:999px;}
 .badge-pending{font-size:12px; font-weight:700; color:var(--warn); background:var(--warn-soft); padding:4px 10px; border-radius:999px;}
 
@@ -3276,12 +3281,13 @@ function renderFixedBills(){
         <div class="name">${escapeHtml(b.name)} <span class="tag">${frequencyLabel(b.frequency)}</span> ${autoTag}</div>
         <div class="meta">${progress}${billDueLabel(b)} · ${escapeHtml(cat?.name||'—')} · ${escapeHtml(acc?.name||'—')}</div>
       </div>
-      <div class="num" style="font-weight:600; margin-right:6px;">${fmtBRL(b.value)}</div>
-      ${statusBadge}
-      ${(!launched && !b.finished) ? `<button class="btn btn-primary btn-sm" data-action="launch" data-id="${b.id}">Lançar agora</button>` : ''}
-      <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${b.id}" aria-label="Editar">${ICONS.edit}</button>
-      <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${b.id}" aria-label="Excluir">${ICONS.trash}</button>
-    </div>`;
+      <div class="bill-actions">
+        <div class="num" style="font-weight:600;">${fmtBRL(b.value)}</div>
+        ${statusBadge}
+        ${(!launched && !b.finished) ? `<button class="btn btn-primary btn-sm" data-action="launch" data-id="${b.id}">Lançar agora</button>` : ''}
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${b.id}" aria-label="Editar">${ICONS.edit}</button>
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${b.id}" aria-label="Excluir">${ICONS.trash}</button>
+      </div>    </div>`;
   }).join('');
   wrap.querySelectorAll('[data-action="launch"]').forEach(el => el.addEventListener('click', () => launchFixedBill(el.dataset.id)));
   wrap.querySelectorAll('[data-action="edit"]').forEach(el => el.addEventListener('click', () => openFixedBillModal(el.dataset.id)));
