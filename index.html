@@ -2586,15 +2586,41 @@ function scoreGoalsOnTrack(){
   });
   return ratios.reduce((s,v)=>s+v,0) / ratios.length;
 }
+function scoreEmergencyFund(){
+  // Média de despesa mensal dos últimos meses com movimentação, comparada
+  // ao saldo total em contas — quantos meses de gastos você aguenta cobrir
+  // se a renda parar. 6 meses de reserva já é nota máxima.
+  const months = lastNMonths(6);
+  const withData = months.filter(m => monthIncomeExpense(m).count > 0);
+  if (!withData.length) return null;
+  const avgExpense = withData.reduce((s,m) => s + monthIncomeExpense(m).expense, 0) / withData.length;
+  if (avgExpense <= 0) return null;
+  const monthsCovered = totalBalance() / avgExpense;
+  if (monthsCovered <= 0) return 0;
+  return clampPct((monthsCovered / 6) * 100);
+}
+function scoreCreditUtilization(){
+  const creditCards = state.creditCards.filter(c => c.kind === 'credit');
+  if (!creditCards.length) return null;
+  const totalLimit = creditCards.reduce((s,c) => s + (Number(c.limit)||0), 0);
+  if (totalLimit <= 0) return null;
+  const totalUsed = creditCards.reduce((s,c) => s + cardOpenBalance(c), 0);
+  const pct = (totalUsed / totalLimit) * 100;
+  if (pct <= 30) return 100; // uso abaixo de 30% do limite é considerado saudável
+  if (pct >= 100) return 0;
+  return clampPct(100 - ((pct - 30) / 70) * 100);
+}
 const HEALTH_FACTORS = [
-  { key: 'savings', label: 'Taxa de poupança do mês', weight: 30, calc: scoreSavingsRate, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : 'Quanto da sua renda sobrou depois das despesas.' },
-  { key: 'fixed', label: 'Comprometimento com contas fixas', weight: 25, calc: scoreFixedCommitment, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : '% da renda já comprometida com despesas fixas.' },
-  { key: 'budgets', label: 'Orçamentos respeitados', weight: 15, calc: scoreBudgets, hint: (v)=> v===null ? 'Nenhum orçamento cadastrado ainda.' : '% das categorias com orçamento que ficaram dentro do limite.' },
-  { key: 'networth', label: 'Tendência de patrimônio', weight: 15, calc: scoreNetWorthTrend, hint: (v)=> v===null ? 'Ainda sem histórico suficiente (mín. 3 meses).' : 'Seu patrimônio líquido nos últimos 3 meses.' },
-  { key: 'installments', label: 'Dependência de parcelamento', weight: 10, calc: scoreInstallmentDependency, hint: (v)=> v===null ? 'Sem despesas registradas no mês.' : '% dos gastos do mês que vieram de compras parceladas.' },
+  { key: 'savings', label: 'Taxa de poupança do mês', weight: 25, calc: scoreSavingsRate, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : 'Quanto da sua renda sobrou depois das despesas.' },
+  { key: 'fixed', label: 'Comprometimento com contas fixas', weight: 20, calc: scoreFixedCommitment, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : '% da renda já comprometida com despesas fixas.' },
+  { key: 'emergency', label: 'Reserva de emergência', weight: 12, calc: scoreEmergencyFund, hint: (v)=> v===null ? 'Ainda sem histórico de gastos suficiente.' : 'Quantos meses de despesas seu saldo em contas cobriria.' },
+  { key: 'budgets', label: 'Orçamentos respeitados', weight: 12, calc: scoreBudgets, hint: (v)=> v===null ? 'Nenhum orçamento cadastrado ainda.' : '% das categorias com orçamento que ficaram dentro do limite.' },
+  { key: 'networth', label: 'Tendência de patrimônio', weight: 12, calc: scoreNetWorthTrend, hint: (v)=> v===null ? 'Ainda sem histórico suficiente (mín. 3 meses).' : 'Seu patrimônio líquido nos últimos 3 meses.' },
+  { key: 'installments', label: 'Dependência de parcelamento', weight: 8, calc: scoreInstallmentDependency, hint: (v)=> v===null ? 'Sem despesas registradas no mês.' : '% dos gastos do mês que vieram de compras parceladas.' },
+  { key: 'creditutil', label: 'Uso do limite do cartão', weight: 6, calc: scoreCreditUtilization, hint: (v)=> v===null ? 'Nenhum cartão de crédito com limite cadastrado.' : '% do limite total dos seus cartões já em uso.' },
   { key: 'goals', label: 'Metas em dia', weight: 5, calc: scoreGoalsOnTrack, hint: (v)=> v===null ? 'Nenhuma meta com prazo definido.' : 'Progresso das metas com prazo comparado ao tempo já passado.' },
 ];
-const HEALTH_FACTOR_ICONS = { savings:'trendUp', fixed:'fixedbills', budgets:'target', networth:'pulse', installments:'scale', goals:'goals' };
+const HEALTH_FACTOR_ICONS = { savings:'trendUp', fixed:'fixedbills', emergency:'shield', budgets:'target', networth:'pulse', installments:'scale', creditutil:'cards', goals:'goals' };
 function computeHealthScore(ym){
   const results = HEALTH_FACTORS.map(f => ({ ...f, value: f.calc(ym) }));
   const included = results.filter(r => r.value !== null);
@@ -2623,9 +2649,11 @@ function generateHealthTips(ym){
     if (f.value >= 70) continue;
     if (f.key === 'savings') tips.push('Sua taxa de poupança está baixa esse mês. Olhe a categoria que mais cresceu no "Raio-x financeiro" do Dashboard — cortar ali primeiro costuma ter o maior impacto.');
     else if (f.key === 'fixed') tips.push('Uma fatia grande da sua renda já está comprometida com contas fixas. Vale revisar assinaturas ou renegociar alguma delas.');
+    else if (f.key === 'emergency') tips.push('Seu saldo em contas cobre poucos meses de despesas caso a renda pare. Tente reservar uma parte do que sobra todo mês até chegar perto de 6 meses de gastos guardados.');
     else if (f.key === 'budgets') tips.push('Uma ou mais categorias estouraram o orçamento este mês. Dá uma olhada em Orçamentos para ver quais.');
     else if (f.key === 'networth') tips.push('Seu patrimônio líquido não cresceu nos últimos meses. Vale revisar se as despesas estão consistentemente maiores que as receitas.');
     else if (f.key === 'installments') tips.push('Boa parte dos seus gastos do mês veio de compras parceladas. Isso compromete meses futuros — vale ir com calma em novos parcelamentos.');
+    else if (f.key === 'creditutil') tips.push('Você já está usando boa parte do limite dos seus cartões. Usar menos de 30% do limite total ajuda a manter esse indicador (e seu crédito) saudável.');
     else if (f.key === 'goals') tips.push('Uma ou mais metas com prazo estão atrasadas em relação ao tempo que já passou. Considere reforçar os aportes ou ajustar o prazo.');
   }
   if (!tips.length) tips.push('Seus indicadores estão saudáveis este mês — continue assim!');
