@@ -1611,14 +1611,19 @@ function ensureAppIntegrity(){
   const savedActive = appData.activeProfileId;
   if (appData.avatarData === undefined) appData.avatarData = null;
   if (!appData.profiles.some(p => p.isMain)) appData.profiles[0].isMain = true;
+  let anyAutoLaunched = false;
   appData.profiles.forEach(p => {
     if (!p.color) p.color = CAT_PALETTE[0];
     if (!p.name) p.name = 'Perfil';
-    state = p.data; // ensureIntegrity() opera sobre a variável global `state`
+    state = p.data; // ensureIntegrity()/autoLaunchDueFixedBills() operam sobre a variável global `state`
     ensureIntegrity();
+    if (autoLaunchDueFixedBills()) anyAutoLaunched = true;
   });
   appData.activeProfileId = savedActive;
   state = getActiveProfile().data;
+  // Se alguma conta fixa foi debitada automaticamente (em qualquer perfil),
+  // salva já — sem esperar a próxima ação manual do usuário.
+  if (anyAutoLaunched) scheduleSave();
 }
 function switchProfile(id){
   const p = appData.profiles.find(x => x.id === id);
@@ -1626,6 +1631,7 @@ function switchProfile(id){
   appData.activeProfileId = id;
   state = p.data;
   ensureIntegrity();
+  if (autoLaunchDueFixedBills()) scheduleSave();
   Object.keys(charts).forEach(k => destroyChart(k));
   txCurrentPage = 1; reportRangeInit = false; selectedGroupId = null; calculatorInitialized = calculatorInitialized; // calc não depende de perfil
   vaultKey = null; vaultUnlockedFlag = false; decryptedNoteCache = {}; // caixa privada tranca ao trocar de perfil
@@ -1920,6 +1926,10 @@ function ensureIntegrity(){
   state.fixedBills.forEach(b => {
     if (!Array.isArray(b.launchedMonths)) b.launchedMonths = [];
     if (!b.frequency) b.frequency = 'monthly';
+    if (b.autoDebit === undefined) b.autoDebit = true;
+    if (b.occurrencesCount === undefined) b.occurrencesCount = b.launchedMonths.length;
+    if (b.totalOccurrences === undefined) b.totalOccurrences = null;
+    if (b.finished === undefined) b.finished = !!(b.totalOccurrences && b.occurrencesCount >= b.totalOccurrences);
   });
   state.categories.forEach(c => { if (c.parentId === undefined) c.parentId = null; });
   state.goals.forEach(g => { if (g.accountId === undefined) g.accountId = null; });
@@ -2144,7 +2154,7 @@ async function payCardInvoice(cardId, period){
 
 /* -------------------- RENDER: SIDEBAR / NAV -------------------- */
 function pendingFixedBillsCount(){
-  return state.fixedBills.filter(b => !b.launchedMonths.includes(currentPeriodKey(b.frequency))).length;
+  return state.fixedBills.filter(b => !b.finished && !b.launchedMonths.includes(currentPeriodKey(b.frequency))).length;
 }
 function noteDueDateTime(n){
   if (!n.dueDate) return null;
@@ -2254,7 +2264,7 @@ function renderDashboard(){
   $('heroBalance').textContent = fmtBRL(totalBalance());
 
   // Projeção de saldo até o fim do mês, considerando contas fixas pendentes
-  const pendingBillsList = state.fixedBills.filter(b => !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
+  const pendingBillsList = state.fixedBills.filter(b => !b.finished && !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
   const pendingImpact = pendingBillsList.reduce((s,b) => s + (b.type === 'income' ? Number(b.value) : -Number(b.value)), 0);
   const projected = totalBalance() + pendingImpact;
   $('projectedBalance').textContent = fmtBRL(projected);
@@ -2379,7 +2389,7 @@ function renderUpcomingWidget(){
   const horizon = new Date(now); horizon.setDate(now.getDate() + 7);
   const items = [];
   state.fixedBills.forEach(b => {
-    if (b.launchedMonths.includes(currentPeriodKey(b.frequency))) return;
+    if (b.finished || b.launchedMonths.includes(currentPeriodKey(b.frequency))) return;
     const d = billNextDueDate(b);
     if (d >= now && d <= horizon){
       items.push({ date: d, kind: 'bill', label: b.name, sub: (b.type==='income'?'Receita fixa · ':'Despesa fixa · ') + fmtBRL(b.value), nav: 'fixedbills' });
@@ -2970,7 +2980,7 @@ function buildFinancialContext(){
     catTotals[name] = (catTotals[name]||0) + Number(t.value);
   });
   const topCategories = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name,val]) => ({ categoria: name, valor: Math.round(val) }));
-  const pendingBills = state.fixedBills.filter(b => !b.launchedMonths.includes(currentPeriodKey(b.frequency))).map(b => ({ nome: b.name, valor: b.value, tipo: b.type }));
+  const pendingBills = state.fixedBills.filter(b => !b.finished && !b.launchedMonths.includes(currentPeriodKey(b.frequency))).map(b => ({ nome: b.name, valor: b.value, tipo: b.type }));
   const goalsSummary = state.goals.map(g => ({ nome: g.name, alvo: g.target, guardado: Math.round(goalSavedAmount(g)), prazo: g.deadline || null }));
   return {
     saldoTotal: Math.round(totalBalance()),
@@ -3255,15 +3265,20 @@ function renderFixedBills(){
     const launched = b.launchedMonths.includes(currentPeriodKey(b.frequency));
     const cat = categoryById(b.categoryId);
     const acc = accountById(b.accountId);
+    const progress = b.totalOccurrences ? `${Math.min(b.occurrencesCount||0, b.totalOccurrences)}/${b.totalOccurrences} parcelas · ` : '';
+    const autoTag = b.autoDebit !== false ? `<span class="tag" title="Debita sozinha na data de vencimento">Automática</span>` : '';
+    let statusBadge = `<span class="badge-pending">Pendente</span>`;
+    if (b.finished) statusBadge = `<span class="badge-launched">Concluída</span>`;
+    else if (launched) statusBadge = `<span class="badge-launched">Lançado</span>`;
     return `<div class="card bill-card">
       <div class="icon-wrap" style="color:${b.type==='income'?getCss('--positive'):getCss('--negative')}">${ICONS.fixedbills}</div>
       <div class="info">
-        <div class="name">${escapeHtml(b.name)} <span class="tag">${frequencyLabel(b.frequency)}</span></div>
-        <div class="meta">${billDueLabel(b)} · ${escapeHtml(cat?.name||'—')} · ${escapeHtml(acc?.name||'—')}</div>
+        <div class="name">${escapeHtml(b.name)} <span class="tag">${frequencyLabel(b.frequency)}</span> ${autoTag}</div>
+        <div class="meta">${progress}${billDueLabel(b)} · ${escapeHtml(cat?.name||'—')} · ${escapeHtml(acc?.name||'—')}</div>
       </div>
       <div class="num" style="font-weight:600; margin-right:6px;">${fmtBRL(b.value)}</div>
-      ${launched ? `<span class="badge-launched">Lançado</span>` : `<span class="badge-pending">Pendente</span>`}
-      ${!launched ? `<button class="btn btn-primary btn-sm" data-action="launch" data-id="${b.id}">Lançar agora</button>` : ''}
+      ${statusBadge}
+      ${(!launched && !b.finished) ? `<button class="btn btn-primary btn-sm" data-action="launch" data-id="${b.id}">Lançar agora</button>` : ''}
       <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${b.id}" aria-label="Editar">${ICONS.edit}</button>
       <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${b.id}" aria-label="Excluir">${ICONS.trash}</button>
     </div>`;
@@ -3272,34 +3287,69 @@ function renderFixedBills(){
   wrap.querySelectorAll('[data-action="edit"]').forEach(el => el.addEventListener('click', () => openFixedBillModal(el.dataset.id)));
   wrap.querySelectorAll('[data-action="del"]').forEach(el => el.addEventListener('click', () => deleteFixedBill(el.dataset.id)));
 }
-function launchFixedBill(id){
-  const bill = state.fixedBills.find(b => b.id === id);
-  if (!bill) return;
-  const periodKey = currentPeriodKey(bill.frequency);
-  if (bill.launchedMonths.includes(periodKey)) return;
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+// Calcula a data (YYYY-MM-DD) em que uma conta fixa vence no período atual —
+// usada tanto pro lançamento manual quanto pra checagem automática de vencimento.
+function computeBillDueDate(bill, periodKey){
   const now = new Date();
-  let date;
   if (bill.frequency === 'yearly'){
     const day = String(Math.min(28, Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
     const month = String(Math.min(12, Math.max(1, Number(bill.dueMonth)||1))).padStart(2,'0');
-    date = `${now.getFullYear()}-${month}-${day}`;
-  } else if (bill.frequency === 'weekly'){
+    return `${now.getFullYear()}-${month}-${day}`;
+  }
+  if (bill.frequency === 'weekly'){
     // próxima ocorrência do dia da semana escolhido dentro da semana atual
     const target = Number(bill.dueWeekday) || 0;
     const diff = target - now.getDay();
     const d = new Date(now); d.setDate(now.getDate() + diff);
-    date = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  } else {
-    const [y,m] = periodKey.split('-');
-    const day = String(Math.min(28, Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
-    date = `${y}-${m}-${day}`;
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
+  const [y,m] = periodKey.split('-');
+  const day = String(Math.min(28, Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+// Registra a ocorrência de uma conta fixa (nova transação real) e atualiza
+// os contadores de parcelas/recorrência compartilhados entre o lançamento
+// manual e o automático.
+function registerBillOccurrence(bill, periodKey, date, auto){
   state.transactions.push({
     id: uid(), type: bill.type, date, description: bill.name, value: Number(bill.value),
-    categoryId: bill.categoryId, accountId: bill.accountId, recurring: true, notes: 'Gerado a partir da conta fixa "' + bill.name + '"'
+    categoryId: bill.categoryId, accountId: bill.accountId, recurring: true,
+    notes: (auto ? 'Lançado automaticamente a partir da conta fixa "' : 'Gerado a partir da conta fixa "') + bill.name + '"'
   });
   bill.launchedMonths.push(periodKey);
+  bill.occurrencesCount = (bill.occurrencesCount || 0) + 1;
+  if (bill.totalOccurrences && bill.occurrencesCount >= bill.totalOccurrences) bill.finished = true;
+}
+function launchFixedBill(id){
+  const bill = state.fixedBills.find(b => b.id === id);
+  if (!bill || bill.finished) return;
+  const periodKey = currentPeriodKey(bill.frequency);
+  if (bill.launchedMonths.includes(periodKey)) return;
+  const date = computeBillDueDate(bill, periodKey);
+  registerBillOccurrence(bill, periodKey, date, false);
   mutate(); renderFixedBills(); showToast('Conta lançada.');
+}
+// Roda no carregamento do app (e a cada troca de perfil): lança sozinha
+// qualquer conta fixa com débito automático ativado cuja data de vencimento
+// já chegou (ou já passou) e ainda não foi lançada neste período. Retorna
+// true se alguma conta foi lançada, pra saber se precisa salvar.
+function autoLaunchDueFixedBills(){
+  let launchedAny = false;
+  const today = todayStr();
+  state.fixedBills.forEach(b => {
+    if (b.finished || b.autoDebit === false) return;
+    const periodKey = currentPeriodKey(b.frequency);
+    if (b.launchedMonths.includes(periodKey)) return;
+    const dueDate = computeBillDueDate(b, periodKey);
+    if (dueDate > today) return; // vencimento ainda não chegou
+    registerBillOccurrence(b, periodKey, dueDate, true);
+    launchedAny = true;
+  });
+  return launchedAny;
 }
 async function deleteFixedBill(id){
   const idx = state.fixedBills.findIndex(b => b.id === id);
@@ -4912,6 +4962,12 @@ function openFixedBillModal(id){
       </div>
       <div class="field"><label>Categoria</label><select id="fCat">${catOpts(type)}</select></div>
       <div class="field"><label>Conta</label><select id="fAcc">${accOpts()}</select></div>
+      <div class="field"><label>Número de parcelas <span style="font-weight:400; color:var(--text-faint);">(opcional)</span></label>
+        <input type="number" min="1" max="600" id="fTotalOccurrences" placeholder="Deixe em branco pra repetir sem fim" value="${editing&&editing.totalOccurrences?editing.totalOccurrences:''}">
+        <div class="horizon-hint">Pra uma compra parcelada (ex: um curso em 10x), informe quantas vezes ela se repete — depois disso a conta fixa se encerra sozinha. Deixe vazio pra algo contínuo, como aluguel ou assinatura.</div>
+      </div>
+      <div class="checkbox-row"><input type="checkbox" id="fAutoDebit" ${!editing || editing.autoDebit!==false ? 'checked' : ''}><label style="margin:0;" for="fAutoDebit">Debitar automaticamente na data de vencimento</label></div>
+      <div class="horizon-hint">Com isso marcado, assim que chegar o dia de vencimento o app já lança a transação e desconta da conta sozinho, sem precisar clicar em "Lançar agora". Ela também entra na projeção de saldo do fim do mês até lá.</div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-action="cancel">Cancelar</button><button class="btn btn-primary" data-action="save">${editing?'Salvar':'Adicionar'}</button></div>`;
   openModal(html);
@@ -4936,7 +4992,12 @@ function openFixedBillModal(id){
     const categoryId = root.querySelector('#fCat').value;
     const accountId = root.querySelector('#fAcc').value;
     if (!name || !value || value<=0 || !categoryId || !accountId){ showToast('Preencha todos os campos.'); return; }
-    const payload = { name, type, value, categoryId, accountId, frequency: freq };
+    const totalOccurrencesRaw = root.querySelector('#fTotalOccurrences').value;
+    const payload = {
+      name, type, value, categoryId, accountId, frequency: freq,
+      autoDebit: root.querySelector('#fAutoDebit').checked,
+      totalOccurrences: totalOccurrencesRaw ? Math.max(1, Number(totalOccurrencesRaw)) : null
+    };
     if (freq === 'weekly'){
       payload.dueWeekday = Number(root.querySelector('#fDueWeekday').value);
     } else if (freq === 'yearly'){
@@ -4948,8 +5009,10 @@ function openFixedBillModal(id){
     if (editing){
       if (editing.frequency !== freq) editing.launchedMonths = []; // muda a régua de período, reseta o controle de "já lançado"
       Object.assign(editing, payload);
+      // recalcula se a conta já deve ser considerada concluída com o novo nº de parcelas
+      editing.finished = !!(editing.totalOccurrences && (editing.occurrencesCount||0) >= editing.totalOccurrences);
     }
-    else state.fixedBills.push({ id: uid(), launchedMonths: [], ...payload });
+    else state.fixedBills.push({ id: uid(), launchedMonths: [], occurrencesCount: 0, finished: false, ...payload });
     mutate(); closeModal(); renderFixedBills(); showToast(editing?'Conta fixa atualizada.':'Conta fixa adicionada.');
   });
 }
