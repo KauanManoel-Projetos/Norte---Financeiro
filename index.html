@@ -500,16 +500,21 @@ tr:hover td{background:var(--surface-2);}
 .sim-breakdown .item .value{font-family:var(--font-mono); font-weight:600; font-size:15px; margin-top:4px;}
 
 /* Accounts */
-.account-card{display:flex; align-items:center; gap:14px; padding:16px;margin-bottom:10px; transition:opacity .15s var(--ease);}
+.account-card{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:16px;margin-bottom:10px; transition:opacity .15s var(--ease);}
 .account-card.drag-over{border-color:var(--accent);}
 .drag-handle{cursor:grab; color:var(--text-faint); letter-spacing:-2px; font-size:15px; line-height:1; flex:none; user-select:none; padding:4px;}
 .drag-handle:active{cursor:grabbing;}
 .account-card .icon-wrap{width:46px;height:46px;border-radius:13px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;color:var(--accent);position:relative;overflow:hidden;}
 .icon-wrap img.bank-logo, .bank-logo{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:8px;box-sizing:border-box;}
-.account-card .info{flex:1;}
+.account-card .info{flex:1 1 160px; min-width:0;}
 .account-card .info .name{font-weight:700; font-size:14.5px;}
 .account-card .info .type{font-size:12.5px; color:var(--text-faint); text-transform:capitalize;}
 .account-card .bal{font-family:var(--font-mono); font-weight:600; font-size:16px; margin-right:6px;}
+.account-card .acc-actions{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:6px; margin-left:auto;}
+@media(max-width:520px){
+  .account-card .info{flex-basis:100%;}
+  .account-card .acc-actions{flex-basis:100%; margin-left:60px; justify-content:flex-start;}
+}
 
 /* Credit / debit cards */
 .cc-card{
@@ -803,6 +808,18 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             <div class="delta" id="projectedBalanceNote" style="color:var(--text-faint); font-weight:500;"></div>
           </div>
         </div>
+        <div class="card" style="margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+          <div>
+            <div class="label">Seu dinheiro daqui a...</div>
+            <div class="value num" id="longProjectionValue" style="margin-top:4px;">R$ 0,00</div>
+            <div class="delta" id="longProjectionNote" style="color:var(--text-faint); font-weight:500; margin-top:2px;"></div>
+          </div>
+          <div class="type-toggle" id="longProjectionToggle">
+            <button type="button" data-months="3">3 meses</button>
+            <button type="button" data-months="6" class="active">6 meses</button>
+            <button type="button" data-months="12">12 meses</button>
+          </div>
+        </div>
         <div class="grid grid-4" style="margin-top:16px;">
           <div class="card kpi">
             <div class="kpi-head"><div class="label">Receitas do mês</div><div class="kpi-icon tone-pos">
@@ -842,7 +859,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         <div id="dashboardCharts">
         <div class="grid grid-2" style="margin-top:6px;">
           <div class="card chart-card"><h4>Fluxo de caixa — últimos 6 meses</h4><div class="chart-wrap"><canvas id="chartCashflow"></canvas></div></div>
-          <div class="card chart-card"><h4>Despesas por categoria (mês atual)</h4><div class="chart-wrap"><canvas id="chartCategory"></canvas></div></div>
+          <div class="card chart-card"><h4>Despesas por categoria (mês atual)</h4><div class="chart-wrap"><canvas id="chartCategory"></canvas><div class="empty-state" id="chartCategoryEmpty" style="display:none; padding:30px 10px;"><svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg><p>Sem despesas neste mês.</p></div></div></div>
         </div>
         <div class="grid" style="margin-top:16px;">
           <div class="card chart-card"><h4>Patrimônio líquido — últimos 6 meses</h4><div class="chart-wrap"><canvas id="chartNetworth"></canvas></div></div>
@@ -950,7 +967,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
           </div>
           <div class="card" id="simTableCard" style="margin-top:16px; display:none;">
             <div class="section-title" style="margin-top:0;"><h3>Detalhamento mês a mês</h3></div>
-            <div style="max-height:320px; overflow-y:auto;"><table id="simTable"></table></div>
+            <div style="max-height:320px; overflow-y:auto; overflow-x:auto;"><table id="simTable"></table></div>
           </div>
         </div>
       </section>
@@ -1002,6 +1019,11 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova transação
           </button>
+        </div>
+        <div class="card hidden" id="pendingSplitsCard" style="margin-bottom:16px;">
+          <h4 style="margin:0 0 4px;">Acertos pendentes</h4>
+          <p style="color:var(--text-dim); font-size:12.5px; margin:0 0 12px;">Gastos que você dividiu com alguém e que ainda não foram acertados.</p>
+          <div id="pendingSplitsList"></div>
         </div>
         <div class="card" style="overflow-x:auto;"><div id="txTableWrap"></div></div>
         <div id="txPagination" style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:14px;"></div>
@@ -1141,7 +1163,12 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         </div>
         <div class="grid grid-2" style="margin-top:16px;">
           <div class="card chart-card"><h4>Receitas x Despesas no período</h4><div class="chart-wrap"><canvas id="chartReportBar"></canvas></div></div>
-          <div class="card chart-card"><h4>Despesas por categoria no período</h4><div class="chart-wrap"><canvas id="chartReportPie"></canvas></div></div>
+          <div class="card chart-card"><h4>Despesas por categoria no período</h4><div class="chart-wrap"><canvas id="chartReportPie"></canvas><div class="empty-state" id="chartReportPieEmpty" style="display:none; padding:30px 10px;"><svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg><p>Sem despesas no período.</p></div></div></div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <h4>Fechamentos mensais</h4>
+          <p style="color:var(--text-dim); font-size:12.5px; margin:4px 0 12px;">Um resumo congelado de cada mês já encerrado, pra comparar entre si sem depender do filtro de período acima.</p>
+          <div id="monthlyClosuresWrap"></div>
         </div>
       </section>
 
@@ -1212,6 +1239,16 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
           </div>
           <p style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">A planilha Excel é só para consulta/análise — para restaurar seus dados no app, use sempre o backup em .json.</p>
           <p id="shareUnsupportedNote" class="hidden" style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">Seu navegador não suporta o menu de compartilhamento nativo — use "Baixar backup" e envie o arquivo manualmente para o Drive, Dropbox etc.</p>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <h4 style="margin-bottom:6px;">Importar extrato bancário</h4>
+          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Traga um extrato em CSV ou OFX exportado do seu banco — o app tenta reconhecer data, descrição e valor de cada linha automaticamente, e você confere/ajusta antes de importar de verdade.</p>
+          <button class="btn" id="importStatementBtn">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importar extrato (CSV/OFX)
+          </button>
+          <input type="file" id="importStatementInput" accept=".csv,.ofx,.qfx,.txt" class="hidden">
         </div>
 
         <div class="card" style="margin-bottom:16px;">
@@ -1617,18 +1654,53 @@ function ensureAppIntegrity(){
   if (appData.avatarData === undefined) appData.avatarData = null;
   if (!appData.profiles.some(p => p.isMain)) appData.profiles[0].isMain = true;
   let anyAutoLaunched = false;
+  let activeLaunched = [];
+  let activeContributed = [];
   appData.profiles.forEach(p => {
     if (!p.color) p.color = CAT_PALETTE[0];
     if (!p.name) p.name = 'Perfil';
-    state = p.data; // ensureIntegrity()/autoLaunchDueFixedBills() operam sobre a variável global `state`
+    state = p.data; // ensureIntegrity()/autoLaunchDueFixedBills()/autoContributeDueGoals() operam sobre a variável global `state`
     ensureIntegrity();
-    if (autoLaunchDueFixedBills()) anyAutoLaunched = true;
+    generateMissingMonthlyClosures();
+    const launched = autoLaunchDueFixedBills();
+    const contributed = autoContributeDueGoals();
+    if (launched.length || contributed.length){
+      anyAutoLaunched = true;
+      if (p.id === savedActive){ activeLaunched = launched; activeContributed = contributed; }
+    }
   });
   appData.activeProfileId = savedActive;
   state = getActiveProfile().data;
-  // Se alguma conta fixa foi debitada automaticamente (em qualquer perfil),
-  // salva já — sem esperar a próxima ação manual do usuário.
+  // Se alguma conta fixa/meta foi debitada/aportada automaticamente (em
+  // qualquer perfil), salva já — sem esperar a próxima ação manual do usuário.
   if (anyAutoLaunched) scheduleSave();
+  // Devolve o que aconteceu no perfil que a pessoa está vendo agora, pra quem
+  // chamou poder avisar (toast) assim que a tela estiver pronta.
+  return { bills: activeLaunched, goals: activeContributed };
+}
+// Mostra um toast por conta debitada automaticamente — chamar só depois que
+// a UI já estiver renderizada (senão showToast não tem onde aparecer). Quando
+// mais de uma vence no mesmo dia, junta numa única mensagem (o toast do app
+// só mostra uma coisa por vez — mensagens em sequência se sobrescreveriam).
+function notifyAutoLaunchedBills(launched){
+  if (!launched || !launched.length) return;
+  if (launched.length === 1){
+    const b = launched[0];
+    showToast(`"${b.name}" foi debitada automaticamente hoje: ${fmtBRL(b.value)}`);
+  } else {
+    const total = launched.reduce((s,b) => s + (b.type === 'income' ? b.value : -b.value), 0);
+    showToast(`${launched.length} contas fixas foram debitadas automaticamente hoje (${fmtBRL(Math.abs(total))}).`);
+  }
+}
+// Junta os dois avisos (contas fixas + metas) numa única mensagem quando os
+// dois acontecem no mesmo carregamento — o toast só mostra uma coisa por vez.
+function notifyAutoEvents(events){
+  if (!events) return;
+  const { bills, goals } = events;
+  if ((!bills || !bills.length) && (!goals || !goals.length)) return;
+  if ((!goals || !goals.length)){ notifyAutoLaunchedBills(bills); return; }
+  if ((!bills || !bills.length)){ notifyAutoContributedGoals(goals); return; }
+  showToast(`Débitos e aportes automáticos de hoje: ${bills.length} conta(s) fixa(s) e ${goals.length} meta(s).`);
 }
 function switchProfile(id){
   const p = appData.profiles.find(x => x.id === id);
@@ -1636,7 +1708,6 @@ function switchProfile(id){
   appData.activeProfileId = id;
   state = p.data;
   ensureIntegrity();
-  if (autoLaunchDueFixedBills()) scheduleSave();
   Object.keys(charts).forEach(k => destroyChart(k));
   txCurrentPage = 1; reportRangeInit = false; selectedGroupId = null; calculatorInitialized = calculatorInitialized; // calc não depende de perfil
   vaultKey = null; vaultUnlockedFlag = false; decryptedNoteCache = {}; // caixa privada tranca ao trocar de perfil
@@ -1895,11 +1966,12 @@ $('logoutBtn').addEventListener('click', async () => {
 async function onAuthenticated(user){
   currentUser = user;
   appData = await loadFromSupabase();
-  ensureAppIntegrity();
+  const eventsOnBoot = ensureAppIntegrity();
   $('authScreen').style.display = 'none';
   $('appShell').classList.add('show');
   $('logoutBtn').style.display = 'inline-flex';
   initAppUI();
+  notifyAutoEvents(eventsOnBoot);
 }
 
 /* -------------------- INTEGRIDADE / MIGRAÇÃO -------------------- */
@@ -1911,6 +1983,8 @@ function ensureIntegrity(){
   state.categories = state.categories || [];
   state.transactions = state.transactions || [];
   state.fixedBills = state.fixedBills || [];
+  state.monthlyClosures = state.monthlyClosures || [];
+  state.envelopes = state.envelopes || [];
   state.budgets = state.budgets || [];
   state.goals = state.goals || [];
   state.tags = state.tags || [];
@@ -1923,10 +1997,14 @@ function ensureIntegrity(){
     if (c.linkedAccountId === undefined) c.linkedAccountId = null;
     if (!c.color) c.color = CAT_PALETTE[0];
     if (!Array.isArray(c.paidInvoices)) c.paidInvoices = [];
+    if (!Array.isArray(c.reminderNotified)) c.reminderNotified = [];
   });
   state.transactions.forEach(t => {
     if (t.paymentMethod === undefined) t.paymentMethod = null;
     if (t.cardId === undefined) t.cardId = null;
+    if (t.splitWith === undefined) t.splitWith = null;
+    if (t.splitAmount === undefined) t.splitAmount = null;
+    if (t.splitSettled === undefined) t.splitSettled = false;
   });
   state.fixedBills.forEach(b => {
     if (!Array.isArray(b.launchedMonths)) b.launchedMonths = [];
@@ -1935,9 +2013,19 @@ function ensureIntegrity(){
     if (b.occurrencesCount === undefined) b.occurrencesCount = b.launchedMonths.length;
     if (b.totalOccurrences === undefined) b.totalOccurrences = null;
     if (b.finished === undefined) b.finished = !!(b.totalOccurrences && b.occurrencesCount >= b.totalOccurrences);
+    if (b.onTimeCount === undefined) b.onTimeCount = 0;
+    if (b.lateCount === undefined) b.lateCount = 0;
+    if (!Array.isArray(b.reminderNotified)) b.reminderNotified = [];
   });
   state.categories.forEach(c => { if (c.parentId === undefined) c.parentId = null; });
-  state.goals.forEach(g => { if (g.accountId === undefined) g.accountId = null; });
+  state.goals.forEach(g => {
+    if (g.accountId === undefined) g.accountId = null;
+    if (g.autoContribute === undefined) g.autoContribute = false;
+    if (g.autoAmount === undefined) g.autoAmount = null;
+    if (g.autoDay === undefined) g.autoDay = 5;
+    if (g.autoSourceAccountId === undefined) g.autoSourceAccountId = null;
+    if (!Array.isArray(g.autoLaunchedMonths)) g.autoLaunchedMonths = [];
+  });
   state.tags.forEach(tg => { if (tg.parentId === undefined) tg.parentId = null; });
   state.transactions.forEach(t => { if (t.tagId === undefined) t.tagId = null; });
   state.notes = state.notes || [];
@@ -1974,7 +2062,29 @@ function accountBalance(accId){
 function totalBalance(){
   return state.accounts.reduce((sum, a) => sum + accountBalance(a.id), 0);
 }
+// Cofrinhos: gavetas virtuais dentro de uma conta, pra separar mentalmente
+// "isso já tem destino" sem precisar criar uma conta bancária de verdade.
+// Não geram transação nenhuma — só reduzem o "disponível" mostrado da conta.
+function envelopesForAccount(accountId){
+  return state.envelopes.filter(e => e.accountId === accountId);
+}
+function envelopeReservedTotal(accountId){
+  return envelopesForAccount(accountId).reduce((s,e) => s + Number(e.amount), 0);
+}
+function accountAvailableBalance(accountId){
+  return accountBalance(accountId) - envelopeReservedTotal(accountId);
+}
 function categoryById(id){ return state.categories.find(c => c.id === id); }
+// Compara um gasto novo com a média histórica da mesma categoria (excluindo
+// compras parceladas, que naturalmente distorcem a média) — usado pra avisar
+// quando um lançamento foge muito do padrão de gasto da pessoa naquela categoria.
+function checkExpenseAnomaly(categoryId, value){
+  const history = state.transactions.filter(t => t.type === 'expense' && t.categoryId === categoryId && !t.installmentTotal);
+  if (history.length < 4) return null; // pouco histórico ainda pra comparar com confiança
+  const avg = history.reduce((s,t) => s + Number(t.value), 0) / history.length;
+  if (avg <= 0 || value < avg * 2.5) return null;
+  return { avg, ratio: value / avg };
+}
 function accountById(id){ return state.accounts.find(a => a.id === id); }
 function tagById(id){ return state.tags.find(tg => tg.id === id); }
 
@@ -2161,6 +2271,59 @@ async function payCardInvoice(cardId, period){
 function pendingFixedBillsCount(){
   return state.fixedBills.filter(b => !b.finished && !b.launchedMonths.includes(currentPeriodKey(b.frequency))).length;
 }
+// Acha despesas avulsas (não parceladas) que se repetem quase com o mesmo
+// valor, mesma descrição e categoria, em pelo menos 3 dos últimos 4 meses —
+// sinal forte de assinatura/serviço recorrente que ainda não virou conta
+// fixa no app. Ignora o que já tem uma conta fixa com nome parecido.
+function detectForgottenSubscriptions(){
+  const months = lastNMonths(4);
+  const norm = (s) => (s||'').trim().toLowerCase();
+  const groups = {};
+  state.transactions.forEach(t => {
+    if (t.type !== 'expense' || t.installmentTotal) return;
+    if (!months.includes(monthKey(t.date))) return;
+    const key = norm(t.description) + '|' + t.categoryId;
+    if (!norm(t.description)) return;
+    (groups[key] = groups[key] || []).push(t);
+  });
+  const existingBillNames = new Set(state.fixedBills.map(b => norm(b.name)));
+  const suggestions = [];
+  Object.values(groups).forEach(txs => {
+    const monthsSeen = new Set(txs.map(t => monthKey(t.date)));
+    if (monthsSeen.size < 3) return;
+    const desc = txs[0].description;
+    if (existingBillNames.has(norm(desc))) return;
+    const values = txs.map(t => Number(t.value));
+    const avg = values.reduce((s,v)=>s+v,0) / values.length;
+    if (avg <= 0 || !values.every(v => Math.abs(v-avg) <= avg*0.15)) return; // valor varia demais pra ser assinatura
+    suggestions.push({ description: desc, categoryId: txs[0].categoryId, accountId: txs[0].accountId, avgValue: Math.round(avg*100)/100, monthsSeen: monthsSeen.size });
+  });
+  return suggestions.sort((a,b) => b.monthsSeen - a.monthsSeen);
+}
+function openSubscriptionSuggestionsModal(){
+  const suggestions = detectForgottenSubscriptions();
+  const html = `<div class="modal-head"><h3>Gastos recorrentes encontrados</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <div class="horizon-hint" style="margin-bottom:14px;">Esses gastos apareceram com o mesmo valor (aproximado) todo mês, mas ainda não estão cadastrados como conta fixa. Cadastrar ajuda a projeção de saldo do fim do mês e o débito automático.</div>
+      ${suggestions.map((s,i) => `<div class="card" style="padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div style="flex:1 1 160px;">
+          <div style="font-weight:700; font-size:14px;">${escapeHtml(s.description)}</div>
+          <div style="font-size:12.5px; color:var(--text-faint);">${escapeHtml(categoryDisplayName(categoryById(s.categoryId)))} · visto em ${s.monthsSeen} dos últimos 4 meses</div>
+        </div>
+        <div class="num" style="font-weight:600;">${fmtBRL(s.avgValue)}</div>
+        <button class="btn btn-primary btn-sm" data-action="make-bill" data-idx="${i}">Transformar em conta fixa</button>
+      </div>`).join('')}
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-action="close">Fechar</button></div>`;
+  openModal(html);
+  const root = $('modalContent');
+  root.querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
+  root.querySelectorAll('[data-action="make-bill"]').forEach(el => el.addEventListener('click', () => {
+    const s = suggestions[Number(el.dataset.idx)];
+    closeModal();
+    openFixedBillModal(null, s);
+  }));
+}
 function noteDueDateTime(n){
   if (!n.dueDate) return null;
   return new Date(n.dueDate + 'T' + (n.dueTime || '23:59') + ':00');
@@ -2191,6 +2354,11 @@ function switchView(id){
   $('viewTitle').textContent = NAV_ITEMS.find(n => n.id === id).label;
   renderNav();
   $('sidebar').classList.remove('open'); $('sidebarScrim').classList.remove('show');
+  // Confere de novo aqui (e não só no carregamento do app) — cobre o caso de
+  // alguém deixar o app aberto e o dia de vencimento chegar no meio da sessão.
+  const launchedNow = autoLaunchDueFixedBills();
+  const contributedNow = autoContributeDueGoals();
+  if (launchedNow.length || contributedNow.length){ scheduleSave(); notifyAutoEvents({ bills: launchedNow, goals: contributedNow }); }
   renderCurrentView();
 }
 function renderCurrentView(){
@@ -2216,6 +2384,30 @@ function renderAll(){
 
 /* -------------------- RENDER: DASHBOARD -------------------- */
 function destroyChart(id){ if (charts[id]){ charts[id].destroy(); delete charts[id]; } }
+// Projeção de longo prazo: parte do saldo total de hoje e soma o resultado
+// médio (receita - despesa) dos últimos 3 meses com movimentação, repetido
+// pelo número de meses escolhido. É uma estimativa simples de "se seu ritmo
+// atual continuar", não uma previsão garantida.
+function renderLongProjection(monthsAhead){
+  const recentMonths = lastNMonths(3).filter(m => monthIncomeExpense(m).count > 0);
+  if (!recentMonths.length){
+    $('longProjectionValue').textContent = fmtBRL(totalBalance());
+    $('longProjectionNote').textContent = 'Ainda sem histórico suficiente pra projetar — mostrando o saldo atual.';
+    return;
+  }
+  const avgNet = recentMonths.reduce((s,m) => { const r = monthIncomeExpense(m); return s + (r.income - r.expense); }, 0) / recentMonths.length;
+  const projected = totalBalance() + (avgNet * monthsAhead);
+  $('longProjectionValue').textContent = fmtBRL(projected);
+  $('longProjectionValue').className = 'value num ' + (projected >= 0 ? '' : 'neg');
+  $('longProjectionNote').textContent = `Baseado no resultado médio dos últimos ${recentMonths.length} mês(es) com movimentação (${fmtBRL(avgNet)}/mês).`;
+}
+$('longProjectionToggle').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-months]');
+  if (!btn) return;
+  longProjectionMonths = Number(btn.dataset.months);
+  $('longProjectionToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  renderLongProjection(longProjectionMonths);
+});
 function chartTheme(){
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   return { grid: dark ? 'rgba(255,255,255,.06)' : 'rgba(20,18,12,.08)', text: dark ? '#6E6E6E' : '#98968C' };
@@ -2277,6 +2469,7 @@ function renderDashboard(){
   $('projectedBalanceNote').textContent = pendingBillsList.length
     ? `Considerando ${pendingBillsList.length} conta(s) fixa(s) ainda não lançada(s) este mês.`
     : 'Todas as contas fixas do mês já foram lançadas.';
+  renderLongProjection(longProjectionMonths);
 
   const cur = monthIncomeExpense(ym);
   const prev = monthIncomeExpense(prevYm);
@@ -2295,9 +2488,15 @@ function renderDashboard(){
 
   // Alerts
   const alerts = [];
-  const overBudgets = budgetStatuses().filter(b => b.pct >= 100);
+  const budgetsNow = budgetStatuses();
+  const overBudgets = budgetsNow.filter(b => b.pct >= 100);
   if (overBudgets.length){
     alerts.push(`<div class="alert crit">${ICONS.alert}<div>${overBudgets.length} categoria(s) ultrapassaram o orçamento do mês.<a data-nav="budgets">Ver orçamentos</a></div></div>`);
+  }
+  const nearBudgets = budgetsNow.filter(b => b.pct >= 80 && b.pct < 100);
+  if (nearBudgets.length){
+    const names = nearBudgets.map(b => categoryDisplayName(categoryById(b.categoryId))).join(', ');
+    alerts.push(`<div class="alert">${ICONS.alert}<div>${nearBudgets.length} orçamento(s) já passaram de 80%: ${escapeHtml(names)}.<a data-nav="budgets">Ver orçamentos</a></div></div>`);
   }
   const pendingBills = pendingFixedBillsCount();
   if (pendingBills){
@@ -2307,8 +2506,13 @@ function renderDashboard(){
   if (dueReminders){
     alerts.push(`<div class="alert">${ICONS.bell}<div>${dueReminders} lembrete(s) chegaram na hora marcada.<a data-nav="notes">Ver notas</a></div></div>`);
   }
+  const subscriptionSuggestions = detectForgottenSubscriptions();
+  if (subscriptionSuggestions.length){
+    alerts.push(`<div class="alert">${ICONS.sparkle}<div>Encontramos ${subscriptionSuggestions.length} gasto(s) recorrente(s) que parecem assinatura, ainda sem conta fixa.<a data-action="show-subs">Ver sugestões</a></div></div>`);
+  }
   $('dashboardAlerts').innerHTML = alerts.join('');
   $('dashboardAlerts').querySelectorAll('[data-nav]').forEach(el => el.addEventListener('click', () => switchView(el.dataset.nav)));
+  $('dashboardAlerts').querySelectorAll('[data-action="show-subs"]').forEach(el => el.addEventListener('click', openSubscriptionSuggestionsModal));
 
   renderDashboardInsights(ym, cur);
   checkAchievements();
@@ -2352,6 +2556,8 @@ function renderDashboard(){
     });
     const catIds = Object.keys(catTotals);
     if (catIds.length){
+      $('chartCategoryEmpty').style.display = 'none';
+      $('chartCategory').style.display = '';
       charts.chartCategory = new Chart($('chartCategory'), {
         type: 'doughnut',
         data: {
@@ -2361,7 +2567,8 @@ function renderDashboard(){
         options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { color: th.text, boxWidth: 10, font:{size:11} } } } }
       });
     } else {
-      $('chartCategory').closest('.chart-wrap').innerHTML = `<div class="empty-state" style="padding:30px 10px;">${ICONS.wallet}<p>Sem despesas neste mês.</p></div>`;
+      $('chartCategory').style.display = 'none';
+      $('chartCategoryEmpty').style.display = '';
     }
 
     destroyChart('chartNetworth');
@@ -2610,17 +2817,41 @@ function scoreCreditUtilization(){
   if (pct >= 100) return 0;
   return clampPct(100 - ((pct - 30) / 70) * 100);
 }
+function scoreIncomeDiversity(ym){
+  // Índice de concentração (Herfindahl-Hirschman) sobre as receitas do mês
+  // por categoria: 1 fonte só = concentração máxima (nota 0); quanto mais
+  // dividida entre fontes, mais alta a nota. Isso mede o risco de depender
+  // de uma renda só (ex: um único emprego) — não julga o valor da renda em si.
+  const incomeTx = state.transactions.filter(t => t.type === 'income' && monthKey(t.date) === ym);
+  const total = incomeTx.reduce((s,t) => s + Number(t.value), 0);
+  if (total <= 0) return null;
+  const byCat = {};
+  incomeTx.forEach(t => { byCat[t.categoryId] = (byCat[t.categoryId] || 0) + Number(t.value); });
+  const hhi = Object.values(byCat).reduce((s,v) => s + Math.pow(v/total, 2), 0);
+  return clampPct(100 * (1 - hhi));
+}
+function scorePunctuality(){
+  // % de contas fixas lançadas em dia (ou antes) vs. atrasadas, olhando o
+  // histórico de todas as contas fixas — não só o mês atual.
+  let onTime = 0, late = 0;
+  state.fixedBills.forEach(b => { onTime += b.onTimeCount || 0; late += b.lateCount || 0; });
+  const totalLaunches = onTime + late;
+  if (totalLaunches === 0) return null;
+  return clampPct((onTime / totalLaunches) * 100);
+}
 const HEALTH_FACTORS = [
-  { key: 'savings', label: 'Taxa de poupança do mês', weight: 25, calc: scoreSavingsRate, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : 'Quanto da sua renda sobrou depois das despesas.' },
-  { key: 'fixed', label: 'Comprometimento com contas fixas', weight: 20, calc: scoreFixedCommitment, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : '% da renda já comprometida com despesas fixas.' },
-  { key: 'emergency', label: 'Reserva de emergência', weight: 12, calc: scoreEmergencyFund, hint: (v)=> v===null ? 'Ainda sem histórico de gastos suficiente.' : 'Quantos meses de despesas seu saldo em contas cobriria.' },
-  { key: 'budgets', label: 'Orçamentos respeitados', weight: 12, calc: scoreBudgets, hint: (v)=> v===null ? 'Nenhum orçamento cadastrado ainda.' : '% das categorias com orçamento que ficaram dentro do limite.' },
-  { key: 'networth', label: 'Tendência de patrimônio', weight: 12, calc: scoreNetWorthTrend, hint: (v)=> v===null ? 'Ainda sem histórico suficiente (mín. 3 meses).' : 'Seu patrimônio líquido nos últimos 3 meses.' },
-  { key: 'installments', label: 'Dependência de parcelamento', weight: 8, calc: scoreInstallmentDependency, hint: (v)=> v===null ? 'Sem despesas registradas no mês.' : '% dos gastos do mês que vieram de compras parceladas.' },
-  { key: 'creditutil', label: 'Uso do limite do cartão', weight: 6, calc: scoreCreditUtilization, hint: (v)=> v===null ? 'Nenhum cartão de crédito com limite cadastrado.' : '% do limite total dos seus cartões já em uso.' },
+  { key: 'savings', label: 'Taxa de poupança do mês', weight: 22, calc: scoreSavingsRate, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : 'Quanto da sua renda sobrou depois das despesas.' },
+  { key: 'fixed', label: 'Comprometimento com contas fixas', weight: 18, calc: scoreFixedCommitment, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : '% da renda já comprometida com despesas fixas.' },
+  { key: 'emergency', label: 'Reserva de emergência', weight: 11, calc: scoreEmergencyFund, hint: (v)=> v===null ? 'Ainda sem histórico de gastos suficiente.' : 'Quantos meses de despesas seu saldo em contas cobriria.' },
+  { key: 'budgets', label: 'Orçamentos respeitados', weight: 10, calc: scoreBudgets, hint: (v)=> v===null ? 'Nenhum orçamento cadastrado ainda.' : '% das categorias com orçamento que ficaram dentro do limite.' },
+  { key: 'networth', label: 'Tendência de patrimônio', weight: 10, calc: scoreNetWorthTrend, hint: (v)=> v===null ? 'Ainda sem histórico suficiente (mín. 3 meses).' : 'Seu patrimônio líquido nos últimos 3 meses.' },
+  { key: 'punctuality', label: 'Pontualidade das contas fixas', weight: 7, calc: scorePunctuality, hint: (v)=> v===null ? 'Nenhuma conta fixa lançada ainda.' : '% das contas fixas pagas em dia (ou antes do vencimento), no histórico.' },
+  { key: 'installments', label: 'Dependência de parcelamento', weight: 7, calc: scoreInstallmentDependency, hint: (v)=> v===null ? 'Sem despesas registradas no mês.' : '% dos gastos do mês que vieram de compras parceladas.' },
+  { key: 'creditutil', label: 'Uso do limite do cartão', weight: 5, calc: scoreCreditUtilization, hint: (v)=> v===null ? 'Nenhum cartão de crédito com limite cadastrado.' : '% do limite total dos seus cartões já em uso.' },
+  { key: 'incomediv', label: 'Diversidade de fontes de renda', weight: 5, calc: scoreIncomeDiversity, hint: (v)=> v===null ? 'Sem receitas registradas no mês.' : 'Quão dividida está sua renda do mês entre categorias diferentes.' },
   { key: 'goals', label: 'Metas em dia', weight: 5, calc: scoreGoalsOnTrack, hint: (v)=> v===null ? 'Nenhuma meta com prazo definido.' : 'Progresso das metas com prazo comparado ao tempo já passado.' },
 ];
-const HEALTH_FACTOR_ICONS = { savings:'trendUp', fixed:'fixedbills', emergency:'shield', budgets:'target', networth:'pulse', installments:'scale', creditutil:'cards', goals:'goals' };
+const HEALTH_FACTOR_ICONS = { savings:'trendUp', fixed:'fixedbills', emergency:'shield', budgets:'target', networth:'pulse', punctuality:'checklist', installments:'scale', creditutil:'cards', incomediv:'groups', goals:'goals' };
 function computeHealthScore(ym){
   const results = HEALTH_FACTORS.map(f => ({ ...f, value: f.calc(ym) }));
   const included = results.filter(r => r.value !== null);
@@ -2654,6 +2885,8 @@ function generateHealthTips(ym){
     else if (f.key === 'networth') tips.push('Seu patrimônio líquido não cresceu nos últimos meses. Vale revisar se as despesas estão consistentemente maiores que as receitas.');
     else if (f.key === 'installments') tips.push('Boa parte dos seus gastos do mês veio de compras parceladas. Isso compromete meses futuros — vale ir com calma em novos parcelamentos.');
     else if (f.key === 'creditutil') tips.push('Você já está usando boa parte do limite dos seus cartões. Usar menos de 30% do limite total ajuda a manter esse indicador (e seu crédito) saudável.');
+    else if (f.key === 'punctuality') tips.push('Algumas contas fixas estão sendo lançadas depois do vencimento. Vale ativar o débito automático nelas (em Contas fixas) pra não depender de lembrar na hora certa.');
+    else if (f.key === 'incomediv') tips.push('Sua renda do mês está bem concentrada numa fonte só. Não precisa mudar nada às pressas, mas ter uma segunda fonte de renda reduz o risco se essa principal parar.');
     else if (f.key === 'goals') tips.push('Uma ou mais metas com prazo estão atrasadas em relação ao tempo que já passou. Considere reforçar os aportes ou ajustar o prazo.');
   }
   if (!tips.length) tips.push('Seus indicadores estão saudáveis este mês — continue assim!');
@@ -3096,6 +3329,7 @@ $('clearChatBtn').addEventListener('click', async () => {
 /* -------------------- RENDER: TRANSACTIONS -------------------- */
 const TX_PAGE_SIZE = 25;
 let txCurrentPage = 1;
+let longProjectionMonths = 6;
 
 function categoryDisplayName(cat){
   if (!cat) return '—';
@@ -3136,6 +3370,31 @@ function tagIdsInScope(tagId){
   const children = state.tags.filter(tg => tg.parentId === tagId).map(tg => tg.id);
   return [tagId, ...children];
 }
+// "Acertos pendentes": gastos marcados como divididos com alguém, que ainda
+// não foram acertados. Marcar como acertado só limpa o registro — não move
+// dinheiro de verdade (a pessoa te pagou de volta por fora do app).
+function pendingSplitsList(){
+  return state.transactions.filter(t => t.splitWith && !t.splitSettled).sort((a,b) => b.date.localeCompare(a.date));
+}
+function renderPendingSplits(){
+  const card = $('pendingSplitsCard');
+  const list = pendingSplitsList();
+  card.classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  $('pendingSplitsList').innerHTML = list.map(t => `<div class="list-row">
+      <div style="flex:1;">
+        <div class="desc">${escapeHtml(t.splitWith)} te deve · ${escapeHtml(t.description||categoryDisplayName(categoryById(t.categoryId)))}</div>
+        <div class="meta">${fmtDate(t.date)}</div>
+      </div>
+      <div class="amt">${fmtBRL(t.splitAmount)}</div>
+      <button class="btn btn-sm btn-ghost" data-action="settle-split" data-id="${t.id}">Marcar como acertado</button>
+    </div>`).join('');
+  $('pendingSplitsList').querySelectorAll('[data-action="settle-split"]').forEach(el => el.addEventListener('click', () => {
+    const t = state.transactions.find(x => x.id === el.dataset.id); if (!t) return;
+    t.splitSettled = true; mutate(); renderPendingSplits();
+    showToast(`Acerto com ${t.splitWith} marcado como resolvido.`);
+  }));
+}
 function populateTxFilters(){
   const catSel = $('txFilterCategory'); const accSel = $('txFilterAccount'); const grpSel = $('txFilterGroup');
   const prevCat = catSel.value, prevAcc = accSel.value, prevGrp = grpSel.value;
@@ -3145,6 +3404,7 @@ function populateTxFilters(){
   catSel.value = prevCat; accSel.value = prevAcc; grpSel.value = prevGrp;
 }
 function renderTransactions(){
+  renderPendingSplits();
   populateTxFilters();
   const search = ($('txSearch').value || '').toLowerCase();
   const fType = $('txFilterType').value, fCat = $('txFilterCategory').value, fAcc = $('txFilterAccount').value, fGrp = $('txFilterGroup').value;
@@ -3300,13 +3560,17 @@ function renderFixedBills(){
     const acc = accountById(b.accountId);
     const progress = b.totalOccurrences ? `${Math.min(b.occurrencesCount||0, b.totalOccurrences)}/${b.totalOccurrences} parcelas · ` : '';
     const autoTag = b.autoDebit !== false ? `<span class="tag" title="Debita sozinha na data de vencimento">Automática</span>` : '';
+    const totalLaunches = (b.onTimeCount||0) + (b.lateCount||0);
+    const punctualityTag = totalLaunches
+      ? `<span class="tag" style="${b.lateCount>0 ? 'color:var(--warn);' : ''}" title="Histórico de lançamentos desta conta: em dia (ou antes) vs. atrasados">${b.onTimeCount||0} em dia${b.lateCount>0 ? ` · ${b.lateCount} atrasada${b.lateCount>1?'s':''}` : ''}</span>`
+      : '';
     let statusBadge = `<span class="badge-pending">Pendente</span>`;
     if (b.finished) statusBadge = `<span class="badge-launched">Concluída</span>`;
     else if (launched) statusBadge = `<span class="badge-launched">Lançado</span>`;
     return `<div class="card bill-card">
       <div class="icon-wrap" style="color:${b.type==='income'?getCss('--positive'):getCss('--negative')}">${ICONS.fixedbills}</div>
       <div class="info">
-        <div class="name">${escapeHtml(b.name)} <span class="tag">${frequencyLabel(b.frequency)}</span> ${autoTag}</div>
+        <div class="name">${escapeHtml(b.name)} <span class="tag">${frequencyLabel(b.frequency)}</span> ${autoTag} ${punctualityTag}</div>
         <div class="meta">${progress}${billDueLabel(b)} · ${escapeHtml(cat?.name||'—')} · ${escapeHtml(acc?.name||'—')}</div>
       </div>
       <div class="bill-actions">
@@ -3347,7 +3611,9 @@ function computeBillDueDate(bill, periodKey){
 }
 // Registra a ocorrência de uma conta fixa (nova transação real) e atualiza
 // os contadores de parcelas/recorrência compartilhados entre o lançamento
-// manual e o automático.
+// manual e o automático. Também guarda se foi lançada em dia (hoje <= data
+// de vencimento) ou atrasada — usado no indicador de "Pontualidade" da
+// Saúde Financeira.
 function registerBillOccurrence(bill, periodKey, date, auto){
   state.transactions.push({
     id: uid(), type: bill.type, date, description: bill.name, value: Number(bill.value),
@@ -3357,6 +3623,8 @@ function registerBillOccurrence(bill, periodKey, date, auto){
   bill.launchedMonths.push(periodKey);
   bill.occurrencesCount = (bill.occurrencesCount || 0) + 1;
   if (bill.totalOccurrences && bill.occurrencesCount >= bill.totalOccurrences) bill.finished = true;
+  if (todayStr() > date) bill.lateCount = (bill.lateCount || 0) + 1;
+  else bill.onTimeCount = (bill.onTimeCount || 0) + 1;
 }
 function launchFixedBill(id){
   const bill = state.fixedBills.find(b => b.id === id);
@@ -3372,7 +3640,7 @@ function launchFixedBill(id){
 // já chegou (ou já passou) e ainda não foi lançada neste período. Retorna
 // true se alguma conta foi lançada, pra saber se precisa salvar.
 function autoLaunchDueFixedBills(){
-  let launchedAny = false;
+  const launched = [];
   const today = todayStr();
   state.fixedBills.forEach(b => {
     if (b.finished || b.autoDebit === false) return;
@@ -3381,9 +3649,9 @@ function autoLaunchDueFixedBills(){
     const dueDate = computeBillDueDate(b, periodKey);
     if (dueDate > today) return; // vencimento ainda não chegou
     registerBillOccurrence(b, periodKey, dueDate, true);
-    launchedAny = true;
+    launched.push({ name: b.name, value: Number(b.value), type: b.type });
   });
-  return launchedAny;
+  return launched;
 }
 async function deleteFixedBill(id){
   const idx = state.fixedBills.findIndex(b => b.id === id);
@@ -3474,7 +3742,7 @@ function renderGoals(){
       const nearDeadline = g.deadline && key === 'short' && ((new Date(g.deadline)-new Date())/(1000*60*60*24)) < 60 && pct < 60;
       return `<div class="card goal-card">
         <div class="name">${escapeHtml(g.name)}</div>
-        <div class="sub">${g.deadline ? 'Prazo: ' + fmtDate(g.deadline) : 'Sem prazo definido'}${linkedAcc ? ' · Vinculada a ' + escapeHtml(linkedAcc.name) : ''}</div>
+        <div class="sub">${g.deadline ? 'Prazo: ' + fmtDate(g.deadline) : 'Sem prazo definido'}${linkedAcc ? ' · Vinculada a ' + escapeHtml(linkedAcc.name) : ''}${g.autoContribute ? ` · <span class="tag" title="Aporta ${fmtBRL(g.autoAmount)} sozinha todo dia ${g.autoDay}">Aporte automático</span>` : ''}</div>
         <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
         <div class="nums"><span>${fmtBRL(saved)} / ${fmtBRL(g.target)}</span><span>${pct.toFixed(0)}%</span></div>
         ${nearDeadline ? `<div class="goal-reminder">${ICONS.alert.replace('icon"','icon" style="width:13px;height:13px;"')} Prazo se aproximando — vale reforçar os aportes.</div>` : ''}
@@ -3565,6 +3833,70 @@ async function addGoalFunds(id){
   g.saved = Number(g.saved) + num;
   mutate(); renderGoals(); showToast('Valor adicionado à meta.');
 }
+// Roda junto com o carregamento do app (e a cada troca de tela) — igual ao
+// aporte automático já existente pra contas fixas, mas aqui pra metas: se a
+// meta tem conta vinculada, faz uma transferência real de uma conta de
+// origem escolhida; sem conta vinculada, só soma no contador de "guardado".
+function autoContributeDueGoals(){
+  const contributed = [];
+  const periodKey = currentPeriodKey('monthly');
+  const today = todayStr();
+  state.goals.forEach(g => {
+    if (!g.autoContribute || !g.autoAmount || g.autoAmount <= 0) return;
+    if (g.autoLaunchedMonths.includes(periodKey)) return;
+    const day = String(Math.min(28, Math.max(1, Number(g.autoDay)||1))).padStart(2,'0');
+    const [y,m] = periodKey.split('-');
+    const dueDate = `${y}-${m}-${day}`;
+    if (dueDate > today) return;
+    if (g.accountId){
+      // meta com conta vinculada: precisa de uma conta de origem válida e diferente pra fazer a transferência
+      if (!g.autoSourceAccountId || g.autoSourceAccountId === g.accountId || !accountById(g.autoSourceAccountId)) return;
+      state.transactions.push({
+        id: uid(), type: 'transfer', date: dueDate, value: Number(g.autoAmount),
+        accountId: g.autoSourceAccountId, toAccountId: g.accountId,
+        description: `Aporte automático para a meta "${g.name}"`
+      });
+    } else {
+      g.saved = Number(g.saved||0) + Number(g.autoAmount);
+    }
+    g.autoLaunchedMonths.push(periodKey);
+    contributed.push({ name: g.name, value: Number(g.autoAmount) });
+  });
+  return contributed;
+}
+function notifyAutoContributedGoals(contributed){
+  if (!contributed || !contributed.length) return;
+  if (contributed.length === 1){
+    showToast(`Aporte automático de ${fmtBRL(contributed[0].value)} feito na meta "${contributed[0].name}".`);
+  } else {
+    const total = contributed.reduce((s,c) => s + c.value, 0);
+    showToast(`Aporte automático feito em ${contributed.length} metas hoje (${fmtBRL(total)}).`);
+  }
+}
+// Gera (uma vez só) o resumo congelado de cada mês já encerrado que ainda não
+// tem um fechamento salvo — assim dá pra comparar meses passados sem
+// recalcular tudo toda vez, mesmo que categorias/transações mudem depois.
+function generateMissingMonthlyClosures(){
+  if (!state.transactions.length) return;
+  const currentYm = todayISO().slice(0,7);
+  const doneYms = new Set(state.monthlyClosures.map(c => c.ym));
+  const allYms = [...new Set(state.transactions.map(t => monthKey(t.date)))].filter(ym => ym < currentYm).sort();
+  allYms.forEach(ym => {
+    if (doneYms.has(ym)) return;
+    const r = monthIncomeExpense(ym);
+    const catTotals = {};
+    state.transactions.forEach(t => {
+      if (t.type === 'expense' && monthKey(t.date) === ym) catTotals[t.categoryId] = (catTotals[t.categoryId]||0) + Number(t.value);
+    });
+    const topEntry = Object.entries(catTotals).sort((a,b) => b[1]-a[1])[0];
+    state.monthlyClosures.push({
+      ym, income: r.income, expense: r.expense, result: r.income - r.expense,
+      savingsRate: r.income > 0 ? Math.round(((r.income-r.expense)/r.income)*1000)/10 : null,
+      topCategoryId: topEntry ? topEntry[0] : null, topCategoryValue: topEntry ? topEntry[1] : 0,
+      closedAt: new Date().toISOString()
+    });
+  });
+}
 
 /* -------------------- RENDER: ACCOUNTS + CATEGORIES -------------------- */
 function renderAccountsAndCategories(){
@@ -3576,19 +3908,26 @@ function renderAccountsAndCategories(){
     const withBal = state.accounts.map(a => ({ ...a, bal: accountBalance(a.id) })); // ordem manual (arraste), não por saldo
     const maxBal = Math.max(...withBal.map(a=>a.bal));
     const minBal = Math.min(...withBal.map(a=>a.bal));
-    wrap.innerHTML = withBal.map((a) => `<div class="card account-card" draggable="true" data-id="${a.id}">
+    wrap.innerHTML = withBal.map((a) => {
+      const reserved = envelopeReservedTotal(a.id);
+      return `<div class="card account-card" draggable="true" data-id="${a.id}">
       <span class="drag-handle" title="Arraste para reordenar" aria-label="Arraste para reordenar">⠿</span>
       <div class="icon-wrap">${ICONS.wallet}${bankLogoImg(a.bankDomain)}</div>
       <div class="info">
         <div class="name">${escapeHtml(a.name)} ${withBal.length>1 && a.bal===maxBal ? '<span class="rank-pill rank-top">Maior saldo</span>' : ''}${withBal.length>1 && a.bal===minBal && minBal!==maxBal ? '<span class="rank-pill rank-low">Menor saldo</span>' : ''}</div>
-        <div class="type">${escapeHtml(a.type)}</div>
+        <div class="type">${escapeHtml(a.type)}${reserved>0 ? ` · ${fmtBRL(reserved)} em cofrinhos` : ''}</div>
       </div>
-      <div class="bal num ${a.bal<0?'neg':''}">${fmtBRL(a.bal)}</div>
-      <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${a.id}" aria-label="Editar conta">${ICONS.edit}</button>
-      <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${a.id}" aria-label="Excluir conta">${ICONS.trash}</button>
-    </div>`).join('');
+      <div class="acc-actions">
+        <div class="bal num ${a.bal<0?'neg':''}">${fmtBRL(a.bal)}</div>
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="envelopes" data-id="${a.id}" title="Cofrinhos" aria-label="Cofrinhos desta conta">${ICONS.wallet.replace('icon"','icon" style="width:16px;height:16px;"')}</button>
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${a.id}" aria-label="Editar conta">${ICONS.edit}</button>
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${a.id}" aria-label="Excluir conta">${ICONS.trash}</button>
+      </div>
+    </div>`;
+    }).join('');
     wrap.querySelectorAll('[data-action="edit"]').forEach(el => el.addEventListener('click', () => openAccountModal(el.dataset.id)));
     wrap.querySelectorAll('[data-action="del"]').forEach(el => el.addEventListener('click', () => deleteAccount(el.dataset.id)));
+    wrap.querySelectorAll('[data-action="envelopes"]').forEach(el => el.addEventListener('click', () => openEnvelopesModal(el.dataset.id)));
     wireAccountDragReorder(wrap);
   }
 
@@ -3601,6 +3940,59 @@ function renderAccountsAndCategories(){
     w.querySelectorAll('[data-action="edit-cat"]').forEach(el => el.addEventListener('click', () => openCategoryModal(el.dataset.id)));
     w.querySelectorAll('[data-action="del-cat"]').forEach(el => el.addEventListener('click', () => deleteCategory(el.dataset.id)));
   });
+}
+function renderEnvelopesModalBody(accountId){
+  const root = $('modalContent');
+  const acc = accountById(accountId);
+  const list = envelopesForAccount(accountId);
+  const reserved = envelopeReservedTotal(accountId);
+  const available = accountBalance(accountId) - reserved;
+  root.querySelector('#envelopesSummary').innerHTML = `Saldo da conta: <strong>${fmtBRL(accountBalance(accountId))}</strong> · Reservado: <strong>${fmtBRL(reserved)}</strong> · Disponível: <strong class="${available<0?'neg':''}">${fmtBRL(available)}</strong>`;
+  root.querySelector('#envelopesList').innerHTML = list.length ? list.map(e => `<div class="list-row">
+      <div class="dot" style="background:${e.color||'var(--accent)'}"></div>
+      <div style="flex:1;"><div class="desc">${escapeHtml(e.name)}</div></div>
+      <div class="amt">${fmtBRL(e.amount)}</div>
+      <button class="btn btn-icon btn-sm btn-ghost" data-action="edit-env" data-id="${e.id}" aria-label="Editar valor">${ICONS.edit}</button>
+      <button class="btn btn-icon btn-sm btn-ghost" data-action="del-env" data-id="${e.id}" aria-label="Excluir cofrinho">${ICONS.trash}</button>
+    </div>`).join('') : `<div style="color:var(--text-faint); font-size:13px; padding:10px 0;">Nenhum cofrinho ainda nesta conta.</div>`;
+  root.querySelectorAll('[data-action="edit-env"]').forEach(el => el.addEventListener('click', async () => {
+    const env = state.envelopes.find(x => x.id === el.dataset.id); if (!env) return;
+    const num = await promptValueModal('Ajustar cofrinho', `Novo valor guardado em "${env.name}":`, { confirmLabel: 'Salvar', label: 'Valor (R$)' });
+    if (num === null) return;
+    env.amount = num; mutate(); openEnvelopesModal(accountId);
+  }));
+  root.querySelectorAll('[data-action="del-env"]').forEach(el => el.addEventListener('click', () => {
+    const idx = state.envelopes.findIndex(x => x.id === el.dataset.id);
+    if (idx === -1) return;
+    state.envelopes.splice(idx, 1); mutate(); openEnvelopesModal(accountId);
+  }));
+}
+function openEnvelopesModal(accountId){
+  const acc = accountById(accountId);
+  if (!acc) return;
+  const html = `<div class="modal-head"><h3>Cofrinhos de "${escapeHtml(acc.name)}"</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-dim); font-size:13px; margin:0 0 10px;">Separe mentalmente parte do saldo desta conta pra um destino específico (reserva, viagem, imposto...) sem precisar abrir outra conta. Não move dinheiro de verdade — só desconta do "disponível" mostrado aqui.</p>
+      <div style="font-size:13px; margin-bottom:14px;" id="envelopesSummary"></div>
+      <div id="envelopesList" style="margin-bottom:14px;"></div>
+      <div class="form-row">
+        <div class="field"><label>Nome do cofrinho</label><input type="text" id="fEnvName" placeholder="Ex: Reserva de emergência"></div>
+        <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" class="num-input" id="fEnvAmount"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="fEnvAddBtn">+ Adicionar cofrinho</button>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-action="close">Fechar</button></div>`;
+  openModal(html);
+  const root = $('modalContent');
+  root.querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
+  root.querySelector('#fEnvAddBtn').addEventListener('click', () => {
+    const name = root.querySelector('#fEnvName').value.trim();
+    const amount = Number(root.querySelector('#fEnvAmount').value);
+    if (!name || !amount || amount <= 0){ showToast('Informe nome e valor válidos.'); return; }
+    state.envelopes.push({ id: uid(), accountId, name, amount, color: CAT_PALETTE[state.envelopes.length % CAT_PALETTE.length] });
+    mutate(); openEnvelopesModal(accountId);
+  });
+  renderEnvelopesModalBody(accountId);
 }
 function wireAccountDragReorder(wrap){
   let dragSrcId = null;
@@ -3767,6 +4159,11 @@ function renderGroupDetail(){
     notesWrap.querySelectorAll('[data-action="pin-note"]').forEach(el => el.addEventListener('click', () => toggleNotePin(el.dataset.id)));
     notesWrap.querySelectorAll('[data-action="dismiss-reminder"]').forEach(el => el.addEventListener('click', () => dismissReminder(el.dataset.id)));
     notesWrap.querySelectorAll('[data-action="toggle-check"]').forEach(el => el.addEventListener('click', () => toggleChecklistItem(el.dataset.note, el.dataset.item)));
+    notesWrap.querySelectorAll('[data-action="goto-group"]').forEach(el => el.addEventListener('click', () => {
+      selectedGroupId = el.dataset.id;
+      $('groupSearchInput').value = tagDisplayName(tagById(selectedGroupId));
+      renderGroupDetail();
+    }));
   }
 
   requestAnimationFrame(() => {
@@ -3955,18 +4352,25 @@ $('soundToggleBtn').addEventListener('click', () => {
 });
 setTimeout(updateSoundToggleIcon, 0);
 
+// As notas podem aparecer tanto na tela de Notas quanto vinculadas dentro do
+// detalhe de um Grupo — usar isso ao invés de chamar renderNotes() direto
+// garante que a tela realmente visível seja atualizada nos dois casos.
+function refreshNotesUI(){
+  if (currentView === 'groups') renderGroupDetail();
+  else renderNotes();
+}
 function toggleNotePin(id){
   const n = state.notes.find(x => x.id === id); if (!n) return;
-  n.pinned = !n.pinned; mutate(); renderNotes();
+  n.pinned = !n.pinned; mutate(); refreshNotesUI();
 }
 function dismissReminder(id){
   const n = state.notes.find(x => x.id === id); if (!n) return;
-  n.reminderDismissed = true; mutate(); renderNotes();
+  n.reminderDismissed = true; mutate(); refreshNotesUI();
 }
 function toggleChecklistItem(noteId, itemId){
   const n = state.notes.find(x => x.id === noteId); if (!n) return;
   const it = n.checklist.find(c => c.id === itemId); if (!it) return;
-  it.done = !it.done; mutate(); renderNotes();
+  it.done = !it.done; mutate(); refreshNotesUI();
 }
 async function deleteNote(id){
   const idx = state.notes.findIndex(n => n.id === id);
@@ -3974,8 +4378,8 @@ async function deleteNote(id){
   const ok = await confirmModal('Excluir nota', 'Tem certeza que deseja excluir esta nota?', { danger: true, confirmLabel: 'Excluir' });
   if (!ok) return;
   const [removed] = state.notes.splice(idx, 1);
-  mutate(); renderNotes();
-  showUndoToast('Nota excluída.', () => { state.notes.splice(idx, 0, removed); mutate(); renderNotes(); });
+  mutate(); refreshNotesUI();
+  showUndoToast('Nota excluída.', () => { state.notes.splice(idx, 0, removed); mutate(); refreshNotesUI(); });
 }
 
 function openVaultSetupModal(){
@@ -4139,14 +4543,46 @@ function openNoteModal(id){
       state.notes.push(newNote);
       if (wantPrivate) decryptedNoteCache[newNote.id] = content;
     }
-    mutate(); closeModal(); renderNotes(); showToast(editing?'Nota atualizada.':'Nota adicionada.');
+    mutate(); closeModal(); refreshNotesUI(); showToast(editing?'Nota atualizada.':'Nota adicionada.');
   });
 }
 
 /* Verifica lembretes periodicamente (só funciona com o app aberto no navegador —
    não existe "aviso com app fechado" sem um serviço de push no backend). */
+// Avisa (notificação do navegador) quando uma conta fixa ou fatura de cartão
+// está a até 2 dias de vencer — só funciona com o app aberto e o aviso do
+// navegador já ativado (mesmo botão usado pelos lembretes de notas). Cada
+// vencimento só notifica uma vez (controlado por reminderNotified).
+function checkBillAndInvoiceReminders(){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const horizon = new Date(today); horizon.setDate(today.getDate() + 2);
+  let notifiedAny = false;
+  state.fixedBills.forEach(b => {
+    if (b.finished) return;
+    const periodKey = currentPeriodKey(b.frequency);
+    if (b.launchedMonths.includes(periodKey) || b.reminderNotified.includes(periodKey)) return;
+    const due = billNextDueDate(b);
+    if (due >= today && due <= horizon){
+      try { new Notification('Conta fixa perto de vencer', { body: `"${b.name}" vence em breve — ${fmtBRL(b.value)}.`, tag: 'bill-' + b.id + '-' + periodKey }); } catch(e){}
+      b.reminderNotified.push(periodKey);
+      notifiedAny = true;
+    }
+  });
+  state.creditCards.filter(c => c.kind === 'credit').forEach(c => {
+    const inv = cardNextOpenInvoice(c);
+    if (!inv || inv.total <= 0 || c.reminderNotified.includes(inv.period)) return;
+    if (inv.dueDate >= today && inv.dueDate <= horizon){
+      try { new Notification('Fatura perto de vencer', { body: `A fatura do cartão "${c.name}" vence em breve — ${fmtBRL(inv.total)}.`, tag: 'invoice-' + c.id + '-' + inv.period }); } catch(e){}
+      c.reminderNotified.push(inv.period);
+      notifiedAny = true;
+    }
+  });
+  if (notifiedAny) persistLocalCache();
+}
 function checkReminders(){
   const dueNow = state.notes.filter(n => isReminderDue(n) && !n.notifiedOnce);
+  checkBillAndInvoiceReminders();
   if (!dueNow.length) return;
   dueNow.forEach(n => {
     n.notifiedOnce = true;
@@ -4241,15 +4677,38 @@ function renderReports(isNav){
     list.filter(t=>t.type==='expense').forEach(t => { catTotals[t.categoryId] = (catTotals[t.categoryId]||0) + Number(t.value); });
     const catIds = Object.keys(catTotals);
     if (catIds.length){
+      $('chartReportPieEmpty').style.display = 'none';
+      $('chartReportPie').style.display = '';
       charts.chartReportPie = new Chart($('chartReportPie'), {
         type: 'pie',
         data: { labels: catIds.map(id=>categoryDisplayName(categoryById(id))), datasets: [{ data: catIds.map(id=>catTotals[id]), backgroundColor: catIds.map(id=>categoryById(id)?.color||'#999'), borderWidth: 0 }] },
         options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color: th.text, boxWidth:10, font:{size:11} } } } }
       });
     } else {
-      $('chartReportPie').closest('.chart-wrap').innerHTML = `<div class="empty-state" style="padding:30px 10px;">${ICONS.wallet}<p>Sem despesas no período.</p></div>`;
+      $('chartReportPie').style.display = 'none';
+      $('chartReportPieEmpty').style.display = '';
     }
   });
+  renderMonthlyClosures();
+}
+function renderMonthlyClosures(){
+  const wrap = $('monthlyClosuresWrap');
+  if (!wrap) return;
+  const closures = [...state.monthlyClosures].sort((a,b) => b.ym.localeCompare(a.ym)).slice(0, 12);
+  if (!closures.length){
+    wrap.innerHTML = `<div class="empty-state" style="padding:20px 10px;">${ICONS.calendar}<p>Ainda não há nenhum mês encerrado com transações.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div style="overflow-x:auto;"><table><thead><tr><th>Mês</th><th>Receitas</th><th>Despesas</th><th>Resultado</th><th>Poupança</th><th>Maior gasto</th></tr></thead><tbody>
+    ${closures.map(c => `<tr>
+      <td>${monthLabel(c.ym)}</td>
+      <td class="num">${fmtBRL(c.income)}</td>
+      <td class="num">${fmtBRL(c.expense)}</td>
+      <td class="num ${c.result>=0?'pos':'neg'}">${fmtBRL(c.result)}</td>
+      <td class="num">${c.savingsRate===null?'—':c.savingsRate+'%'}</td>
+      <td>${c.topCategoryId ? escapeHtml(categoryDisplayName(categoryById(c.topCategoryId))) + ' (' + fmtBRL(c.topCategoryValue) + ')' : '—'}</td>
+    </tr>`).join('')}
+  </tbody></table></div>`;
 }
 $('applyReportBtn').addEventListener('click', () => renderReports(false));
 $('reportPrintBtn').addEventListener('click', () => window.print());
@@ -4453,6 +4912,11 @@ function openTransactionModal(id, prefill){
           </div>
         </div>
         <div class="checkbox-row" id="fRecurringWrap"><input type="checkbox" id="fRecurring" ${editing&&editing.recurring?'checked':''}><label style="margin:0;" for="fRecurring">Marcar como recorrente</label></div>
+        <div class="checkbox-row" id="fSplitWrap"><input type="checkbox" id="fSplitCheck" ${editing&&editing.splitWith?'checked':''}><label style="margin:0;" for="fSplitCheck">Dividir esse gasto com alguém</label></div>
+        <div class="form-row hidden" id="fSplitFields">
+          <div class="field"><label>Nome da pessoa</label><input type="text" id="fSplitWith" value="${editing&&editing.splitWith?escapeHtml(editing.splitWith):''}" placeholder="Ex: Marina"></div>
+          <div class="field"><label>Quanto ela te deve (R$)</label><input type="number" step="0.01" class="num-input" id="fSplitAmount" value="${editing&&editing.splitAmount?editing.splitAmount:''}"></div>
+        </div>
         <div class="field hidden" id="fInstallmentWrap">
           <label>Parcelar em quantas vezes?</label>
           <input type="number" min="1" max="48" id="fInstallments" value="1" ${editing&&editing.installmentTotal?'disabled':''}>
@@ -4519,6 +4983,8 @@ function openTransactionModal(id, prefill){
     });
   }
   root.querySelector('#fCat').addEventListener('change', () => { categoryManuallyPicked = true; });
+  root.querySelector('#fSplitCheck').addEventListener('change', (e) => { root.querySelector('#fSplitFields').classList.toggle('hidden', !e.target.checked); });
+  if (editing && editing.splitWith) root.querySelector('#fSplitFields').classList.remove('hidden');
 
   let selectedReaction = editing ? (editing.reaction || null) : null;
   root.querySelectorAll('.reaction-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -4559,6 +5025,8 @@ function openTransactionModal(id, prefill){
     root.querySelector('#fToAccWrap').classList.toggle('hidden', !isTransfer);
     root.querySelector('#fRecurringWrap').classList.toggle('hidden', isTransfer);
     root.querySelector('#fInstallmentWrap').classList.toggle('hidden', type !== 'expense');
+    root.querySelector('#fSplitWrap').classList.toggle('hidden', type !== 'expense');
+    if (type !== 'expense') root.querySelector('#fSplitFields').classList.add('hidden');
     root.querySelector('#fPayWrap').classList.toggle('hidden', isTransfer);
     root.querySelector('#fAccLabel').textContent = isTransfer ? 'Conta de origem' : 'Conta';
     root.querySelector('#fCat').innerHTML = categoryOptions(type === 'transfer' ? 'expense' : type);
@@ -4666,6 +5134,14 @@ function openTransactionModal(id, prefill){
       payload.recurring = root.querySelector('#fRecurring').checked;
       if (!payload.categoryId){ showToast('Selecione uma categoria.'); return; }
     }
+    if (type === 'expense' && root.querySelector('#fSplitCheck').checked){
+      const splitWith = root.querySelector('#fSplitWith').value.trim();
+      const splitAmount = Number(root.querySelector('#fSplitAmount').value);
+      if (!splitWith || !splitAmount || splitAmount <= 0){ showToast('Informe o nome da pessoa e um valor válido para a divisão.'); return; }
+      payload.splitWith = splitWith; payload.splitAmount = splitAmount; payload.splitSettled = editing ? !!editing.splitSettled : false;
+    } else {
+      payload.splitWith = null; payload.splitAmount = null; payload.splitSettled = false;
+    }
     const installments = type === 'expense' && !editing ? Math.max(1, Math.min(48, Number(root.querySelector('#fInstallments').value) || 1)) : 1;
     if (editing){
       Object.assign(editing, payload);
@@ -4686,7 +5162,12 @@ function openTransactionModal(id, prefill){
       payload.id = uid(); state.transactions.push(payload);
     }
     mutate(); closeModal(); renderCurrentView();
-    showToast(editing ? 'Transação atualizada.' : (installments > 1 ? `Compra parcelada em ${installments}x adicionada.` : 'Transação adicionada.'));
+    const anomaly = (!editing && installments === 1 && type === 'expense') ? checkExpenseAnomaly(payload.categoryId, value) : null;
+    if (anomaly){
+      showToast(`Adicionado — esse gasto está ${Math.round(anomaly.ratio*10)/10}x acima da sua média nessa categoria (${fmtBRL(anomaly.avg)}). Vale conferir se está certo.`, 4200);
+    } else {
+      showToast(editing ? 'Transação atualizada.' : (installments > 1 ? `Compra parcelada em ${installments}x adicionada.` : 'Transação adicionada.'));
+    }
   });
 }
 
@@ -4890,7 +5371,7 @@ function openCardInvoiceModal(id){
         </div>
         ${!isPaid && total > 0 ? `<button class="btn btn-primary btn-sm" data-action="pay-invoice">Pagar fatura</button>` : ''}
       </div>
-      ${txs.length ? `<table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead><tbody>${txs.map(t => `<tr><td>${fmtDate(t.date)}</td><td>${escapeHtml(t.description||'—')}</td><td>${escapeHtml(categoryDisplayName(categoryById(t.categoryId)))}</td><td class="num neg">- ${fmtBRL(t.value)}</td></tr>`).join('')}</tbody></table>` : `<div class="empty-state" style="padding:20px 10px;">${ICONS.cards}<p>Nenhuma compra nesta fatura ainda.</p></div>`}
+      ${txs.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead><tbody>${txs.map(t => `<tr><td>${fmtDate(t.date)}</td><td>${escapeHtml(t.description||'—')}</td><td>${escapeHtml(categoryDisplayName(categoryById(t.categoryId)))}</td><td class="num neg">- ${fmtBRL(t.value)}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state" style="padding:20px 10px;">${ICONS.cards}<p>Nenhuma compra nesta fatura ainda.</p></div>`}
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-action="close">Fechar</button></div>`;
   openModal(html);
@@ -4961,13 +5442,14 @@ function openCategoryModal(id){
 }
 
 /* ---- Fixed bill modal ---- */
-function openFixedBillModal(id){
+function openFixedBillModal(id, prefill){
   const editing = id ? state.fixedBills.find(b => b.id === id) : null;
+  const src = editing || prefill || null;
   if (!state.accounts.length){ showToast('Cadastre uma conta antes de criar contas fixas.'); switchView('accounts'); return; }
   let type = editing ? editing.type : 'expense';
   let freq = editing ? (editing.frequency || 'monthly') : 'monthly';
-  function catOpts(t){ return state.categories.filter(c=>c.type===t).map(c=>`<option value="${c.id}" ${editing&&editing.categoryId===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join(''); }
-  function accOpts(){ return state.accounts.map(a=>`<option value="${a.id}" ${editing&&editing.accountId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join(''); }
+  function catOpts(t){ return state.categories.filter(c=>c.type===t).map(c=>`<option value="${c.id}" ${src&&src.categoryId===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join(''); }
+  function accOpts(){ return state.accounts.map(a=>`<option value="${a.id}" ${src&&src.accountId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join(''); }
   function weekdayOpts(){ return WEEKDAY_NAMES_SHORT.map((n,i) => `<option value="${i}" ${editing&&editing.dueWeekday===i?'selected':''}>${n}</option>`).join(''); }
   function monthOpts(){
     const names = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -4979,14 +5461,14 @@ function openFixedBillModal(id){
         <button type="button" data-type="income" class="${type==='income'?'active':''}">Receita</button>
         <button type="button" data-type="expense" class="${type==='expense'?'active':''}">Despesa</button>
       </div>
-      <div class="field"><label>Nome</label><input type="text" id="fName" value="${editing?escapeHtml(editing.name):''}" placeholder="Ex: Aluguel"></div>
+      <div class="field"><label>Nome</label><input type="text" id="fName" value="${src?escapeHtml(src.name||src.description||''):''}" placeholder="Ex: Aluguel"></div>
       <div class="field"><label>Frequência</label><select id="fFreq">
         <option value="monthly" ${freq==='monthly'?'selected':''}>Mensal</option>
         <option value="weekly" ${freq==='weekly'?'selected':''}>Semanal</option>
         <option value="yearly" ${freq==='yearly'?'selected':''}>Anual</option>
       </select></div>
       <div class="form-row">
-        <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" class="num-input" id="fValue" value="${editing?editing.value:''}"></div>
+        <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" class="num-input" id="fValue" value="${src?(src.value??src.avgValue??''):''}"></div>
         <div class="field" id="fMonthlyDueWrap"><label>Dia de vencimento</label><input type="number" min="1" max="28" id="fDueDay" value="${editing&&editing.dueDay?editing.dueDay:'5'}"></div>
         <div class="field hidden" id="fWeeklyDueWrap"><label>Dia da semana</label><select id="fDueWeekday">${weekdayOpts()}</select></div>
       </div>
@@ -5099,6 +5581,13 @@ function openGoalModal(id, prefill){
         <option value="medium">Médio prazo (6 meses a 2 anos)</option>
         <option value="long">Longo prazo (mais de 2 anos)</option>
       </select><div class="horizon-hint" id="horizonHint"></div></div>
+      <div class="checkbox-row"><input type="checkbox" id="fAutoContribute" ${editing&&editing.autoContribute?'checked':''}><label style="margin:0;" for="fAutoContribute">Aportar automaticamente todo mês</label></div>
+      <div class="form-row" id="fAutoContributeFields" style="${editing&&editing.autoContribute?'':'display:none;'}">
+        <div class="field"><label>Valor do aporte (R$)</label><input type="number" step="0.01" class="num-input" id="fAutoAmount" value="${editing&&editing.autoAmount?editing.autoAmount:''}"></div>
+        <div class="field"><label>Dia do mês</label><input type="number" min="1" max="28" id="fAutoDay" value="${editing&&editing.autoDay?editing.autoDay:5}"></div>
+      </div>
+      <div class="field hidden" id="fAutoSourceWrap"><label>De qual conta sai o aporte?</label><select id="fAutoSourceAccount"><option value="">Selecione</option>${accOpts}</select></div>
+      <div class="horizon-hint" id="autoContributeHint" style="${editing&&editing.autoContribute?'':'display:none;'}">Todo dia escolhido, o valor é adicionado à meta sozinho — sem conta vinculada, só soma no "já economizado"; com conta vinculada, faz uma transferência de verdade a partir da conta escolhida acima.</div>
       ${prefill && !editing ? '<div class="horizon-hint">Valores vindos da simulação — revise antes de salvar.</div>' : ''}
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-action="cancel">Cancelar</button><button class="btn btn-primary" data-action="save">${editing?'Salvar':'Adicionar'}</button></div>`;
@@ -5107,10 +5596,18 @@ function openGoalModal(id, prefill){
   const horizonSel = root.querySelector('#fHorizon');
   horizonSel.value = editing ? (editing.horizon || 'short') : 'short';
   function syncSavedField(){
-    root.querySelector('#fSavedWrap').classList.toggle('hidden', !!root.querySelector('#fGoalAccount').value);
+    const hasAccount = !!root.querySelector('#fGoalAccount').value;
+    root.querySelector('#fSavedWrap').classList.toggle('hidden', hasAccount);
+    root.querySelector('#fAutoSourceWrap').classList.toggle('hidden', !(hasAccount && root.querySelector('#fAutoContribute').checked));
   }
   root.querySelector('#fGoalAccount').value = editing && editing.accountId ? editing.accountId : '';
   root.querySelector('#fGoalAccount').addEventListener('change', syncSavedField);
+  if (editing && editing.autoSourceAccountId) root.querySelector('#fAutoSourceAccount').value = editing.autoSourceAccountId;
+  root.querySelector('#fAutoContribute').addEventListener('change', (e) => {
+    root.querySelector('#fAutoContributeFields').style.display = e.target.checked ? '' : 'none';
+    root.querySelector('#autoContributeHint').style.display = e.target.checked ? '' : 'none';
+    syncSavedField();
+  });
   syncSavedField();
   function updateHint(){
     const dl = root.querySelector('#fDeadline').value;
@@ -5126,15 +5623,30 @@ function openGoalModal(id, prefill){
     const target = Number(root.querySelector('#fTarget').value);
     if (!name || !target || target<=0){ showToast('Informe nome e valor alvo válidos.'); return; }
     const accountId = root.querySelector('#fGoalAccount').value || null;
+    const autoContribute = root.querySelector('#fAutoContribute').checked;
+    const autoAmount = autoContribute ? Number(root.querySelector('#fAutoAmount').value) : null;
+    const autoSourceAccountId = root.querySelector('#fAutoSourceAccount').value || null;
+    if (autoContribute){
+      if (!autoAmount || autoAmount <= 0){ showToast('Informe um valor válido para o aporte automático.'); return; }
+      if (accountId && (!autoSourceAccountId || autoSourceAccountId === accountId)){ showToast('Escolha uma conta de origem diferente da conta vinculada à meta.'); return; }
+    }
     const payload = {
       name, target,
       saved: accountId ? 0 : (Number(root.querySelector('#fSaved').value)||0),
       accountId,
       deadline: root.querySelector('#fDeadline').value || null,
-      horizon: horizonSel.value
+      horizon: horizonSel.value,
+      autoContribute,
+      autoAmount,
+      autoDay: Math.min(28, Math.max(1, Number(root.querySelector('#fAutoDay').value)||5)),
+      autoSourceAccountId: accountId ? autoSourceAccountId : null,
     };
-    if (editing) Object.assign(editing, payload);
-    else state.goals.push({ id: uid(), createdAt: new Date().toISOString(), ...payload });
+    if (editing){
+      // se mudou o valor/conta do aporte, deixa ele valer já no próximo vencimento em vez de esperar o mês seguinte
+      if (editing.autoAmount !== payload.autoAmount || editing.autoDay !== payload.autoDay || editing.autoSourceAccountId !== payload.autoSourceAccountId) editing.autoLaunchedMonths = [];
+      Object.assign(editing, payload);
+    }
+    else state.goals.push({ id: uid(), createdAt: new Date().toISOString(), autoLaunchedMonths: [], ...payload });
     mutate(); closeModal(); renderGoals(); showToast(editing?'Meta atualizada.':'Meta adicionada.');
   });
 }
@@ -5277,6 +5789,148 @@ $('importFileInput').addEventListener('change', async (e) => {
       showUndoToast('Backup importado com sucesso.', () => { state = previous; getActiveProfile().data = state; mutate(); renderAll(); });
     } catch(err){ showToast('Arquivo inválido.'); }
   };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+/* -------------------- IMPORTAÇÃO DE EXTRATO (CSV/OFX) --------------------
+   Tenta reconhecer data, descrição e valor automaticamente a partir de um
+   extrato exportado do banco. Formatos de banco variam bastante, então isso
+   é uma tentativa razoável (não uma leitura garantida) — por isso sempre
+   mostra uma prévia pra pessoa conferir/ajustar categoria e conta antes de
+   confirmar de verdade. Nada é salvo sem passar por essa confirmação. */
+function parseBrNumber(raw){
+  let s = String(raw||'').trim().replace(/[R$\s]/g,'');
+  if (!s) return NaN;
+  const neg = /^-|\(.*\)$/.test(s) || /^-/.test(s);
+  s = s.replace(/[()]/g,'');
+  // "1.234,56" (BR) vs "1,234.56" ou "1234.56" (US) — decide pelo último separador
+  const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
+  if (lastComma > lastDot) s = s.replace(/\./g,'').replace(',', '.');
+  else s = s.replace(/,/g,'');
+  const n = Number(s.replace(/^-/,''));
+  if (isNaN(n)) return NaN;
+  return neg ? -n : n;
+}
+function parseFlexibleDate(raw){
+  const s = String(raw||'').trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); // ISO
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); // DD/MM/AAAA (padrão BR)
+  if (m){
+    let [,d,mo,y] = m;
+    if (y.length === 2) y = '20' + y;
+    return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+  m = s.match(/^(\d{8})/); // OFX: AAAAMMDD
+  if (m) return `${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`;
+  return null;
+}
+function splitCsvLine(line, delim){
+  const out = []; let cur = ''; let inQuotes = false;
+  for (let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if (ch === '"'){ inQuotes = !inQuotes; continue; }
+    if (ch === delim && !inQuotes){ out.push(cur); cur = ''; continue; }
+    cur += ch;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+function parseCsvStatement(text){
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return [];
+  const delim = (lines[0].match(/;/g)||[]).length >= (lines[0].match(/,/g)||[]).length ? ';' : ',';
+  const norm = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const header = splitCsvLine(lines[0], delim).map(norm);
+  const findCol = (...names) => header.findIndex(h => names.some(n => h.includes(n)));
+  let dateIdx = findCol('data','date'), descIdx = findCol('descri','historic','memo','title','estabelecimento'), valueIdx = findCol('valor','amount','value');
+  const hasHeader = dateIdx >= 0 || descIdx >= 0 || valueIdx >= 0;
+  const dataLines = hasHeader ? lines.slice(1) : lines;
+  if (!hasHeader){ dateIdx = 0; descIdx = 1; valueIdx = 2; } // formato comum: data, descrição, valor
+  const rows = [];
+  dataLines.forEach(line => {
+    const cols = splitCsvLine(line, delim);
+    const date = parseFlexibleDate(cols[dateIdx]);
+    const value = parseBrNumber(cols[valueIdx]);
+    if (!date || isNaN(value) || value === 0) return;
+    rows.push({ date, description: cols[descIdx] || '', value: Math.abs(value), type: value < 0 ? 'expense' : 'income' });
+  });
+  return rows;
+}
+function parseOfxStatement(text){
+  const rows = [];
+  const blocks = text.split(/<STMTTRN>/i).slice(1);
+  blocks.forEach(block => {
+    const get = (tag) => { const m = block.match(new RegExp('<'+tag+'>([^<\\r\\n]*)','i')); return m ? m[1].trim() : ''; };
+    const date = parseFlexibleDate(get('DTPOSTED'));
+    const value = parseBrNumber(get('TRNAMT'));
+    const description = get('MEMO') || get('NAME') || '';
+    if (!date || isNaN(value) || value === 0) return;
+    rows.push({ date, description, value: Math.abs(value), type: value < 0 ? 'expense' : 'income' });
+  });
+  return rows;
+}
+function openImportStatementPreview(rows){
+  if (!rows.length){ showToast('Não consegui reconhecer nenhum lançamento nesse arquivo — o formato pode ser diferente do esperado.', 5000); return; }
+  const accOpts = state.accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  const rowHtml = (r,i) => {
+    return `<div class="list-row" data-idx="${i}">
+      <input type="checkbox" class="imp-row-check" data-idx="${i}" checked style="flex:none;">
+      <div style="flex:1; min-width:0;">
+        <div class="desc">${escapeHtml(r.description || '(sem descrição)')}</div>
+        <div class="meta">${fmtDate(r.date)} · ${r.type==='income'?'Receita':'Despesa'}</div>
+      </div>
+      <div class="amt">${fmtBRL(r.value)}</div>
+      <select class="imp-row-cat" data-idx="${i}" style="max-width:150px;"><option value="">Sem categoria</option>${categoryOptionsGrouped(r.type)}</select>
+    </div>`;
+  };
+  const html = `<div class="modal-head"><h3>Conferir importação</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Importar para qual conta?</label><select id="impAccount">${accOpts}</select></div>
+      <p style="color:var(--text-dim); font-size:12.5px; margin:10px 0;">Encontrados ${rows.length} lançamento(s). Desmarque o que não quiser importar e ajuste a categoria sugerida se precisar.</p>
+      <div style="max-height:340px; overflow-y:auto; overflow-x:auto;">${rows.map(rowHtml).join('')}</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-action="close">Cancelar</button><button class="btn btn-primary" data-action="confirm">Importar selecionados</button></div>`;
+  openModal(html);
+  const root = $('modalContent');
+  root.querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
+  root.querySelectorAll('.imp-row-cat').forEach(sel => {
+    const r = rows[Number(sel.dataset.idx)];
+    const suggestion = suggestCategoryForDescription(r.description, r.type);
+    if (suggestion) sel.value = suggestion.categoryId;
+  });
+  root.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+    const accountId = root.querySelector('#impAccount').value;
+    if (!accountId){ showToast('Selecione uma conta.'); return; }
+    let count = 0;
+    root.querySelectorAll('.imp-row-check:checked').forEach(chk => {
+      const i = Number(chk.dataset.idx);
+      const r = rows[i];
+      const categoryId = root.querySelector(`.imp-row-cat[data-idx="${i}"]`).value || null;
+      if (!categoryId) return; // sem categoria escolhida, pula essa linha
+      state.transactions.push({ id: uid(), type: r.type, date: r.date, value: r.value, description: r.description, categoryId, accountId, paymentMethod: null, cardId: null, notes: 'Importado de extrato' });
+      count++;
+    });
+    if (!count){ showToast('Escolha uma categoria para pelo menos um lançamento.'); return; }
+    mutate(); closeModal(); renderCurrentView();
+    showToast(`${count} lançamento(s) importado(s).`);
+  });
+}
+$('importStatementBtn').addEventListener('click', () => {
+  if (!state.accounts.length){ showToast('Cadastre uma conta antes de importar um extrato.'); switchView('accounts'); return; }
+  $('importStatementInput').click();
+});
+$('importStatementInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = String(reader.result);
+    const isOfx = /\.ofx$|\.qfx$/i.test(file.name) || /<OFX>/i.test(text);
+    const rows = isOfx ? parseOfxStatement(text) : parseCsvStatement(text);
+    openImportStatementPreview(rows);
+  };
+  reader.onerror = () => showToast('Não foi possível ler esse arquivo.');
   reader.readAsText(file);
   e.target.value = '';
 });
@@ -5859,12 +6513,13 @@ async function boot(){
   } else {
     // Modo local: sem autenticação
     appData = normalizeAppData(loadLocal());
-    ensureAppIntegrity();
+    const eventsOnBoot = ensureAppIntegrity();
     $('authScreen').style.display = 'none';
     $('appShell').classList.add('show');
     $('logoutBtn').style.display = 'none';
     setSaveStatus('local');
     initAppUI();
+    notifyAutoEvents(eventsOnBoot);
   }
 }
 /* -------------------- PWA: registro do Service Worker --------------------
