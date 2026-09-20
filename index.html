@@ -363,6 +363,7 @@ tr:hover td{background:var(--surface-2);}
 @media(max-width:520px){
   .bill-card .info{flex-basis:100%;}
   .bill-card .bill-actions{flex-basis:100%; margin-left:60px; justify-content:flex-start;}
+  #longProjectionToggle{flex-basis:100%;}
 }
 .badge-launched{font-size:12px; font-weight:700; color:var(--positive); background:var(--positive-soft); padding:4px 10px; border-radius:999px;}
 .badge-pending{font-size:12px; font-weight:700; color:var(--warn); background:var(--warn-soft); padding:4px 10px; border-radius:999px;}
@@ -567,8 +568,8 @@ tr:hover td{background:var(--surface-2);}
 .modal-body{padding:22px 24px;}
 .modal-foot{display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid var(--border-soft);}
 .form-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-.type-toggle{display:flex; gap:8px; margin-bottom:14px;}
-.type-toggle button{flex:1; padding:9px; border-radius:9px; border:1px solid var(--border); background:var(--bg-elev); font-size:13px; font-weight:700; cursor:pointer; color:var(--text-dim); transition:all .15s var(--ease);}
+.type-toggle{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+.type-toggle button{flex:1; min-width:88px; padding:9px; border-radius:9px; border:1px solid var(--border); background:var(--bg-elev); font-size:13px; font-weight:700; cursor:pointer; color:var(--text-dim); transition:all .15s var(--ease); white-space:nowrap;}
 .type-toggle button.active{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
 .pay-method-grid{display:flex; flex-wrap:wrap; gap:8px; margin-top:2px;}
 .pay-method-chip{
