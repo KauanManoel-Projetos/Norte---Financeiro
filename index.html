@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Norte — Gestão Financeira Pessoal</title>
 <meta name="theme-color" content="#090909">
-<link rel="icon" href="data:,">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <!-- PWA: aponta para manifest.json e sw.js (arquivos separados, entregues
-     junto com este index.html — mantenha os três no mesmo diretório/repo).
-     Se esses arquivos não existirem (ex: abrindo só o index.html sozinho),
-     o app funciona normalmente — o registro do Service Worker falha em
-     silêncio e cai de volta no cache via localStorage. -->
+     junto com este index.html — mantenha os três, mais os ícones, no mesmo
+     diretório/repo). Se esses arquivos não existirem (ex: abrindo só o
+     index.html sozinho), o app funciona normalmente — o registro do
+     Service Worker falha em silêncio e cai de volta no cache via
+     localStorage. -->
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Norte">
@@ -54,15 +56,14 @@
      5) Em Authentication → Providers, deixe "Email" habilitado.
         Se quiser pular a confirmação por e-mail em testes,
         desative "Confirm email" em Authentication → Settings.
-     6) Suba este arquivo (index.html) — junto com manifest.json
-        e sw.js, entregues ao lado dele — para um repositório no
-        GitHub e ative o GitHub Pages em
-        Settings → Pages → Branch: main → pasta raiz (/).
-        Os três arquivos precisam ficar na mesma pasta. Isso
-        habilita "Adicionar à tela inicial" com ícone próprio e
-        uso básico offline (cache do app). Sem esses dois
-        arquivos, o index.html sozinho continua funcionando
-        normalmente — só não vira um PWA instalável.
+     6) Suba este arquivo (index.html) — junto com manifest.json, sw.js,
+        icon-192.png, icon-512.png, icon-512-maskable.png e
+        apple-touch-icon.png, todos entregues ao lado dele — para um
+        repositório no GitHub. Todos esses arquivos precisam ficar na
+        mesma pasta. Isso habilita "Adicionar à tela inicial"/instalar
+        como app, com ícone próprio, tela cheia e uso básico offline
+        (cache do app). Sem esses arquivos extras, o index.html sozinho
+        continua funcionando normalmente — só não vira um PWA instalável.
 
      Enquanto SUPABASE_URL não for preenchida, o app roda em
      "modo local": os dados ficam salvos apenas neste navegador
