@@ -277,6 +277,7 @@ body.readonly-mode .fab{display:none !important;}
 .grid-3{grid-template-columns:repeat(3,1fr);}
 .grid-2{grid-template-columns:2fr 1fr;}
 .grid-auto{grid-template-columns:repeat(auto-fit, minmax(215px,1fr));}
+.grid-auto > *{width:100%; min-width:0; box-sizing:border-box;}
 .grid-auto-lg{grid-template-columns:repeat(auto-fit, minmax(280px,1fr));}
 @media(max-width:1000px){.grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:1fr;} .grid-2{grid-template-columns:1fr;}}
 
@@ -355,7 +356,7 @@ tr:hover td{background:var(--surface-2);}
 .cat-chip .dot{width:8px;height:8px;border-radius:50%;}
 
 /* Fixed bills */
-.bill-card{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:16px; margin-bottom:10px;}
+.bill-card{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:16px; margin-bottom:10px; width:100%; box-sizing:border-box;}
 .bill-card .icon-wrap{width:46px;height:46px;border-radius:13px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex:none;}
 .bill-card .icon-wrap .icon{width:21px;height:21px;stroke-width:1.6;}
 .bill-card .info{flex:1 1 180px; min-width:0;}
@@ -503,7 +504,7 @@ tr:hover td{background:var(--surface-2);}
 .sim-breakdown .item .value{font-family:var(--font-mono); font-weight:600; font-size:15px; margin-top:4px;}
 
 /* Accounts */
-.account-card{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:16px;margin-bottom:10px; transition:opacity .15s var(--ease);}
+.account-card{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:16px;margin-bottom:10px; transition:opacity .15s var(--ease); width:100%; box-sizing:border-box;}
 .account-card.drag-over{border-color:var(--accent);}
 .drag-handle{cursor:grab; color:var(--text-faint); letter-spacing:-2px; font-size:15px; line-height:1; flex:none; user-select:none; padding:4px;}
 .drag-handle:active{cursor:grabbing;}
@@ -811,7 +812,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             <div class="delta" id="projectedBalanceNote" style="color:var(--text-faint); font-weight:500;"></div>
           </div>
         </div>
-        <div class="card" style="margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+        <div class="card" style="margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; width:100%; box-sizing:border-box;">
           <div>
             <div class="label">Seu dinheiro daqui a...</div>
             <div class="value num" id="longProjectionValue" style="margin-top:4px;">R$ 0,00</div>
@@ -986,7 +987,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
           </div>
         </div>
         <div id="aiChatMain" class="hidden">
-          <div class="card" style="margin-bottom:14px; display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap;">
+          <div class="card" style="margin-bottom:14px; display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap; width:100%; box-sizing:border-box;">
             <p style="color:var(--text-faint); font-size:11.5px; margin:0; max-width:520px;">Ao conversar, um resumo dos seus números (não os lançamentos individuais) é enviado para gerar a resposta. Isto é orientação educativa, não é consultoria financeira profissional.</p>
             <button class="btn btn-ghost btn-sm" id="clearChatBtn">Limpar conversa</button>
           </div>
@@ -1204,7 +1205,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 
       <!-- SETTINGS / BACKUP -->
       <section class="view" id="view-settings">
-        <div class="card" style="margin-bottom:16px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+        <div class="card" style="margin-bottom:16px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; width:100%; box-sizing:border-box;">
           <div class="account-avatar-wrap" id="accountAvatarWrap" title="Alterar foto de perfil">
             <div class="account-avatar" id="accountAvatarPreview"></div>
             <div class="account-avatar-edit"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg></div>
@@ -2308,7 +2309,7 @@ function openSubscriptionSuggestionsModal(){
   const html = `<div class="modal-head"><h3>Gastos recorrentes encontrados</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
       <div class="horizon-hint" style="margin-bottom:14px;">Esses gastos apareceram com o mesmo valor (aproximado) todo mês, mas ainda não estão cadastrados como conta fixa. Cadastrar ajuda a projeção de saldo do fim do mês e o débito automático.</div>
-      ${suggestions.map((s,i) => `<div class="card" style="padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      ${suggestions.map((s,i) => `<div class="card" style="padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; width:100%; box-sizing:border-box;">
         <div style="flex:1 1 160px;">
           <div style="font-weight:700; font-size:14px;">${escapeHtml(s.description)}</div>
           <div style="font-size:12.5px; color:var(--text-faint);">${escapeHtml(categoryDisplayName(categoryById(s.categoryId)))} · visto em ${s.monthsSeen} dos últimos 4 meses</div>
