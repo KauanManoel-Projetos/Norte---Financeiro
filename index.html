@@ -206,7 +206,7 @@ html[data-theme="light"] #authScreen::before{
 #googleSignInBtn{background:var(--bg-elev);}
 #googleSignInBtn:hover{background:var(--surface-2);}
 
-#appShell{display:none; min-height:100vh;}
+#appShell{display:none; min-height:100vh; width:100%;}
 #appShell.show{display:flex;}
 
 .sidebar{
@@ -244,7 +244,7 @@ html[data-theme="dark"] .sidebar{background:#0A0B0D;}
 .save-dot.busy{background:var(--warn); animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
-.main{flex:1; min-width:0; display:flex; flex-direction:column;}
+.main{flex:1 1 0%; width:100%; min-width:0; display:flex; flex-direction:column; align-self:stretch;}
 .topbar{
   display:flex; align-items:center; gap:12px; padding:16px 28px; border-bottom:1px solid var(--border-soft);
   background:var(--bg); position:sticky; top:0; z-index:5;
