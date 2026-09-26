@@ -589,7 +589,7 @@ tr:hover td{background:var(--surface-2);}
 .color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
 .color-swatch.sel{border-color:var(--text);}
 .color-swatch-custom{position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px dashed var(--border-soft);}
-.color-swatch-custom::after{content:"+"; color:var(--text-dim); font-size:14px; font-weight:700; pointer-events:none;}
+.color-swatch-custom::after{content:"+"; color:var(--text-dim); font-size:14px; font-weight:700; line-height:1; pointer-events:none;}
 .color-swatch-custom.sel::after{content:""; }
 .color-swatch-custom input[type=color]{position:absolute; inset:-4px; width:calc(100% + 8px); height:calc(100% + 8px); border:none; padding:0; cursor:pointer; opacity:0;}
 .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:4px;}
@@ -3841,7 +3841,16 @@ function openPayableModal(id){
         <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" class="num-input" id="pValue" value="${editing?editing.value:''}"></div>
         <div class="field"><label>Vencimento (opcional)</label><input type="date" id="pDueDate" value="${editing&&editing.dueDate?editing.dueDate:''}"></div>
       </div>
-      <div class="field"><label>Categoria</label><select id="pCat">${catOpts(kind)}</select></div>
+      <div class="field">
+        <label>Categoria</label>
+        <div style="display:flex; gap:8px;">
+          <select id="pCat" style="flex:1;">${catOpts(kind)}</select>
+          <button type="button" class="btn btn-icon btn-ghost" id="pCatNewBtn" title="Nova categoria" aria-label="Criar nova categoria">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        ${inlineNewCategoryPanelHtml('pCatNew')}
+      </div>
       <div class="field"><label>Pessoa ou empresa (opcional)</label><input type="text" id="pPerson" value="${editing?escapeHtml(editing.person||''):''}" placeholder="Ex: Marina, Cliente XPTO"></div>
       <div class="field"><label>Notas (opcional)</label><textarea id="pNotes" rows="2" placeholder="Detalhes extras">${editing?escapeHtml(editing.notes||''):''}</textarea></div>
     </div>
@@ -3849,6 +3858,7 @@ function openPayableModal(id){
   openModal(html);
   const root = $('modalContent');
   root.querySelectorAll('[data-action="close"], [data-action="cancel"]').forEach(el => el.addEventListener('click', closeModal));
+  wireInlineNewCategory(root, 'pCat', () => kind === 'pay' ? 'expense' : 'income', { idPrefix: 'pCatNew' });
   root.querySelectorAll('#pKind button').forEach(btn => btn.addEventListener('click', () => {
     kind = btn.dataset.kind;
     root.querySelectorAll('#pKind button').forEach(b => b.classList.toggle('active', b === btn));
@@ -5077,6 +5087,74 @@ function showUndoToast(msg, undoFn){
 }
 
 /* ---- Transaction modal ---- */
+// Monta e liga o painel de "criar categoria sem sair do formulário" — usado
+// tanto no formulário de transação quanto no de A Pagar/Receber. `root` é o
+// elemento do modal; `catSelectId` é o id do <select> de categoria a
+// atualizar; `getType()` deve devolver 'income' ou 'expense' no momento do
+// clique (pode mudar dinamicamente, ex: toggle Receita/Despesa).
+// `opts.idPrefix` (padrão "fCatNew") define o prefixo dos ids usados no HTML
+// do painel (Btn/Panel/Name/ColorRow/AddBtn/CancelBtn).
+function inlineNewCategoryPanelHtml(idPrefix){
+  return `<div class="hidden" id="${idPrefix}Panel" style="margin-top:10px; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--bg-elev);">
+    <div class="field" style="margin-bottom:10px;"><input type="text" id="${idPrefix}Name" placeholder="Nome da nova categoria"></div>
+    <div class="color-row" id="${idPrefix}ColorRow" style="margin-bottom:12px;"></div>
+    <div style="display:flex; gap:8px;">
+      <button type="button" class="btn btn-primary btn-sm" id="${idPrefix}AddBtn">Adicionar categoria</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="${idPrefix}CancelBtn">Cancelar</button>
+    </div>
+  </div>`;
+}
+function wireInlineNewCategory(root, catSelectId, getType, opts = {}){
+  const prefix = opts.idPrefix || 'fCatNew';
+  let newCatColor = CAT_PALETTE[state.categories.length % CAT_PALETTE.length];
+  function renderColorRow(){
+    const row = root.querySelector('#'+prefix+'ColorRow');
+    const isCustom = !CAT_PALETTE.includes(newCatColor);
+    row.innerHTML = CAT_PALETTE.map(c => `<span class="color-swatch ${c===newCatColor?'sel':''}" data-color="${c}" style="background:${c}"></span>`).join('') +
+      `<label class="color-swatch color-swatch-custom ${isCustom?'sel':''}" title="Escolher outra cor" style="background:${isCustom?newCatColor:'var(--surface-2)'};">
+        <input type="color" value="${isCustom?newCatColor:'#888888'}">
+      </label>`;
+    row.querySelectorAll('.color-swatch[data-color]').forEach(sw => sw.addEventListener('click', () => {
+      newCatColor = sw.dataset.color;
+      row.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('sel'));
+      sw.classList.add('sel');
+    }));
+    const customLabel = row.querySelector('.color-swatch-custom');
+    customLabel.querySelector('input[type=color]').addEventListener('input', (e) => {
+      newCatColor = e.target.value;
+      customLabel.style.background = newCatColor;
+      row.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('sel'));
+      customLabel.classList.add('sel');
+    });
+  }
+  root.querySelector('#'+prefix+'Btn').addEventListener('click', () => {
+    if (readOnlyMode){ showToast('Modo leitura ativado — desative para criar categorias.'); return; }
+    const panel = root.querySelector('#'+prefix+'Panel');
+    const opening = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    if (opening){ renderColorRow(); root.querySelector('#'+prefix+'Name').focus(); }
+  });
+  root.querySelector('#'+prefix+'CancelBtn').addEventListener('click', () => {
+    root.querySelector('#'+prefix+'Panel').classList.add('hidden');
+    root.querySelector('#'+prefix+'Name').value = '';
+  });
+  root.querySelector('#'+prefix+'Name').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); root.querySelector('#'+prefix+'AddBtn').click(); } });
+  root.querySelector('#'+prefix+'AddBtn').addEventListener('click', () => {
+    const name = root.querySelector('#'+prefix+'Name').value.trim();
+    if (!name){ showToast('Dê um nome para a categoria.'); return; }
+    const catType = getType();
+    const newCat = { id: uid(), name, type: catType, color: newCatColor, parentId: null };
+    state.categories.push(newCat);
+    mutate();
+    const sel = root.querySelector('#'+catSelectId);
+    sel.innerHTML = categoryOptionsGrouped(catType);
+    sel.value = newCat.id;
+    if (opts.onCreated) opts.onCreated(newCat);
+    root.querySelector('#'+prefix+'Panel').classList.add('hidden');
+    root.querySelector('#'+prefix+'Name').value = '';
+    showToast('Categoria "' + name + '" criada.');
+  });
+}
 function openTransactionModal(id, prefill){
   const editing = id ? state.transactions.find(t => t.id === id) : null;
   const src = editing || prefill || null;
@@ -5323,40 +5401,8 @@ function openTransactionModal(id, prefill){
   }));
 
   // Criar categoria nova sem sair do formulário de transação
-  let newCatColor = CAT_PALETTE[state.categories.length % CAT_PALETTE.length];
-  function renderNewCatColorRow(){
-    const row = root.querySelector('#fCatNewColorRow');
-    row.innerHTML = CAT_PALETTE.map(c => `<span class="color-swatch ${c===newCatColor?'sel':''}" data-color="${c}" style="background:${c}"></span>`).join('');
-    row.querySelectorAll('.color-swatch').forEach(sw => sw.addEventListener('click', () => {
-      newCatColor = sw.dataset.color;
-      row.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('sel', s===sw));
-    }));
-  }
-  root.querySelector('#fCatNewBtn').addEventListener('click', () => {
-    if (readOnlyMode){ showToast('Modo leitura ativado — desative para criar categorias.'); return; }
-    const panel = root.querySelector('#fCatNewPanel');
-    const opening = panel.classList.contains('hidden');
-    panel.classList.toggle('hidden');
-    if (opening){ renderNewCatColorRow(); root.querySelector('#fCatNewName').focus(); }
-  });
-  root.querySelector('#fCatNewCancelBtn').addEventListener('click', () => {
-    root.querySelector('#fCatNewPanel').classList.add('hidden');
-    root.querySelector('#fCatNewName').value = '';
-  });
-  root.querySelector('#fCatNewName').addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); root.querySelector('#fCatNewAddBtn').click(); } });
-  root.querySelector('#fCatNewAddBtn').addEventListener('click', () => {
-    const name = root.querySelector('#fCatNewName').value.trim();
-    if (!name){ showToast('Dê um nome para a categoria.'); return; }
-    const catType = type === 'transfer' ? 'expense' : type;
-    const newCat = { id: uid(), name, type: catType, color: newCatColor, parentId: null };
-    state.categories.push(newCat);
-    mutate();
-    root.querySelector('#fCat').innerHTML = categoryOptions(catType);
-    root.querySelector('#fCat').value = newCat.id;
-    categoryManuallyPicked = true;
-    root.querySelector('#fCatNewPanel').classList.add('hidden');
-    root.querySelector('#fCatNewName').value = '';
-    showToast('Categoria "' + name + '" criada.');
+  wireInlineNewCategory(root, 'fCat', () => type === 'transfer' ? 'expense' : type, {
+    onCreated: () => { categoryManuallyPicked = true; }
   });
   root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="cancel"]').addEventListener('click', closeModal);
