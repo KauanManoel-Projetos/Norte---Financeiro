@@ -77,6 +77,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
 
 <style>
 /* ============================= TOKENS ============================= */
@@ -1271,12 +1273,12 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 
         <div class="card" style="margin-bottom:16px;">
           <h4 style="margin-bottom:6px;">Importar extrato bancário</h4>
-          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Traga um extrato em CSV ou OFX exportado do seu banco — o app tenta reconhecer data, descrição e valor de cada linha automaticamente, e você confere/ajusta antes de importar de verdade.</p>
+          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Traga um extrato em CSV, OFX, PDF ou até uma foto/print (PNG/JPG) — o app tenta reconhecer data, descrição e valor automaticamente, e você confere/ajusta antes de importar de verdade. Leitura de foto/PDF escaneado usa reconhecimento de texto (OCR) e pode errar mais que CSV/OFX — revise com atenção na prévia.</p>
           <button class="btn" id="importStatementBtn">
             <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importar extrato (CSV/OFX)
+            Importar extrato (CSV/OFX/PDF/foto)
           </button>
-          <input type="file" id="importStatementInput" accept=".csv,.ofx,.qfx,.txt" class="hidden">
+          <input type="file" id="importStatementInput" accept=".csv,.ofx,.qfx,.txt,.pdf,.png,.jpg,.jpeg" class="hidden">
         </div>
 
         <div class="card" style="margin-bottom:16px;">
@@ -1331,6 +1333,15 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 /* ==========================================================================
    NORTE — lógica do aplicativo
    ========================================================================== */
+
+/* -------------------- LEITURA DE PDF (importação de extrato) --------------------
+   pdf.js precisa de um "worker" separado pra processar o PDF sem travar a
+   tela. Se a biblioteca não carregar (sem internet, bloqueio de CDN), a
+   importação de extrato em PDF/imagem simplesmente avisa e não trava o
+   resto do app — CSV/OFX continuam funcionando normalmente. */
+if (typeof pdfjsLib !== 'undefined'){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+}
 
 /* -------------------- CONFIGURAÇÃO DO SUPABASE -------------------- */
 /* Cole aqui a URL e a chave "anon public" do seu projeto Supabase.
@@ -6217,23 +6228,130 @@ function openImportStatementPreview(rows){
     showToast(`${count} lançamento(s) importado(s).`);
   });
 }
+// Modal simples de "carregando", usado enquanto lê PDF/imagem (isso pode
+// levar alguns segundos, então a pessoa precisa de um feedback visual).
+function openImportLoadingModal(initialMessage){
+  openModal(`<div class="modal-body" style="text-align:center; padding:36px 24px;">
+    <div class="section-title" style="justify-content:center; margin-bottom:16px;"><h3 id="importLoadingMsg">${initialMessage}</h3></div>
+    <div class="progress-track"><div class="progress-fill" id="importLoadingBar" style="width:5%;"></div></div>
+  </div>`);
+  return {
+    set(pct, msg){
+      const bar = document.getElementById('importLoadingBar');
+      const label = document.getElementById('importLoadingMsg');
+      if (bar) bar.style.width = Math.max(5, Math.min(100, pct)) + '%';
+      if (msg && label) label.textContent = msg;
+    }
+  };
+}
+// Reconstrói o texto de um PDF respeitando a posição de cada trecho (agrupa
+// por linha e ordena da esquerda pra direita) — bem melhor do que só juntar
+// tudo solto, que embaralharia colunas de uma tabela de extrato.
+async function extractPdfPageLines(page){
+  const content = await page.getTextContent();
+  const rows = {};
+  content.items.forEach(it => {
+    const y = Math.round(it.transform[5]);
+    (rows[y] = rows[y] || []).push({ x: it.transform[4], str: it.str });
+  });
+  return Object.keys(rows).map(Number).sort((a,b) => b-a)
+    .map(y => rows[y].sort((a,b) => a.x - b.x).map(it => it.str).join(' '));
+}
+async function ocrImageSource(source, onProgress){
+  const { data } = await Tesseract.recognize(source, 'por', {
+    logger: (m) => { if (m.status === 'recognizing text' && onProgress) onProgress(m.progress); }
+  });
+  return data.text;
+}
+async function extractTextFromPdf(file, loading){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++){
+    loading.set(10 + (i/pdf.numPages)*30, `Lendo página ${i} de ${pdf.numPages}...`);
+    const page = await pdf.getPage(i);
+    const lines = await extractPdfPageLines(page);
+    fullText += lines.join('\n') + '\n';
+  }
+  // Menos de ~40 caracteres de texto real = quase certeza que é um PDF
+  // escaneado (imagem dentro do PDF, sem texto de verdade) — nesse caso,
+  // usa OCR igual faria com uma foto.
+  if (fullText.replace(/\s/g,'').length > 40) return fullText;
+  loading.set(40, 'PDF parece ser uma imagem escaneada — lendo com OCR (pode levar um tempinho)...');
+  fullText = '';
+  for (let i = 1; i <= Math.min(pdf.numPages, 5); i++){ // limite de 5 páginas pra não travar o navegador
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2.2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    const pageText = await ocrImageSource(canvas, (p) => loading.set(40 + (i/pdf.numPages)*55 + p*10, `OCR na página ${i}...`));
+    fullText += pageText + '\n';
+  }
+  return fullText;
+}
+// Extrai lançamentos de um texto "solto" (vindo de OCR ou de um PDF sem
+// colunas bem definidas) — procura, em cada linha, uma data e um valor
+// monetário; o que sobra da linha vira a descrição. Menos preciso que
+// CSV/OFX (por isso a prévia de conferência é essencial aqui).
+function parseFreeformStatementText(text){
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const dateRe = /\b(\d{1,2}[\/\.]\d{1,2}[\/\.]\d{2,4}|\d{4}-\d{2}-\d{2})\b/;
+  const valueRe = /-?\s?R?\$?\s?-?\d{1,3}(?:\.\d{3})*,\d{2}\b|-?\s?R?\$?\s?-?\d+,\d{2}\b/;
+  const rows = [];
+  lines.forEach(line => {
+    const dm = line.match(dateRe);
+    if (!dm) return;
+    const vm = line.match(valueRe);
+    if (!vm) return;
+    const date = parseFlexibleDate(dm[0]);
+    const value = parseBrNumber(vm[0]);
+    if (!date || isNaN(value) || value === 0) return;
+    const isNeg = /-/.test(vm[0]);
+    let desc = line.replace(dm[0], ' ').replace(vm[0], ' ').replace(/\s{2,}/g, ' ').trim();
+    desc = desc.replace(/^[-:.\s]+|[-:.\s]+$/g, '');
+    rows.push({ date, description: desc || '(sem descrição)', value: Math.abs(value), type: isNeg ? 'expense' : 'income' });
+  });
+  return rows;
+}
 $('importStatementBtn').addEventListener('click', () => {
   if (!state.accounts.length){ showToast('Cadastre uma conta antes de importar um extrato.'); switchView('accounts'); return; }
   $('importStatementInput').click();
 });
-$('importStatementInput').addEventListener('change', (e) => {
+$('importStatementInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const text = String(reader.result);
-    const isOfx = /\.ofx$|\.qfx$/i.test(file.name) || /<OFX>/i.test(text);
-    const rows = isOfx ? parseOfxStatement(text) : parseCsvStatement(text);
-    openImportStatementPreview(rows);
-  };
-  reader.onerror = () => showToast('Não foi possível ler esse arquivo.');
-  reader.readAsText(file);
   e.target.value = '';
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  try {
+    if (name.endsWith('.pdf')){
+      if (typeof pdfjsLib === 'undefined'){ showToast('Não foi possível carregar o leitor de PDF — verifique sua conexão com a internet.', 5000); return; }
+      const loading = openImportLoadingModal('Lendo o PDF...');
+      const text = await extractTextFromPdf(file, loading);
+      closeModal();
+      openImportStatementPreview(parseFreeformStatementText(text));
+    } else if (/\.(png|jpe?g)$/.test(name)){
+      if (typeof Tesseract === 'undefined'){ showToast('Não foi possível carregar o leitor de imagem (OCR) — verifique sua conexão com a internet.', 5000); return; }
+      const loading = openImportLoadingModal('Lendo o texto da imagem (OCR)...');
+      const text = await ocrImageSource(file, (p) => loading.set(10 + p*85, 'Lendo o texto da imagem (OCR)...'));
+      closeModal();
+      openImportStatementPreview(parseFreeformStatementText(text));
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result);
+        const isOfx = /\.ofx$|\.qfx$/i.test(name) || /<OFX>/i.test(text);
+        const rows = isOfx ? parseOfxStatement(text) : parseCsvStatement(text);
+        openImportStatementPreview(rows);
+      };
+      reader.onerror = () => showToast('Não foi possível ler esse arquivo.');
+      reader.readAsText(file);
+    }
+  } catch(err){
+    console.error(err);
+    closeModal();
+    showToast('Não foi possível ler esse arquivo: ' + (err.message || err), 5000);
+  }
 });
 $('clearAllBtn').addEventListener('click', async () => {
   const ok1 = await confirmModal('Limpar todos os dados', 'Isso apagará TODOS os dados do perfil atual ("' + getActiveProfile().name + '") permanentemente — contas, transações, orçamentos e metas. Os outros perfis não são afetados. Tem certeza?', { danger: true, confirmLabel: 'Continuar' });
