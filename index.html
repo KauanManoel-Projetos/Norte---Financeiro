@@ -2070,6 +2070,7 @@ function ensureIntegrity(){
     if (b.onTimeCount === undefined) b.onTimeCount = 0;
     if (b.lateCount === undefined) b.lateCount = 0;
     if (!Array.isArray(b.reminderNotified)) b.reminderNotified = [];
+    if (b.startDate === undefined) b.startDate = null;
   });
   state.categories.forEach(c => { if (c.parentId === undefined) c.parentId = null; });
   state.goals.forEach(g => {
@@ -2248,7 +2249,8 @@ function invoicePeriodForDate(dateISO, closingDay){
 }
 function invoiceDueDate(period, dueDay){
   const [y,m] = period.split('-').map(Number);
-  return new Date(y, m - 1, dueDay);
+  const day = Math.min(daysInMonth(y, m), Math.max(1, Number(dueDay)||1));
+  return new Date(y, m - 1, day);
 }
 function cardTransactions(cardId){
   return state.transactions.filter(t => t.cardId === cardId && t.paymentMethod === 'credit' && t.type === 'expense');
@@ -2322,8 +2324,17 @@ async function payCardInvoice(cardId, period){
 }
 
 /* -------------------- RENDER: SIDEBAR / NAV -------------------- */
+// Pra contas fixas com "primeira cobrança em" marcada (ex: 1ª parcela só
+// vence daqui a 2 meses): compara a data de vencimento do período atual com
+// essa data guardada. Enquanto não chegar nela, a conta fica "parada" — não
+// conta como pendente, não debita sozinha e não aparece em "Lançar agora".
+function isBillStarted(bill, periodKey){
+  if (!bill.startDate) return true;
+  periodKey = periodKey || currentPeriodKey(bill.frequency);
+  return computeBillDueDate(bill, periodKey) >= bill.startDate;
+}
 function pendingFixedBillsCount(){
-  return state.fixedBills.filter(b => !b.finished && !b.launchedMonths.includes(currentPeriodKey(b.frequency))).length;
+  return state.fixedBills.filter(b => !b.finished && isBillStarted(b) && !b.launchedMonths.includes(currentPeriodKey(b.frequency))).length;
 }
 // Acha despesas avulsas (não parceladas) que se repetem quase com o mesmo
 // valor, mesma descrição e categoria, em pelo menos 3 dos últimos 4 meses —
@@ -2525,7 +2536,7 @@ function renderDashboard(){
   $('heroBalance').textContent = fmtBRL(totalBalance());
 
   // Projeção de saldo até o fim do mês, considerando contas fixas pendentes
-  const pendingBillsList = state.fixedBills.filter(b => !b.finished && !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
+  const pendingBillsList = state.fixedBills.filter(b => !b.finished && isBillStarted(b) && !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
   const pendingImpact = pendingBillsList.reduce((s,b) => s + (b.type === 'income' ? Number(b.value) : -Number(b.value)), 0);
   const projected = totalBalance() + pendingImpact;
   $('projectedBalance').textContent = fmtBRL(projected);
@@ -2655,17 +2666,27 @@ function renderDashboard(){
     }
   });
 }
+// Último dia de um mês específico (ex: daysInMonth(2026,2) -> 28). Usado pra
+// permitir dia 29/30/31 de verdade, e só "puxar pra trás" no mês certo que
+// realmente não tem esse dia (fevereiro, ou meses de 30 dias pro dia 31) —
+// em vez do limite fixo de 28 que existia antes.
+function daysInMonth(year, month1to12){
+  return new Date(year, month1to12, 0).getDate();
+}
 function billNextDueDate(b){
   const now = new Date(); now.setHours(0,0,0,0);
   if (b.frequency === 'yearly'){
-    return new Date(now.getFullYear(), (b.dueMonth||1)-1, Math.min(28, b.dueDay||1));
+    const month = Math.min(12, Math.max(1, Number(b.dueMonth)||1));
+    const day = Math.min(daysInMonth(now.getFullYear(), month), Math.max(1, Number(b.dueDay)||1));
+    return new Date(now.getFullYear(), month-1, day);
   } else if (b.frequency === 'weekly'){
     const target = Number(b.dueWeekday) || 0;
     const diff = target - now.getDay();
     const d = new Date(now); d.setDate(now.getDate() + diff);
     return d;
   }
-  return new Date(now.getFullYear(), now.getMonth(), Math.min(28, b.dueDay||1));
+  const day = Math.min(daysInMonth(now.getFullYear(), now.getMonth()+1), Math.max(1, Number(b.dueDay)||1));
+  return new Date(now.getFullYear(), now.getMonth(), day);
 }
 function renderUpcomingWidget(){
   const wrap = $('dashboardUpcoming');
@@ -2673,7 +2694,7 @@ function renderUpcomingWidget(){
   const horizon = new Date(now); horizon.setDate(now.getDate() + 7);
   const items = [];
   state.fixedBills.forEach(b => {
-    if (b.finished || b.launchedMonths.includes(currentPeriodKey(b.frequency))) return;
+    if (b.finished || !isBillStarted(b) || b.launchedMonths.includes(currentPeriodKey(b.frequency))) return;
     const d = billNextDueDate(b);
     if (d >= now && d <= horizon){
       items.push({ date: d, kind: 'bill', label: b.name, sub: (b.type==='income'?'Receita fixa · ':'Despesa fixa · ') + fmtBRL(b.value), nav: 'fixedbills' });
@@ -3651,8 +3672,10 @@ function renderFixedBills(){
     const punctualityTag = totalLaunches
       ? `<span class="tag" style="${b.lateCount>0 ? 'color:var(--warn);' : ''}" title="Histórico de lançamentos desta conta: em dia (ou antes) vs. atrasados">${b.onTimeCount||0} em dia${b.lateCount>0 ? ` · ${b.lateCount} atrasada${b.lateCount>1?'s':''}` : ''}</span>`
       : '';
+    const started = isBillStarted(b);
     let statusBadge = `<span class="badge-pending">Pendente</span>`;
     if (b.finished) statusBadge = `<span class="badge-launched">Concluída</span>`;
+    else if (!started) statusBadge = `<span class="tag" title="Fica parada até essa data — não debita nem conta como pendente antes disso">Começa em ${fmtDate(b.startDate)}</span>`;
     else if (launched) statusBadge = `<span class="badge-launched">Lançado</span>`;
     return `<div class="card bill-card">
       <div class="icon-wrap" style="color:${b.type==='income'?getCss('--positive'):getCss('--negative')}">${ICONS.fixedbills}</div>
@@ -3663,7 +3686,7 @@ function renderFixedBills(){
       <div class="bill-actions">
         <div class="num" style="font-weight:600;">${fmtBRL(b.value)}</div>
         ${statusBadge}
-        ${(!launched && !b.finished) ? `<button class="btn btn-primary btn-sm" data-action="launch" data-id="${b.id}">Lançar agora</button>` : ''}
+        ${(!launched && !b.finished && started) ? `<button class="btn btn-primary btn-sm" data-action="launch" data-id="${b.id}">Lançar agora</button>` : ''}
         <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${b.id}" aria-label="Editar">${ICONS.edit}</button>
         <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${b.id}" aria-label="Excluir">${ICONS.trash}</button>
       </div>    </div>`;
@@ -3681,9 +3704,9 @@ function todayStr(){
 function computeBillDueDate(bill, periodKey){
   const now = new Date();
   if (bill.frequency === 'yearly'){
-    const day = String(Math.min(28, Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
-    const month = String(Math.min(12, Math.max(1, Number(bill.dueMonth)||1))).padStart(2,'0');
-    return `${now.getFullYear()}-${month}-${day}`;
+    const month = Math.min(12, Math.max(1, Number(bill.dueMonth)||1));
+    const day = String(Math.min(daysInMonth(now.getFullYear(), month), Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
+    return `${now.getFullYear()}-${String(month).padStart(2,'0')}-${day}`;
   }
   if (bill.frequency === 'weekly'){
     // próxima ocorrência do dia da semana escolhido dentro da semana atual
@@ -3692,9 +3715,9 @@ function computeBillDueDate(bill, periodKey){
     const d = new Date(now); d.setDate(now.getDate() + diff);
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
-  const [y,m] = periodKey.split('-');
-  const day = String(Math.min(28, Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
-  return `${y}-${m}-${day}`;
+  const [y,m] = periodKey.split('-').map(Number);
+  const day = String(Math.min(daysInMonth(y, m), Math.max(1, Number(bill.dueDay)))).padStart(2,'0');
+  return `${y}-${String(m).padStart(2,'0')}-${day}`;
 }
 // Registra a ocorrência de uma conta fixa (nova transação real) e atualiza
 // os contadores de parcelas/recorrência compartilhados entre o lançamento
@@ -3718,6 +3741,7 @@ function launchFixedBill(id){
   if (!bill || bill.finished) return;
   const periodKey = currentPeriodKey(bill.frequency);
   if (bill.launchedMonths.includes(periodKey)) return;
+  if (!isBillStarted(bill, periodKey)){ showToast(`Essa conta só começa a valer em ${fmtDate(bill.startDate)}.`); return; }
   const date = computeBillDueDate(bill, periodKey);
   registerBillOccurrence(bill, periodKey, date, false);
   mutate(); renderFixedBills(); showToast('Conta lançada.');
@@ -3735,6 +3759,7 @@ function autoLaunchDueFixedBills(){
     if (b.launchedMonths.includes(periodKey)) return;
     const dueDate = computeBillDueDate(b, periodKey);
     if (dueDate > today) return; // vencimento ainda não chegou
+    if (b.startDate && dueDate < b.startDate) return; // "primeira cobrança em" ainda não chegou
     registerBillOccurrence(b, periodKey, dueDate, true);
     launched.push({ name: b.name, value: Number(b.value), type: b.type });
   });
@@ -4104,9 +4129,9 @@ function autoContributeDueGoals(){
   state.goals.forEach(g => {
     if (!g.autoContribute || !g.autoAmount || g.autoAmount <= 0) return;
     if (g.autoLaunchedMonths.includes(periodKey)) return;
-    const day = String(Math.min(28, Math.max(1, Number(g.autoDay)||1))).padStart(2,'0');
-    const [y,m] = periodKey.split('-');
-    const dueDate = `${y}-${m}-${day}`;
+    const [y,m] = periodKey.split('-').map(Number);
+    const day = String(Math.min(daysInMonth(y, m), Math.max(1, Number(g.autoDay)||1))).padStart(2,'0');
+    const dueDate = `${y}-${String(m).padStart(2,'0')}-${day}`;
     if (dueDate > today) return;
     if (g.accountId){
       // meta com conta vinculada: precisa de uma conta de origem válida e diferente pra fazer a transferência
@@ -4819,7 +4844,7 @@ function checkBillAndInvoiceReminders(){
   const horizon = new Date(today); horizon.setDate(today.getDate() + 2);
   let notifiedAny = false;
   state.fixedBills.forEach(b => {
-    if (b.finished) return;
+    if (b.finished || !isBillStarted(b)) return;
     const periodKey = currentPeriodKey(b.frequency);
     if (b.launchedMonths.includes(periodKey) || b.reminderNotified.includes(periodKey)) return;
     const due = billNextDueDate(b);
@@ -5614,8 +5639,8 @@ function openCreditCardModal(id){
           <div class="field"><label>Limite total (R$)</label><input type="number" step="0.01" min="0" class="num-input" id="fLimit" value="${editing?editing.limit:''}"></div>
         </div>
         <div class="form-row">
-          <div class="field"><label>Dia de fechamento da fatura</label><input type="number" min="1" max="28" id="fClosingDay" value="${editing?editing.closingDay:'1'}"></div>
-          <div class="field"><label>Dia de vencimento</label><input type="number" min="1" max="28" id="fDueDay" value="${editing?editing.dueDay:'10'}"></div>
+          <div class="field"><label>Dia de fechamento da fatura</label><input type="number" min="1" max="31" id="fClosingDay" value="${editing?editing.closingDay:'1'}"></div>
+          <div class="field"><label>Dia de vencimento</label><input type="number" min="1" max="31" id="fDueDay" value="${editing?editing.dueDay:'10'}"></div>
         </div>
       </div>
       <div class="field"><label id="fLinkedAccLabel">Conta para pagar a fatura</label><select id="fLinkedAcc">${accOpts(editing?editing.linkedAccountId:null)}</select></div>
@@ -5646,8 +5671,8 @@ function openCreditCardModal(id){
     const payload = {
       name, kind: selKind, color: selColor,
       limit: selKind==='credit' ? Number(root.querySelector('#fLimit').value)||0 : 0,
-      closingDay: selKind==='credit' ? Math.max(1, Math.min(28, Number(root.querySelector('#fClosingDay').value)||1)) : 1,
-      dueDay: selKind==='credit' ? Math.max(1, Math.min(28, Number(root.querySelector('#fDueDay').value)||10)) : 10,
+      closingDay: selKind==='credit' ? Math.max(1, Math.min(31, Number(root.querySelector('#fClosingDay').value)||1)) : 1,
+      dueDay: selKind==='credit' ? Math.max(1, Math.min(31, Number(root.querySelector('#fDueDay').value)||10)) : 10,
       linkedAccountId: root.querySelector('#fLinkedAcc').value || null,
     };
     if (editing) Object.assign(editing, payload);
@@ -5774,18 +5799,22 @@ function openFixedBillModal(id, prefill){
       </select></div>
       <div class="form-row">
         <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" class="num-input" id="fValue" value="${src?(src.value??src.avgValue??''):''}"></div>
-        <div class="field" id="fMonthlyDueWrap"><label>Dia de vencimento</label><input type="number" min="1" max="28" id="fDueDay" value="${editing&&editing.dueDay?editing.dueDay:'5'}"></div>
+        <div class="field" id="fMonthlyDueWrap"><label>Dia de vencimento</label><input type="number" min="1" max="31" id="fDueDay" value="${editing&&editing.dueDay?editing.dueDay:'5'}"></div>
         <div class="field hidden" id="fWeeklyDueWrap"><label>Dia da semana</label><select id="fDueWeekday">${weekdayOpts()}</select></div>
       </div>
       <div class="form-row hidden" id="fYearlyDueWrap">
         <div class="field"><label>Mês de vencimento</label><select id="fDueMonth">${monthOpts()}</select></div>
-        <div class="field"><label>Dia</label><input type="number" min="1" max="28" id="fDueDayYearly" value="${editing&&editing.dueDay?editing.dueDay:'5'}"></div>
+        <div class="field"><label>Dia</label><input type="number" min="1" max="31" id="fDueDayYearly" value="${editing&&editing.dueDay?editing.dueDay:'5'}"></div>
       </div>
       <div class="field"><label>Categoria</label><select id="fCat">${catOpts(type)}</select></div>
       <div class="field"><label>Conta</label><select id="fAcc">${accOpts()}</select></div>
       <div class="field"><label>Número de parcelas <span style="font-weight:400; color:var(--text-faint);">(opcional)</span></label>
         <input type="number" min="1" max="600" id="fTotalOccurrences" placeholder="Deixe em branco pra repetir sem fim" value="${editing&&editing.totalOccurrences?editing.totalOccurrences:''}">
         <div class="horizon-hint">Pra uma compra parcelada (ex: um curso em 10x), informe quantas vezes ela se repete — depois disso a conta fixa se encerra sozinha. Deixe vazio pra algo contínuo, como aluguel ou assinatura.</div>
+      </div>
+      <div class="field"><label>Primeira cobrança em <span style="font-weight:400; color:var(--text-faint);">(opcional)</span></label>
+        <input type="date" id="fStartDate" value="${editing&&editing.startDate?editing.startDate:''}">
+        <div class="horizon-hint">Use quando a cobrança só começa daqui a um tempo — ex: comprou parcelado hoje, mas a 1ª parcela só vence no mês que vem ou daqui a 2 meses. Escolher a data aqui já ajusta o dia de vencimento acima sozinho, e a conta fica parada (sem contar como pendente nem debitar) até chegar nesse mês.</div>
       </div>
       <div class="checkbox-row"><input type="checkbox" id="fAutoDebit" ${!editing || editing.autoDebit!==false ? 'checked' : ''}><label style="margin:0;" for="fAutoDebit">Debitar automaticamente na data de vencimento</label></div>
       <div class="horizon-hint">Com isso marcado, assim que chegar o dia de vencimento o app já lança a transação e desconta da conta sozinho, sem precisar clicar em "Lançar agora". Ela também entra na projeção de saldo do fim do mês até lá.</div>
@@ -5800,6 +5829,18 @@ function openFixedBillModal(id, prefill){
   }
   syncFreqFields();
   root.querySelector('#fFreq').addEventListener('change', () => { freq = root.querySelector('#fFreq').value; syncFreqFields(); });
+  // Escolher "primeira cobrança em" já ajusta o dia de vencimento sozinho,
+  // pra não precisar preencher a mesma informação duas vezes.
+  root.querySelector('#fStartDate').addEventListener('change', (e) => {
+    if (!e.target.value) return;
+    const [y,m,d] = e.target.value.split('-').map(Number);
+    if (freq === 'yearly'){
+      root.querySelector('#fDueMonth').value = m;
+      root.querySelector('#fDueDayYearly').value = d;
+    } else if (freq === 'monthly'){
+      root.querySelector('#fDueDay').value = d;
+    }
+  });
   root.querySelectorAll('#fbType button').forEach(btn => btn.addEventListener('click', () => {
     type = btn.dataset.type;
     root.querySelectorAll('#fbType button').forEach(b=>b.classList.toggle('active', b===btn));
@@ -5817,15 +5858,16 @@ function openFixedBillModal(id, prefill){
     const payload = {
       name, type, value, categoryId, accountId, frequency: freq,
       autoDebit: root.querySelector('#fAutoDebit').checked,
-      totalOccurrences: totalOccurrencesRaw ? Math.max(1, Number(totalOccurrencesRaw)) : null
+      totalOccurrences: totalOccurrencesRaw ? Math.max(1, Number(totalOccurrencesRaw)) : null,
+      startDate: root.querySelector('#fStartDate').value || null,
     };
     if (freq === 'weekly'){
       payload.dueWeekday = Number(root.querySelector('#fDueWeekday').value);
     } else if (freq === 'yearly'){
       payload.dueMonth = Number(root.querySelector('#fDueMonth').value);
-      payload.dueDay = Math.min(28, Math.max(1, Number(root.querySelector('#fDueDayYearly').value)||1));
+      payload.dueDay = Math.min(31, Math.max(1, Number(root.querySelector('#fDueDayYearly').value)||1));
     } else {
-      payload.dueDay = Math.min(28, Math.max(1, Number(root.querySelector('#fDueDay').value)||1));
+      payload.dueDay = Math.min(31, Math.max(1, Number(root.querySelector('#fDueDay').value)||1));
     }
     if (editing){
       if (editing.frequency !== freq) editing.launchedMonths = []; // muda a régua de período, reseta o controle de "já lançado"
@@ -5889,7 +5931,7 @@ function openGoalModal(id, prefill){
       <div class="checkbox-row"><input type="checkbox" id="fAutoContribute" ${editing&&editing.autoContribute?'checked':''}><label style="margin:0;" for="fAutoContribute">Aportar automaticamente todo mês</label></div>
       <div class="form-row" id="fAutoContributeFields" style="${editing&&editing.autoContribute?'':'display:none;'}">
         <div class="field"><label>Valor do aporte (R$)</label><input type="number" step="0.01" class="num-input" id="fAutoAmount" value="${editing&&editing.autoAmount?editing.autoAmount:''}"></div>
-        <div class="field"><label>Dia do mês</label><input type="number" min="1" max="28" id="fAutoDay" value="${editing&&editing.autoDay?editing.autoDay:5}"></div>
+        <div class="field"><label>Dia do mês</label><input type="number" min="1" max="31" id="fAutoDay" value="${editing&&editing.autoDay?editing.autoDay:5}"></div>
       </div>
       <div class="field hidden" id="fAutoSourceWrap"><label>De qual conta sai o aporte?</label><select id="fAutoSourceAccount"><option value="">Selecione</option>${accOpts}</select></div>
       <div class="horizon-hint" id="autoContributeHint" style="${editing&&editing.autoContribute?'':'display:none;'}">Todo dia escolhido, o valor é adicionado à meta sozinho — sem conta vinculada, só soma no "já economizado"; com conta vinculada, faz uma transferência de verdade a partir da conta escolhida acima.</div>
@@ -5943,7 +5985,7 @@ function openGoalModal(id, prefill){
       horizon: horizonSel.value,
       autoContribute,
       autoAmount,
-      autoDay: Math.min(28, Math.max(1, Number(root.querySelector('#fAutoDay').value)||5)),
+      autoDay: Math.min(31, Math.max(1, Number(root.querySelector('#fAutoDay').value)||5)),
       autoSourceAccountId: accountId ? autoSourceAccountId : null,
     };
     if (editing){
