@@ -690,7 +690,6 @@ body.readonly-mode #addFixedBillBtn, body.readonly-mode #addBudgetBtn, body.read
 body.readonly-mode #addTransferBtn, body.readonly-mode #addGroupBtn, body.readonly-mode #addNoteBtn,
 body.readonly-mode #importJsonBtn, body.readonly-mode #clearAllBtn,
 body.readonly-mode #accountAvatarWrap, body.readonly-mode #removeAvatarBtn, body.readonly-mode #changePasswordBtn,
-body.readonly-mode #driveUploadBtn, body.readonly-mode #dropboxUploadBtn,
 body.readonly-mode [data-action="edit-tx"], body.readonly-mode [data-action="del-tx"],
 body.readonly-mode [data-action="duplicate-tx"],
 body.readonly-mode [data-action="edit"], body.readonly-mode [data-action="del"],
@@ -1265,21 +1264,6 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         </div>
 
 
-        <div class="card" style="margin-bottom:16px;">
-          <h4 style="margin-bottom:6px;">Enviar backup direto para a nuvem</h4>
-          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Conecte sua conta do Google ou Dropbox uma vez e envie o backup com um clique, sem precisar baixar e anexar manualmente.</p>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;" id="cloudUploadButtons">
-            <button class="btn" id="driveUploadBtn">
-              <svg class="icon" viewBox="0 0 24 24"><path d="M7.5 3h9L22 12l-4.5 8h-9L4 12z"/><line x1="7.5" y1="3" x2="12" y2="12"/><line x1="16.5" y1="3" x2="12" y2="12"/></svg>
-              <span id="driveUploadBtnLabel">Conectar Google Drive</span>
-            </button>
-            <button class="btn" id="dropboxUploadBtn">
-              <svg class="icon" viewBox="0 0 24 24"><path d="M7 3l5 3.2L7 9.4 2 6.2zM17 3l5 3.2-5 3.2-5-3.2zM2 12.6l5-3.2 5 3.2-5 3.2zM17 9.4l5 3.2-5 3.2-5-3.2zM7 16.8l5 3 5-3"/></svg>
-              <span id="dropboxUploadBtnLabel">Conectar Dropbox</span>
-            </button>
-          </div>
-          <p style="font-size:12px; color:var(--text-faint); margin:12px 0 0; line-height:1.5;" id="cloudUploadNote"></p>
-        </div>
 
         <div class="card" style="border-color:var(--negative);">
           <h4 style="margin-bottom:6px; color:var(--negative);">Zona de risco</h4>
@@ -1333,35 +1317,6 @@ if (SUPA_ON) {
   try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
   catch (e) { console.error('Falha ao iniciar Supabase', e); }
 }
-
-/* -------------------- ENVIO DIRETO PARA GOOGLE DRIVE / DROPBOX (opcional) --------------------
-   Assim como o Supabase, isso é opcional — sem configurar, os botões de
-   Drive/Dropbox na tela "Conta" simplesmente não aparecem, e o backup
-   continua funcionando normalmente por download.
-
-   GOOGLE DRIVE:
-   1) Crie um projeto em https://console.cloud.google.com
-   2) Em "APIs e serviços" → Biblioteca, ative a "Google Drive API"
-   3) Em "APIs e serviços" → Credenciais → Criar credenciais →
-      "ID do cliente OAuth" → tipo "Aplicativo da Web"
-   4) Em "Origens JavaScript autorizadas", adicione o endereço onde este
-      app fica hospedado (ex: https://seuusuario.github.io)
-   5) Cole o Client ID gerado em GOOGLE_CLIENT_ID abaixo.
-   O escopo usado (drive.file) só dá acesso a arquivos criados por este
-   app — nunca ao resto do seu Drive.
-
-   DROPBOX:
-   1) Crie um app em https://www.dropbox.com/developers/apps → "Create app"
-   2) Tipo de acesso: "App folder" (o app só enxerga uma pasta própria,
-      nunca o resto do seu Dropbox)
-   3) Em "OAuth 2" → "Redirect URIs", adicione o endereço onde este app
-      fica hospedado (o mesmo que você acessa no navegador)
-   4) Cole a "App key" em DROPBOX_APP_KEY abaixo. Não precisa do App
-      secret — o envio usa o fluxo PKCE, sem segredo nenhum no código. */
-const GOOGLE_CLIENT_ID = '';
-const DROPBOX_APP_KEY = '';
-const GDRIVE_ON = !!GOOGLE_CLIENT_ID;
-const DROPBOX_ON = !!DROPBOX_APP_KEY;
 
 /* -------------------- HELPERS -------------------- */
 const $ = (id) => document.getElementById(id);
@@ -6134,17 +6089,6 @@ function renderAccountView(){
   $('changePasswordBtn').style.display = currentUser ? '' : 'none';
   renderAccountAvatarPreview();
   $('removeAvatarBtn').style.display = appData.avatarData ? '' : 'none';
-  $('driveUploadBtn').style.display = '';
-  $('dropboxUploadBtn').style.display = '';
-  $('cloudUploadButtons').style.display = 'flex';
-  $('driveUploadBtnLabel').textContent = GDRIVE_ON ? 'Enviar para o Google Drive' : 'Conectar Google Drive';
-  $('dropboxUploadBtnLabel').textContent = DROPBOX_ON ? 'Enviar para o Dropbox' : 'Conectar Dropbox';
-  const noteEl = $('cloudUploadNote');
-  if (!GDRIVE_ON && !DROPBOX_ON){
-    noteEl.textContent = 'Ainda não conectado. Toque em um dos botões acima para ver o passo a passo de como conectar.';
-  } else {
-    noteEl.textContent = '';
-  }
 }
 $('accountAvatarWrap').addEventListener('click', () => $('accountAvatarInput').click());
 $('accountAvatarInput').addEventListener('change', async (e) => {
@@ -6180,139 +6124,6 @@ $('changePasswordBtn').addEventListener('click', async () => {
     showToast('Não foi possível enviar o e-mail: ' + (e.message || e), 6000);
   }
 });
-
-/* ---- Google Drive: envio direto do backup via OAuth (client-side, sem backend) ---- */
-function loadGisScript(){
-  return new Promise((resolve, reject) => {
-    if (window.google && window.google.accounts && window.google.accounts.oauth2) return resolve();
-    const s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error('Não foi possível carregar o script do Google.'));
-    document.head.appendChild(s);
-  });
-}
-function openCloudSetupModal(provider){
-  const isDrive = provider === 'drive';
-  const title = isDrive ? 'Conectar o Google Drive' : 'Conectar o Dropbox';
-  const steps = isDrive ? [
-    ['Crie um projeto no Google', 'Acesse <b>console.cloud.google.com</b>, crie um projeto (ou use um existente).'],
-    ['Ative a API do Drive', 'No menu, vá em "APIs e serviços" → "Biblioteca" → procure e ative a <b>Google Drive API</b>.'],
-    ['Crie as credenciais', 'Em "APIs e serviços" → "Credenciais" → "Criar credenciais" → <b>"ID do cliente OAuth"</b>, tipo "Aplicativo da Web".'],
-    ['Autorize o endereço do app', 'Em "Origens JavaScript autorizadas", adicione o endereço onde este app fica hospedado.'],
-    ['Cole o Client ID no código', 'Copie o "Client ID" gerado e cole na constante <b>GOOGLE_CLIENT_ID</b>, perto do início do arquivo do app.'],
-  ] : [
-    ['Crie um app no Dropbox', 'Acesse <b>dropbox.com/developers/apps</b> → "Create app".'],
-    ['Escolha acesso restrito', 'Tipo de acesso: <b>"App folder"</b> — assim o app só enxerga uma pasta própria, nunca o resto do seu Dropbox.'],
-    ['Autorize o endereço do app', 'Em "OAuth 2" → "Redirect URIs", adicione o endereço onde este app fica hospedado.'],
-    ['Cole a App key no código', 'Copie a "App key" e cole na constante <b>DROPBOX_APP_KEY</b>, perto do início do arquivo do app. Não precisa da "App secret".'],
-  ];
-  const html = `<div class="modal-head"><h3>${title}</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
-    <div class="modal-body">
-      <p style="color:var(--text-dim); font-size:13px; margin:0 0 16px; line-height:1.6;">Essa conexão exige uma configuração única (feita por quem cuida do app, uma vez só) — depois disso, enviar o backup vira um clique só. Passo a passo:</p>
-      ${steps.map((s,i) => `<div style="display:flex; gap:12px; margin-bottom:14px;">
-        <div style="width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:var(--font-mono); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none;">${i+1}</div>
-        <div><div style="font-weight:700; font-size:13.5px; margin-bottom:2px;">${s[0]}</div><div style="font-size:12.5px; color:var(--text-dim); line-height:1.5;">${s[1]}</div></div>
-      </div>`).join('')}
-      <p style="font-size:12px; color:var(--text-faint); margin:6px 0 0; line-height:1.5;">Enquanto isso, use "Baixar backup" para levar seus dados pro Drive/Dropbox manualmente.</p>
-    </div>
-    <div class="modal-foot"><button class="btn btn-primary" data-action="close">Entendi</button></div>`;
-  openModal(html);
-  $('modalContent').querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
-}
-async function uploadBackupToDrive(){
-  if (!GDRIVE_ON){ openCloudSetupModal('drive'); return; }
-  const btn = $('driveUploadBtn');
-  const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Conectando com o Google...';
-  try {
-    await loadGisScript();
-    const accessToken = await new Promise((resolve, reject) => {
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: (resp) => resp.error ? reject(new Error(resp.error)) : resolve(resp.access_token),
-      });
-      client.requestAccessToken();
-    });
-    btn.textContent = 'Enviando...';
-    const filename = 'norte_backup_' + todayISO() + '.json';
-    const fileContent = JSON.stringify(appData, null, 2);
-    const boundary = 'norte_boundary_' + uid();
-    const body =
-      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name: filename, mimeType: 'application/json' })}\r\n` +
-      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${fileContent}\r\n--${boundary}--`;
-    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': `multipart/related; boundary=${boundary}` },
-      body,
-    });
-    if (!res.ok) throw new Error('O Google Drive respondeu com erro ' + res.status);
-    showToast('Backup enviado para o Google Drive!');
-  } catch(e){
-    console.error(e);
-    showToast('Não foi possível enviar para o Google Drive: ' + (e.message || JSON.stringify(e)), 6000);
-  } finally {
-    btn.disabled = false; btn.innerHTML = orig;
-  }
-}
-$('driveUploadBtn').addEventListener('click', uploadBackupToDrive);
-
-/* ---- Dropbox: envio direto do backup via OAuth PKCE (client-side, sem app secret) ---- */
-function b64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-async function sha256Base64Url(str){
-  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return b64url(new Uint8Array(hash));
-}
-function dropboxRedirectUri(){ return window.location.origin + window.location.pathname; }
-async function startDropboxAuth(){
-  if (!DROPBOX_ON){ openCloudSetupModal('dropbox'); return; }
-  const verifierBytes = crypto.getRandomValues(new Uint8Array(64));
-  const verifier = b64url(verifierBytes);
-  sessionStorage.setItem('dbx_verifier', verifier);
-  sessionStorage.setItem('dbx_pending_upload', '1');
-  const challenge = await sha256Base64Url(verifier);
-  const url = `https://www.dropbox.com/oauth2/authorize?client_id=${encodeURIComponent(DROPBOX_APP_KEY)}&response_type=code&code_challenge=${challenge}&code_challenge_method=S256&redirect_uri=${encodeURIComponent(dropboxRedirectUri())}&token_access_type=online`;
-  window.location.href = url;
-}
-async function finishDropboxUpload(code){
-  try {
-    const verifier = sessionStorage.getItem('dbx_verifier');
-    const tokenRes = await fetch('https://api.dropboxapi.com/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ code, grant_type: 'authorization_code', client_id: DROPBOX_APP_KEY, code_verifier: verifier, redirect_uri: dropboxRedirectUri() }),
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenRes.ok) throw new Error(tokenData.error_description || 'Falha ao autenticar com o Dropbox.');
-    const filename = '/norte_backup_' + todayISO() + '.json';
-    const uploadRes = await fetch('https://content.dropboxapi.com/2/files/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + tokenData.access_token,
-        'Content-Type': 'application/octet-stream',
-        'Dropbox-API-Arg': JSON.stringify({ path: filename, mode: 'add', autorename: true, mute: false }),
-      },
-      body: JSON.stringify(appData, null, 2),
-    });
-    if (!uploadRes.ok) throw new Error('O Dropbox respondeu com erro ' + uploadRes.status);
-    showToast('Backup enviado para o Dropbox!');
-  } catch(e){
-    console.error(e);
-    showToast('Não foi possível enviar para o Dropbox: ' + (e.message || e), 6000);
-  }
-}
-$('dropboxUploadBtn').addEventListener('click', startDropboxAuth);
-// Ao voltar do redirecionamento de login do Dropbox, retoma o envio automaticamente.
-function checkDropboxRedirect(){
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  if (code && sessionStorage.getItem('dbx_pending_upload') === '1'){
-    sessionStorage.removeItem('dbx_pending_upload');
-    window.history.replaceState({}, '', window.location.pathname);
-    switchView('settings');
-    finishDropboxUpload(code);
-  }
-}
 
 /* -------------------- THEME -------------------- */
 function applyTheme(t){
@@ -6505,7 +6316,7 @@ const TOUR_STEPS = [
   },
   {
     view: 'settings', target: '[data-nav="settings"]', title: 'Conta',
-    body: `Sua área pessoal: <b>foto de perfil</b>, <b>e-mail</b> cadastrado e botão pra <b>redefinir a senha</b>. É também aqui que fica o <b>backup dos seus dados</b> — baixar em .json, exportar em planilha Excel ou restaurar um backup anterior — além do envio direto pro <b>Google Drive ou Dropbox</b>.`,
+    body: `Sua área pessoal: <b>foto de perfil</b>, <b>e-mail</b> cadastrado e botão pra <b>redefinir a senha</b>. É também aqui que fica o <b>backup dos seus dados</b> — baixar em .json, exportar em planilha Excel ou restaurar um backup anterior.`,
     example: `Antes de "Limpar todos os dados" pra testar algo, sempre vale <b>baixar um backup primeiro</b> — é só um clique em "Baixar backup (.json)".`,
   },
   { target: '#tourBtn', title: 'Reabrir este tour quando quiser',
@@ -6703,7 +6514,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   });
 }
 
-boot().then(checkDropboxRedirect);
+boot();
 </script>
 </body>
 </html>
