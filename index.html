@@ -561,6 +561,60 @@ tr:hover td{background:var(--surface-2);}
 /* Reports */
 .report-filters{display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:20px;}
 .report-filters .field{margin-bottom:0; min-width:150px;}
+/* Por Categoria */
+.ce-searchwrap{position:relative; margin-bottom:14px;}
+.ce-searchbox{display:flex; align-items:center; gap:10px; padding:0 14px; border:1px solid var(--border); border-radius:12px; background:var(--bg-elev); transition:border-color .2s var(--ease), box-shadow .2s var(--ease);}
+.ce-searchbox:focus-within{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+.ce-searchbox .icon{width:18px; height:18px; color:var(--text-faint); flex:none;}
+.ce-searchbox input{flex:1; min-width:0; border:none; outline:none; background:transparent; color:var(--text); font-size:15px; font-family:inherit; padding:14px 0;}
+.ce-clear{border:none; background:var(--surface-2); color:var(--text-dim); width:26px; height:26px; border-radius:50%; font-size:17px; line-height:1; cursor:pointer; flex:none;}
+.ce-clear:hover{color:var(--text);}
+.ce-suggest{position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:40; max-height:340px; overflow-y:auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-2); padding:6px;}
+.ce-sg-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer; font-size:13.5px;}
+.ce-sg-item:hover, .ce-sg-item.kb{background:var(--surface-2);}
+.ce-sg-item.sub{padding-left:32px;}
+.ce-sg-item .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+.ce-sg-item .nm{font-weight:600;}
+.ce-sg-item .hint{margin-left:auto; font-size:12px; color:var(--text-faint); white-space:nowrap;}
+.ce-sg-empty{padding:14px; color:var(--text-faint); font-size:13px; text-align:center;}
+.ce-period-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+.ce-period-row .type-toggle{margin-bottom:0; flex:0 1 auto;}
+.ce-period-row .type-toggle button{min-width:70px; flex:0 0 auto; padding:9px 14px;}
+.ce-ctl{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.ce-ctl select, .ce-ctl input[type=date]{padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg-elev); color:var(--text); font-size:13.5px; font-family:inherit;}
+.ce-ctl .btn{border-color:var(--border);}
+.ce-head{display:flex; align-items:flex-start; gap:12px; margin:4px 2px 14px; flex-wrap:wrap;}
+.ce-head .dot{width:14px; height:14px; border-radius:50%; margin-top:8px; flex:none;}
+.ce-head h3{font-size:26px; line-height:1.15;}
+.ce-head .ce-sub{color:var(--text-dim); font-size:13px; margin-top:3px;}
+.ce-head .ce-head-act{margin-left:auto;}
+.ce-item{border-bottom:1px solid var(--border-soft); padding:4px 0;}
+.ce-item:last-child{border-bottom:none;}
+.ce-item-main{display:flex; align-items:center; gap:12px; padding:10px 4px; border-radius:10px; cursor:pointer;}
+.ce-item-main:hover{background:var(--surface-2);}
+.ce-item-main .dot{width:10px; height:10px; border-radius:50%; flex:none;}
+.ce-item-body{flex:1; min-width:0;}
+.ce-item-top{display:flex; gap:10px; justify-content:space-between; align-items:baseline;}
+.ce-name{font-weight:600; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ce-val{font-family:var(--font-mono); font-weight:600; font-size:14px; white-space:nowrap;}
+.ce-bar{height:7px; border-radius:999px; background:var(--surface-2); overflow:hidden; margin:7px 0 5px;}
+.ce-bar > div{height:100%; border-radius:999px; transition:width .4s var(--ease);}
+.ce-item-meta{font-size:12px; color:var(--text-faint);}
+.ce-exp{border:none; background:transparent; color:var(--text-faint); cursor:pointer; width:30px; height:30px; border-radius:8px; flex:none; font-size:15px; transition:transform .2s var(--ease);}
+.ce-exp:hover{background:var(--surface); color:var(--text);}
+.ce-exp.open{transform:rotate(90deg);}
+.ce-subs{margin:0 0 8px 22px; padding-left:12px; border-left:2px solid var(--border-soft);}
+.ce-subs .ce-item-main{padding:8px 4px;}
+.ce-sub-row.hl .ce-item-main{background:var(--accent-soft);}
+.ce-sub-row.zero{opacity:.55;}
+.ce-stack{display:flex; height:16px; border-radius:999px; overflow:hidden; background:var(--surface-2); margin:2px 0 14px;}
+.ce-stack > div{height:100%; min-width:2px;}
+.ce-total-row{display:flex; justify-content:space-between; padding:12px 4px 2px; font-weight:700; border-top:1px solid var(--border); margin-top:4px;}
+.ce-list-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+.ce-list-bar input[type=text]{flex:1; min-width:160px; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg-elev); color:var(--text); font-size:13.5px; font-family:inherit;}
+.ce-list-bar select{padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg-elev); color:var(--text); font-size:13.5px; font-family:inherit;}
+.ce-kpi-note{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+@media(max-width:600px){ .ce-head h3{font-size:22px;} .ce-subs{margin-left:10px;} }
 
 /* Modal */
 .modal-backdrop{position:fixed; inset:0; background:var(--scrim); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; backdrop-filter:blur(6px);}
@@ -1165,6 +1219,45 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         <div id="creditCardsList"></div>
       </section>
 
+      <!-- POR CATEGORIA -->
+      <section class="view" id="view-catexplorer">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="type-toggle" id="ceTypeToggle" style="max-width:340px; margin-bottom:14px;">
+            <button type="button" data-ce-type="expense" class="active">Despesas</button>
+            <button type="button" data-ce-type="income">Receitas</button>
+          </div>
+          <div class="ce-searchwrap">
+            <div class="ce-searchbox">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="ceSearch" placeholder="Pesquisar uma categoria (ex: Alimentação)..." autocomplete="off" aria-label="Pesquisar categoria">
+              <button type="button" class="ce-clear hidden" id="ceClearCat" aria-label="Limpar categoria" title="Limpar categoria">&times;</button>
+            </div>
+            <div class="ce-suggest hidden" id="ceSuggest"></div>
+          </div>
+          <div class="ce-period-row">
+            <div class="type-toggle" id="ceModeToggle">
+              <button type="button" data-ce-mode="all" class="active">Tudo</button>
+              <button type="button" data-ce-mode="year">Ano</button>
+              <button type="button" data-ce-mode="month">Mês</button>
+              <button type="button" data-ce-mode="day">Dia</button>
+              <button type="button" data-ce-mode="range">Período</button>
+            </div>
+            <div class="ce-ctl hidden" id="cePeriodCtl">
+              <button type="button" class="btn btn-ghost btn-sm" id="cePrev" aria-label="Anterior">&#8249;</button>
+              <select id="ceMonthSel" aria-label="Mês"></select>
+              <select id="ceYearSel" aria-label="Ano"></select>
+              <input type="date" id="ceDay" aria-label="Dia">
+              <input type="date" id="ceFrom" aria-label="Data inicial">
+              <span id="ceRangeSep" style="color:var(--text-faint); font-size:12.5px;">até</span>
+              <input type="date" id="ceTo" aria-label="Data final">
+              <button type="button" class="btn btn-ghost btn-sm" id="ceNext" aria-label="Próximo">&#8250;</button>
+              <button type="button" class="btn btn-sm" id="ceNowBtn">Hoje</button>
+            </div>
+          </div>
+        </div>
+        <div id="ceResults"></div>
+      </section>
+
       <!-- REPORTS -->
       <section class="view" id="view-reports">
         <div class="card">
@@ -1490,6 +1583,7 @@ const WEEKDAY_NAMES_SHORT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sex
 const ICONS = {
   dashboard: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
   transactions: '<svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="14" y2="18"/></svg>',
+  catexplorer: '<svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
   fixedbills: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><circle cx="16" cy="16" r="6"/><path d="M16 13.5V16l1.6 1.2"/></svg>',
   budgets: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h.01"/></svg>',
   goals: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
@@ -1546,6 +1640,7 @@ const ICONS = {
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'transactions', label: 'Transações' },
+  { id: 'catexplorer', label: 'Por Categoria' },
   { id: 'cards', label: 'Cartões' },
   { id: 'fixedbills', label: 'Contas fixas' },
   { id: 'payables', label: 'A Pagar / A Receber' },
@@ -2362,6 +2457,7 @@ function switchView(id){
 function renderCurrentView(){
   if (currentView === 'dashboard') renderDashboard();
   else if (currentView === 'transactions') renderTransactions();
+  else if (currentView === 'catexplorer') renderCatExplorer();
   else if (currentView === 'fixedbills') renderFixedBills();
   else if (currentView === 'payables') renderPayables();
   else if (currentView === 'budgets') renderBudgets();
@@ -2761,6 +2857,520 @@ function txRowHtml(t){
     <div class="amt ${cls}">${sign} ${fmtBRL(t.value)}</div>
   </div>`;
 }
+
+/* -------------------- ANÁLISE POR CATEGORIA --------------------
+   Pesquisa uma categoria (despesa ou receita) e soma tudo o que foi lançado
+   nela E nas subcategorias ligadas a ela. Dá pra filtrar por dia, mês, ano ou
+   período livre, e ver quanto foi em cada subcategoria. Só lê os dados — não
+   altera nada do que já existe no app. */
+const catExp = { type: 'expense', catId: null, mode: 'all', year: null, month: null, day: '', from: '', to: '', txQ: '', sort: 'date-desc', page: 1, expanded: {} };
+let ceCache = { list: [] };
+const CE_PAGE_SIZE = 25;
+const CE_MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const ceLocalISO = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+const cePad = (n) => String(n).padStart(2,'0');
+function ceNorm(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function ceInitDefaults(){
+  if (catExp.year) return;
+  const now = new Date();
+  catExp.year = now.getFullYear(); catExp.month = now.getMonth() + 1; catExp.day = ceLocalISO(now);
+}
+function ceRootOf(cat){
+  if (!cat) return null;
+  if (cat.parentId){ const p = categoryById(cat.parentId); if (p) return p; }
+  return cat;
+}
+function ceChildren(catId){ return state.categories.filter(c => c.parentId === catId && c.type === catExp.type); }
+function ceScopeIds(){
+  if (!catExp.catId) return null;
+  const c = categoryById(catExp.catId);
+  if (!c) return null;
+  if (c.parentId) return [c.id];
+  return [c.id].concat(ceChildren(c.id).map(ch => ch.id));
+}
+function cePeriod(){
+  const m = catExp.mode;
+  if (m === 'year'){
+    const y = catExp.year;
+    return { from: `${y}-01-01`, to: `${y}-12-31`, label: String(y), prev: { from: `${y-1}-01-01`, to: `${y-1}-12-31`, text: 'ano anterior' } };
+  }
+  if (m === 'month'){
+    const y = catExp.year, mo = catExp.month;
+    const py = mo === 1 ? y - 1 : y, pm = mo === 1 ? 12 : mo - 1;
+    return {
+      from: `${y}-${cePad(mo)}-01`, to: `${y}-${cePad(mo)}-${cePad(new Date(y, mo, 0).getDate())}`,
+      label: `${CE_MONTHS[mo-1]} de ${y}`,
+      prev: { from: `${py}-${cePad(pm)}-01`, to: `${py}-${cePad(pm)}-${cePad(new Date(py, pm, 0).getDate())}`, text: 'mês anterior' }
+    };
+  }
+  if (m === 'day'){
+    const d = catExp.day;
+    if (!d) return { from: '9999-99-99', to: '0000-00-00', label: 'Escolha um dia', prev: null };
+    const dt = new Date(d + 'T12:00:00'); dt.setDate(dt.getDate() - 1);
+    const pd = ceLocalISO(dt);
+    return { from: d, to: d, label: fmtDate(d), prev: { from: pd, to: pd, text: 'dia anterior' } };
+  }
+  if (m === 'range'){
+    let f = catExp.from, t = catExp.to;
+    if (f && t && f > t){ const x = f; f = t; t = x; }
+    const label = f && t ? `${fmtDate(f)} a ${fmtDate(t)}` : f ? `A partir de ${fmtDate(f)}` : t ? `Até ${fmtDate(t)}` : 'Todo o histórico';
+    return { from: f, to: t, label, prev: null };
+  }
+  return { from: '', to: '', label: 'Todo o histórico', prev: null };
+}
+const ceInRange = (t, p) => (!p.from || t.date >= p.from) && (!p.to || t.date <= p.to);
+const ceSumTx = (list) => list.reduce((s, t) => s + Number(t.value), 0);
+
+function ceSyncControls(){
+  ceInitDefaults();
+  $('ceTypeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.ceType === catExp.type));
+  $('ceModeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.ceMode === catExp.mode));
+  const m = catExp.mode;
+  $('cePeriodCtl').classList.toggle('hidden', m === 'all');
+  $('ceMonthSel').classList.toggle('hidden', m !== 'month');
+  $('ceYearSel').classList.toggle('hidden', m !== 'year' && m !== 'month');
+  $('ceDay').classList.toggle('hidden', m !== 'day');
+  $('ceFrom').classList.toggle('hidden', m !== 'range');
+  $('ceRangeSep').classList.toggle('hidden', m !== 'range');
+  $('ceTo').classList.toggle('hidden', m !== 'range');
+  const nav = m === 'year' || m === 'month' || m === 'day';
+  $('cePrev').classList.toggle('hidden', !nav);
+  $('ceNext').classList.toggle('hidden', !nav);
+  $('ceNowBtn').classList.toggle('hidden', !nav);
+  $('ceNowBtn').textContent = m === 'year' ? 'Este ano' : m === 'month' ? 'Este mês' : 'Hoje';
+  // opções de ano: do primeiro ano com lançamento até o atual (+ o selecionado)
+  const nowY = new Date().getFullYear();
+  const years = state.transactions.map(t => Number(t.date.slice(0,4))).filter(Boolean);
+  const minY = Math.min(nowY, catExp.year, ...(years.length ? years : [nowY]));
+  const maxY = Math.max(nowY, catExp.year, ...(years.length ? years : [nowY]));
+  let yOpts = '';
+  for (let y = maxY; y >= minY; y--) yOpts += `<option value="${y}">${y}</option>`;
+  $('ceYearSel').innerHTML = yOpts;
+  $('ceYearSel').value = String(catExp.year);
+  $('ceMonthSel').innerHTML = CE_MONTHS.map((n, i) => `<option value="${i+1}">${n}</option>`).join('');
+  $('ceMonthSel').value = String(catExp.month);
+  $('ceDay').value = catExp.day || '';
+  $('ceFrom').value = catExp.from || '';
+  $('ceTo').value = catExp.to || '';
+  const c = catExp.catId ? categoryById(catExp.catId) : null;
+  $('ceClearCat').classList.toggle('hidden', !c);
+  if (c && document.activeElement !== $('ceSearch')) $('ceSearch').value = categoryDisplayName(c);
+  if (!c && document.activeElement !== $('ceSearch') && catExp.catId === null && $('ceSearch').dataset.picked === '1'){ $('ceSearch').value = ''; $('ceSearch').dataset.picked = ''; }
+}
+
+function ceShift(dir){
+  const m = catExp.mode;
+  if (m === 'year') catExp.year += dir;
+  else if (m === 'month'){
+    let mo = catExp.month + dir, y = catExp.year;
+    if (mo < 1){ mo = 12; y--; } else if (mo > 12){ mo = 1; y++; }
+    catExp.month = mo; catExp.year = y;
+  } else if (m === 'day'){
+    const dt = new Date((catExp.day || ceLocalISO(new Date())) + 'T12:00:00');
+    dt.setDate(dt.getDate() + dir);
+    catExp.day = ceLocalISO(dt);
+  }
+  catExp.page = 1; renderCatExplorer();
+}
+
+/* ---- Caixa de pesquisa com sugestões ---- */
+function ceSuggestHtml(q){
+  const nq = ceNorm(q);
+  const tops = state.categories.filter(c => c.type === catExp.type && !c.parentId);
+  const byTotal = {};
+  state.transactions.forEach(t => { if (t.type === catExp.type) byTotal[t.categoryId] = (byTotal[t.categoryId] || 0) + Number(t.value); });
+  let html = '';
+  tops.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).forEach(c => {
+    const kids = ceChildren(c.id);
+    const parentMatch = !nq || ceNorm(c.name).includes(nq);
+    const kidsShown = kids.filter(k => parentMatch || ceNorm(k.name).includes(nq));
+    if (!parentMatch && !kidsShown.length) return;
+    const famTotal = (byTotal[c.id] || 0) + kids.reduce((s, k) => s + (byTotal[k.id] || 0), 0);
+    html += `<div class="ce-sg-item" data-ce-cat="${c.id}"><span class="dot" style="background:${c.color}"></span><span class="nm">${escapeHtml(c.name)}</span><span class="hint">${kids.length ? `+ ${kids.length} sub · ` : ''}${fmtBRL(famTotal)}</span></div>`;
+    kidsShown.forEach(k => {
+      html += `<div class="ce-sg-item sub" data-ce-cat="${k.id}"><span class="dot" style="background:${k.color}"></span><span class="nm">${escapeHtml(k.name)}</span><span class="hint">${fmtBRL(byTotal[k.id] || 0)}</span></div>`;
+    });
+  });
+  // subcategorias "órfãs" (pai removido) não aparecem como filhas — lista soltas
+  state.categories.filter(c => c.type === catExp.type && c.parentId && !categoryById(c.parentId)).forEach(c => {
+    if (nq && !ceNorm(c.name).includes(nq)) return;
+    html += `<div class="ce-sg-item" data-ce-cat="${c.id}"><span class="dot" style="background:${c.color}"></span><span class="nm">${escapeHtml(c.name)}</span><span class="hint">${fmtBRL(byTotal[c.id] || 0)}</span></div>`;
+  });
+  return html || `<div class="ce-sg-empty">Nenhuma categoria de ${catExp.type === 'expense' ? 'despesa' : 'receita'} encontrada.</div>`;
+}
+function ceOpenSuggest(){
+  $('ceSuggest').innerHTML = ceSuggestHtml($('ceSearch').dataset.picked === '1' ? '' : $('ceSearch').value);
+  $('ceSuggest').classList.remove('hidden');
+}
+function ceCloseSuggest(){ $('ceSuggest').classList.add('hidden'); }
+function cePickCategory(id){
+  catExp.catId = id; catExp.page = 1; catExp.txQ = '';
+  const c = categoryById(id);
+  $('ceSearch').value = c ? categoryDisplayName(c) : '';
+  $('ceSearch').dataset.picked = '1';
+  ceCloseSuggest();
+  renderCatExplorer();
+}
+function ceClearCategory(){
+  catExp.catId = null; catExp.page = 1; catExp.txQ = '';
+  $('ceSearch').value = ''; $('ceSearch').dataset.picked = '';
+  renderCatExplorer();
+}
+
+/* ---- Renderização principal ---- */
+function ceDeltaHtml(cur, prevTotal, prevText){
+  if (!prevText) return '&nbsp;';
+  if (!prevTotal) return cur > 0 ? `<span style="color:var(--text-faint)">sem registro no ${prevText}</span>` : '&nbsp;';
+  const pct = ((cur - prevTotal) / prevTotal) * 100;
+  const up = pct >= 0;
+  const good = catExp.type === 'expense' ? !up : up;
+  return `<span class="${good ? 'pos' : 'neg'}">${up ? '▲' : '▼'} ${Math.abs(pct).toFixed(0)}% vs. ${prevText}</span>`;
+}
+function ceBreakdownRow(opts){
+  // opts: { id, color, name, total, count, barPct, meta, pick, toggleId, open, extraCls }
+  return `<div class="${opts.rowCls || 'ce-item'}">
+    <div class="ce-item-main" ${opts.pick ? `data-ce-pick="${opts.pick}"` : ''}>
+      <span class="dot" style="background:${opts.color}"></span>
+      <div class="ce-item-body">
+        <div class="ce-item-top"><span class="ce-name">${escapeHtml(opts.name)}</span><span class="ce-val">${fmtBRL(opts.total)}</span></div>
+        <div class="ce-bar"><div style="width:${Math.max(opts.total > 0 ? 1.5 : 0, Math.min(100, opts.barPct))}%; background:${opts.color};"></div></div>
+        <div class="ce-item-meta">${opts.meta}</div>
+      </div>
+      ${opts.toggleId ? `<button type="button" class="ce-exp ${opts.open ? 'open' : ''}" data-ce-toggle="${opts.toggleId}" aria-label="Mostrar subcategorias" title="Mostrar subcategorias">&#9656;</button>` : ''}
+    </div>
+    ${opts.after || ''}
+  </div>`;
+}
+const cePlural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+function ceParentBreakdownHtml(parent, scopeTxs, highlightId){
+  // scopeTxs: lançamentos da família (pai + subs) já dentro do período
+  const kids = ceChildren(parent.id);
+  const groups = [{ id: parent.id, name: `${parent.name} (lançado direto na categoria)`, color: parent.color, total: 0, count: 0 }]
+    .concat(kids.map(k => ({ id: k.id, name: k.name, color: k.color, total: 0, count: 0 })));
+  scopeTxs.forEach(t => { const g = groups.find(x => x.id === t.categoryId); if (g){ g.total += Number(t.value); g.count++; } });
+  const grand = groups.reduce((s, g) => s + g.total, 0);
+  const sorted = groups.slice().sort((a, b) => b.total - a.total);
+  const maxT = sorted[0] ? sorted[0].total : 0;
+  const stack = grand > 0 ? `<div class="ce-stack">${sorted.filter(g => g.total > 0).map(g => `<div title="${escapeHtml(g.name)}: ${fmtBRL(g.total)}" style="width:${(g.total / grand) * 100}%; background:${g.color};"></div>`).join('')}</div>` : '';
+  const rows = sorted.map(g => {
+    const share = grand > 0 ? (g.total / grand) * 100 : 0;
+    const isOwn = g.id === parent.id;
+    return ceBreakdownRow({
+      color: g.color, name: g.name, total: g.total,
+      barPct: maxT > 0 ? (g.total / maxT) * 100 : 0,
+      meta: `${cePlural(g.count, 'lançamento', 'lançamentos')} · ${share.toFixed(1).replace('.', ',')}% de ${escapeHtml(parent.name)}`,
+      pick: isOwn ? '' : g.id,
+      rowCls: 'ce-item ce-sub-row' + (g.id === highlightId ? ' hl' : '') + (g.total === 0 ? ' zero' : '')
+    });
+  }).join('');
+  return `${stack}${rows}<div class="ce-total-row"><span>Total de ${escapeHtml(parent.name)}</span><span class="num">${fmtBRL(grand)}</span></div>`;
+}
+
+function ceRootsBreakdownHtml(typeInPeriod){
+  const roots = {};
+  typeInPeriod.forEach(t => {
+    const c = categoryById(t.categoryId);
+    const r = ceRootOf(c);
+    const rid = r ? r.id : '__none';
+    if (!roots[rid]) roots[rid] = { id: rid, cat: r, total: 0, count: 0, subs: {}, ownTotal: 0, ownCount: 0 };
+    const o = roots[rid]; const v = Number(t.value);
+    o.total += v; o.count++;
+    if (c && c.parentId && categoryById(c.parentId)){
+      if (!o.subs[c.id]) o.subs[c.id] = { cat: c, total: 0, count: 0 };
+      o.subs[c.id].total += v; o.subs[c.id].count++;
+    } else { o.ownTotal += v; o.ownCount++; }
+  });
+  const list = Object.values(roots).sort((a, b) => b.total - a.total);
+  const grand = list.reduce((s, r) => s + r.total, 0);
+  const maxT = list[0] ? list[0].total : 0;
+  return list.map(r => {
+    const subList = Object.values(r.subs).sort((a, b) => b.total - a.total);
+    const share = grand > 0 ? (r.total / grand) * 100 : 0;
+    const color = r.cat ? r.cat.color : '#999';
+    let subsHtml = '';
+    if (subList.length && catExp.expanded[r.id]){
+      const rows = [];
+      if (r.ownTotal > 0) rows.push({ name: `${r.cat.name} (lançado direto)`, color, total: r.ownTotal, count: r.ownCount, pick: '' });
+      subList.forEach(s => rows.push({ name: s.cat.name, color: s.cat.color, total: s.total, count: s.count, pick: s.cat.id }));
+      subsHtml = `<div class="ce-subs">${rows.map(s => ceBreakdownRow({
+        color: s.color, name: s.name, total: s.total, barPct: r.total > 0 ? (s.total / r.total) * 100 : 0,
+        meta: `${cePlural(s.count, 'lançamento', 'lançamentos')} · ${(r.total > 0 ? (s.total / r.total) * 100 : 0).toFixed(1).replace('.', ',')}% de ${escapeHtml(r.cat.name)}`,
+        pick: s.pick, rowCls: 'ce-item ce-sub-row'
+      })).join('')}</div>`;
+    }
+    return ceBreakdownRow({
+      color, name: r.cat ? r.cat.name : 'Sem categoria', total: r.total,
+      barPct: maxT > 0 ? (r.total / maxT) * 100 : 0,
+      meta: `${cePlural(r.count, 'lançamento', 'lançamentos')} · ${share.toFixed(1).replace('.', ',')}% do total${subList.length ? ` · inclui ${cePlural(subList.length, 'subcategoria', 'subcategorias')}` : ''}`,
+      pick: r.cat ? r.cat.id : '', toggleId: subList.length ? r.id : '', open: !!catExp.expanded[r.id], after: subsHtml
+    });
+  }).join('') || '';
+}
+
+function ceDrawChart(inPeriod, p, cat, kids){
+  destroyChart('chartCatExp');
+  const canvas = $('chartCatExp');
+  if (!canvas) return;
+  const dates = inPeriod.map(t => t.date).sort();
+  let start = p.from || dates[0], end = p.to || dates[dates.length - 1];
+  if (!start || !end) return;
+  const spanDays = Math.round((new Date(end + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000);
+  const daily = spanDays <= 62;
+  const keys = [], labels = [];
+  if (daily){
+    const d = new Date(start + 'T12:00:00'), endD = new Date(end + 'T12:00:00');
+    while (d <= endD){
+      const iso = ceLocalISO(d); keys.push(iso);
+      labels.push(catExp.mode === 'month' ? cePad(d.getDate()) : `${cePad(d.getDate())}/${cePad(d.getMonth()+1)}`);
+      d.setDate(d.getDate() + 1);
+    }
+  } else {
+    let [y, m] = start.slice(0, 7).split('-').map(Number);
+    const [ey, em] = end.slice(0, 7).split('-').map(Number);
+    while (y < ey || (y === ey && m <= em)){
+      const k = `${y}-${cePad(m)}`; keys.push(k); labels.push(monthLabel(k));
+      m++; if (m > 12){ m = 1; y++; }
+    }
+  }
+  const keyOf = (t) => daily ? t.date : t.date.slice(0, 7);
+  let groups;
+  if (cat && !cat.parentId && kids.length){
+    groups = [{ label: `${cat.name} (geral)`, color: cat.color, ids: [cat.id] }].concat(kids.map(k => ({ label: k.name, color: k.color, ids: [k.id] })));
+  } else {
+    groups = [{ label: cat ? cat.name : (catExp.type === 'expense' ? 'Despesas' : 'Receitas'), color: cat ? cat.color : getCss(catExp.type === 'expense' ? '--negative' : '--positive'), ids: null }];
+  }
+  const datasets = groups.map(g => {
+    const map = {};
+    inPeriod.forEach(t => { if (!g.ids || g.ids.includes(t.categoryId)){ const k = keyOf(t); map[k] = (map[k] || 0) + Number(t.value); } });
+    return { label: g.label, data: keys.map(k => Math.round((map[k] || 0) * 100) / 100), backgroundColor: g.color, borderRadius: 4, maxBarThickness: 36, stack: 's', _sum: Object.values(map).reduce((a, b) => a + b, 0) };
+  }).filter(ds => ds._sum > 0);
+  if (!datasets.length) return;
+  const th = chartTheme();
+  const opts = baseChartOpts(th, datasets.length > 1);
+  opts.scales.x.stacked = true; opts.scales.y.stacked = true;
+  opts.plugins.tooltip = { callbacks: { label: (c) => ` ${c.dataset.label}: ${fmtBRL(c.parsed.y)}` } };
+  charts.chartCatExp = new Chart(canvas, { type: 'bar', data: { labels, datasets }, options: opts });
+}
+
+function renderCatExplorer(){
+  ceSyncControls();
+  if (catExp.catId){
+    const c0 = categoryById(catExp.catId);
+    if (!c0 || c0.type !== catExp.type){ catExp.catId = null; $('ceSearch').value = ''; $('ceSearch').dataset.picked = ''; $('ceClearCat').classList.add('hidden'); }
+  }
+  const p = cePeriod();
+  const typeAll = state.transactions.filter(t => t.type === catExp.type);
+  const scopeIds = ceScopeIds();
+  const cat = catExp.catId ? categoryById(catExp.catId) : null;
+  const kids = cat && !cat.parentId ? ceChildren(cat.id) : [];
+  const scoped = typeAll.filter(t => !scopeIds || scopeIds.includes(t.categoryId));
+  const inPeriod = scoped.filter(t => ceInRange(t, p));
+  const typeInPeriod = typeAll.filter(t => ceInRange(t, p));
+  ceCache.list = inPeriod;
+  const isExp = catExp.type === 'expense';
+  const total = ceSumTx(inPeriod);
+  const histTotal = ceSumTx(scoped);
+  const typeTotalPeriod = ceSumTx(typeInPeriod);
+
+  // --- cabeçalho
+  const title = cat ? categoryDisplayName(cat) : `Todas as categorias de ${isExp ? 'despesa' : 'receita'}`;
+  const share = typeTotalPeriod > 0 ? (total / typeTotalPeriod) * 100 : 0;
+  const subTxt = [isExp ? 'Despesas' : 'Receitas', p.label];
+  if (cat && typeTotalPeriod > 0) subTxt.push(`${share.toFixed(1).replace('.', ',')}% de todas as ${isExp ? 'despesas' : 'receitas'} do período`);
+  let headAct = '';
+  if (cat && cat.parentId && categoryById(cat.parentId)) headAct = `<button type="button" class="btn btn-sm btn-ghost ce-head-act" data-ce-pick="${cat.parentId}">Ver ${escapeHtml(categoryById(cat.parentId).name)} completa</button>`;
+  const headHtml = `<div class="ce-head">
+    <span class="dot" style="background:${cat ? cat.color : 'var(--accent)'}"></span>
+    <div><h3>${escapeHtml(title)}</h3>
+    <div class="ce-sub">${subTxt.map(escapeHtml).join(' · ')}${kids.length ? ` · soma a categoria + ${cePlural(kids.length, 'subcategoria', 'subcategorias')}` : ''}</div></div>${headAct}
+  </div>`;
+
+  // --- KPIs
+  let prevTotal = 0;
+  if (p.prev) prevTotal = ceSumTx(scoped.filter(t => ceInRange(t, p.prev)));
+  const count = inPeriod.length;
+  const avgTx = count ? total / count : 0;
+  const biggest = inPeriod.reduce((m, t) => (!m || Number(t.value) > Number(m.value)) ? t : m, null);
+  let card2;
+  if (catExp.mode === 'all'){
+    const ds = scoped.map(t => t.date).sort();
+    let months = 0;
+    if (ds.length){ const [y1, m1] = ds[0].slice(0,7).split('-').map(Number); const [y2, m2] = ds[ds.length-1].slice(0,7).split('-').map(Number); months = (y2 - y1) * 12 + (m2 - m1) + 1; }
+    card2 = { label: 'Média por mês', value: fmtBRL(months ? total / months : 0), note: months ? `em ${cePlural(months, 'mês', 'meses')} de histórico` : '&nbsp;' };
+  } else {
+    card2 = { label: 'Histórico total', value: fmtBRL(histTotal), note: 'desde o primeiro lançamento' };
+  }
+  const kpis = `<div class="grid grid-4" style="margin-bottom:16px;">
+    <div class="card kpi"><div class="label">${catExp.mode === 'all' ? (isExp ? 'Total gasto' : 'Total recebido') : (isExp ? 'Gasto no período' : 'Recebido no período')}</div><div class="value num ${isExp ? 'neg' : 'pos'}">${fmtBRL(total)}</div><div class="delta">${ceDeltaHtml(total, prevTotal, p.prev ? p.prev.text : '')}</div></div>
+    <div class="card kpi"><div class="label">${card2.label}</div><div class="value num">${card2.value}</div><div class="delta" style="color:var(--text-faint); font-weight:500;">${card2.note}</div></div>
+    <div class="card kpi"><div class="label">Lançamentos</div><div class="value num">${count}</div><div class="delta" style="color:var(--text-faint); font-weight:500;">${count ? `média de ${fmtBRL(avgTx)} cada` : '&nbsp;'}</div></div>
+    <div class="card kpi"><div class="label">Maior lançamento</div><div class="value num">${biggest ? fmtBRL(biggest.value) : fmtBRL(0)}</div><div class="delta ce-kpi-note" style="color:var(--text-faint); font-weight:500;">${biggest ? escapeHtml((biggest.description || categoryDisplayName(categoryById(biggest.categoryId))) + ' · ' + fmtDate(biggest.date)) : '&nbsp;'}</div></div>
+  </div>`;
+
+  // --- sem dados
+  if (!inPeriod.length){
+    const noneEver = !scoped.length;
+    $('ceResults').innerHTML = headHtml + kpis + `<div class="card"><div class="empty-state">${ICONS.catexplorer}<p>${noneEver
+      ? (cat ? `Nenhum lançamento em <b>${escapeHtml(title)}</b> ainda.` : `Você ainda não tem ${isExp ? 'despesas' : 'receitas'} lançadas.`)
+      : `Nenhum lançamento ${cat ? 'nessa categoria ' : ''}em <b>${escapeHtml(p.label)}</b>. Tente outro período.`}</p></div></div>`;
+    ceWireResults();
+    return;
+  }
+
+  // --- divisão por categoria / subcategoria
+  let breakdown = '';
+  if (!cat){
+    breakdown = `<div class="card" style="margin-bottom:16px;"><h4 style="margin:0 0 4px;">Quanto em cada categoria</h4>
+      <p style="color:var(--text-dim); font-size:12.5px; margin:0 0 10px;">Cada categoria já soma suas subcategorias. Toque no ▸ pra ver a divisão ou na categoria pra analisar só ela.</p>
+      ${ceRootsBreakdownHtml(typeInPeriod)}</div>`;
+  } else if (!cat.parentId && kids.length){
+    breakdown = `<div class="card" style="margin-bottom:16px;"><h4 style="margin:0 0 4px;">Divisão dentro de ${escapeHtml(cat.name)}</h4>
+      <p style="color:var(--text-dim); font-size:12.5px; margin:0 0 12px;">Quanto foi em cada subcategoria. Toque numa subcategoria pra ver só os lançamentos dela.</p>
+      ${ceParentBreakdownHtml(cat, inPeriod, '')}</div>`;
+  } else if (cat.parentId && categoryById(cat.parentId)){
+    const parent = categoryById(cat.parentId);
+    const famIds = [parent.id].concat(ceChildren(parent.id).map(k => k.id));
+    const famTxs = typeAll.filter(t => famIds.includes(t.categoryId) && ceInRange(t, p));
+    breakdown = `<div class="card" style="margin-bottom:16px;"><h4 style="margin:0 0 4px;">Dentro de ${escapeHtml(parent.name)}</h4>
+      <p style="color:var(--text-dim); font-size:12.5px; margin:0 0 12px;">${escapeHtml(cat.name)} (destacada) comparada com as outras partes de ${escapeHtml(parent.name)}.</p>
+      ${ceParentBreakdownHtml(parent, famTxs, cat.id)}</div>`;
+  }
+
+  // --- gráfico + lista
+  const showChart = catExp.mode !== 'day';
+  const chartHtml = showChart ? `<div class="card chart-card" style="margin-bottom:16px;"><h4>Evolução ${kids.length ? 'por subcategoria' : ''}</h4><div class="chart-wrap"><canvas id="chartCatExp"></canvas></div></div>` : '';
+  const listHtml = `<div class="card" style="margin-bottom:16px;">
+    <h4 style="margin:0 0 12px;">Lançamentos <span id="ceListCount" style="font-family:var(--font-body); font-size:12.5px; color:var(--text-faint); margin-left:6px;"></span></h4>
+    <div class="ce-list-bar">
+      <input type="text" id="ceTxSearch" placeholder="Filtrar por descrição, subcategoria ou conta..." value="${escapeHtml(catExp.txQ)}">
+      <select id="ceSort" aria-label="Ordenar">
+        <option value="date-desc">Mais recentes</option><option value="date-asc">Mais antigos</option>
+        <option value="val-desc">Maior valor</option><option value="val-asc">Menor valor</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto;"><div id="ceListWrap"></div></div>
+    <div id="cePag" style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:14px;"></div>
+  </div>`;
+  $('ceResults').innerHTML = headHtml + kpis + breakdown + chartHtml + listHtml;
+  $('ceSort').value = catExp.sort;
+  if (showChart) ceDrawChart(inPeriod, p, cat, kids);
+  ceRenderList();
+  ceWireResults();
+}
+
+function ceRenderList(){
+  const wrap = $('ceListWrap'); if (!wrap) return;
+  const nq = ceNorm(catExp.txQ);
+  let list = ceCache.list.filter(t => {
+    if (!nq) return true;
+    const cat = categoryById(t.categoryId); const acc = accountById(t.accountId); const card = t.cardId ? creditCardById(t.cardId) : null;
+    return ceNorm(t.description).includes(nq) || ceNorm(categoryDisplayName(cat)).includes(nq) || ceNorm(card ? card.name : acc && acc.name).includes(nq);
+  });
+  const s = catExp.sort;
+  list.sort((a, b) => s === 'date-asc' ? (a.date + a.id).localeCompare(b.date + b.id)
+    : s === 'val-desc' ? Number(b.value) - Number(a.value)
+    : s === 'val-asc' ? Number(a.value) - Number(b.value)
+    : (b.date + b.id).localeCompare(a.date + a.id));
+  const isExp = catExp.type === 'expense';
+  const sumList = ceSumTx(list);
+  $('ceListCount').textContent = `${cePlural(list.length, 'lançamento', 'lançamentos')}${nq ? ' · soma ' + fmtBRL(sumList) : ''}`;
+  if (!list.length){
+    wrap.innerHTML = `<div class="empty-state" style="padding:30px 10px;"><p>Nenhum lançamento encontrado com esse filtro.</p></div>`;
+    $('cePag').innerHTML = '';
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(list.length / CE_PAGE_SIZE));
+  catExp.page = Math.min(catExp.page, totalPages);
+  const pageList = list.slice((catExp.page - 1) * CE_PAGE_SIZE, catExp.page * CE_PAGE_SIZE);
+  const rows = pageList.map(t => {
+    const cat = categoryById(t.categoryId);
+    const acc = accountById(t.accountId);
+    const card = t.cardId ? creditCardById(t.cardId) : null;
+    const installmentLabel = t.installmentIndex ? ` <span class="tag">${t.installmentIndex}/${t.installmentTotal}</span>` : '';
+    return `<tr>
+      <td data-label="Data">${fmtDate(t.date)}</td>
+      <td data-label="Descrição">${escapeHtml(t.description || '')}${installmentLabel} ${t.recurring ? '<span class="tag tag-recurring">Recorrente</span>' : ''}</td>
+      <td data-label="Categoria"><span class="cat-chip"><span class="dot" style="background:${cat ? cat.color : '#999'}"></span>${escapeHtml(categoryDisplayName(cat))}</span></td>
+      <td data-label="Conta">${escapeHtml(card ? card.name : (acc ? acc.name : '—'))}</td>
+      <td data-label="Valor" class="num ${isExp ? 'neg' : 'pos'}">${isExp ? '−' : '+'} ${fmtBRL(t.value)}</td>
+      <td data-label=""><div class="row-actions">
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="edit-tx" data-id="${t.id}" aria-label="Editar transação">${ICONS.edit}</button>
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="del-tx" data-id="${t.id}" aria-label="Excluir transação">${ICONS.trash}</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Conta</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+  wrap.querySelectorAll('[data-action="edit-tx"]').forEach(el => el.addEventListener('click', () => openTransactionModal(el.dataset.id)));
+  wrap.querySelectorAll('[data-action="del-tx"]').forEach(el => el.addEventListener('click', () => deleteTransaction(el.dataset.id)));
+  if (totalPages > 1){
+    $('cePag').innerHTML = `
+      <button class="btn btn-sm btn-ghost" id="cePrevPage" ${catExp.page === 1 ? 'disabled' : ''}>‹ Anterior</button>
+      <span style="font-size:12.5px; color:var(--text-dim);">Página ${catExp.page} de ${totalPages}</span>
+      <button class="btn btn-sm btn-ghost" id="ceNextPage" ${catExp.page === totalPages ? 'disabled' : ''}>Próxima ›</button>`;
+    $('cePrevPage').addEventListener('click', () => { catExp.page--; ceRenderList(); });
+    $('ceNextPage').addEventListener('click', () => { catExp.page++; ceRenderList(); });
+  } else { $('cePag').innerHTML = ''; }
+}
+
+function ceWireResults(){
+  const root = $('ceResults');
+  root.querySelectorAll('[data-ce-pick]').forEach(el => el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-ce-toggle]')) return;
+    const id = el.dataset.cePick; if (id) cePickCategory(id);
+  }));
+  root.querySelectorAll('[data-ce-toggle]').forEach(el => el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const id = el.dataset.ceToggle; catExp.expanded[id] = !catExp.expanded[id]; renderCatExplorer();
+  }));
+  const tq = $('ceTxSearch');
+  if (tq) tq.addEventListener('input', () => { catExp.txQ = tq.value; catExp.page = 1; ceRenderList(); });
+  const so = $('ceSort');
+  if (so) so.addEventListener('change', () => { catExp.sort = so.value; catExp.page = 1; ceRenderList(); });
+}
+
+/* ---- Eventos fixos (controles que ficam sempre na tela) ---- */
+$('ceTypeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-ce-type]'); if (!b || b.dataset.ceType === catExp.type) return;
+  catExp.type = b.dataset.ceType; catExp.catId = null; catExp.page = 1; catExp.txQ = ''; catExp.expanded = {};
+  $('ceSearch').value = ''; $('ceSearch').dataset.picked = ''; ceCloseSuggest();
+  renderCatExplorer();
+});
+$('ceModeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-ce-mode]'); if (!b) return;
+  catExp.mode = b.dataset.ceMode; catExp.page = 1; renderCatExplorer();
+});
+$('ceSearch').addEventListener('focus', () => { if ($('ceSearch').dataset.picked === '1') $('ceSearch').select(); ceOpenSuggest(); });
+$('ceSearch').addEventListener('input', () => {
+  $('ceSearch').dataset.picked = '';
+  if (catExp.catId){ catExp.catId = null; catExp.page = 1; renderCatExplorer(); $('ceSearch').focus(); }
+  ceOpenSuggest();
+});
+$('ceSearch').addEventListener('keydown', (e) => {
+  if (e.key === 'Escape'){ ceCloseSuggest(); $('ceSearch').blur(); }
+  if (e.key === 'Enter'){
+    const first = $('ceSuggest').querySelector('[data-ce-cat]');
+    if (first && !$('ceSuggest').classList.contains('hidden')){ e.preventDefault(); cePickCategory(first.dataset.ceCat); $('ceSearch').blur(); }
+  }
+});
+$('ceSuggest').addEventListener('mousedown', (e) => {
+  const it = e.target.closest('[data-ce-cat]'); if (!it) return;
+  e.preventDefault(); cePickCategory(it.dataset.ceCat); $('ceSearch').blur();
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('.ce-searchwrap')) ceCloseSuggest(); });
+$('ceClearCat').addEventListener('click', ceClearCategory);
+$('cePrev').addEventListener('click', () => ceShift(-1));
+$('ceNext').addEventListener('click', () => ceShift(1));
+$('ceNowBtn').addEventListener('click', () => {
+  const now = new Date();
+  catExp.year = now.getFullYear(); catExp.month = now.getMonth() + 1; catExp.day = ceLocalISO(now);
+  catExp.page = 1; renderCatExplorer();
+});
+$('ceYearSel').addEventListener('change', () => { catExp.year = Number($('ceYearSel').value); catExp.page = 1; renderCatExplorer(); });
+$('ceMonthSel').addEventListener('change', () => { catExp.month = Number($('ceMonthSel').value); catExp.page = 1; renderCatExplorer(); });
+$('ceDay').addEventListener('change', () => { catExp.day = $('ceDay').value; catExp.page = 1; renderCatExplorer(); });
+$('ceFrom').addEventListener('change', () => { catExp.from = $('ceFrom').value; catExp.page = 1; renderCatExplorer(); });
+$('ceTo').addEventListener('change', () => { catExp.to = $('ceTo').value; catExp.page = 1; renderCatExplorer(); });
 
 /* -------------------- SAÚDE FINANCEIRA (score composto) --------------------
    Cada fator é normalizado para 0–100 e combinado numa média ponderada.
@@ -3540,8 +4150,8 @@ async function deleteTransaction(id){
   const ok = await confirmModal('Excluir transação', 'Tem certeza que deseja excluir esta transação?', { danger: true, confirmLabel: 'Excluir' });
   if (!ok) return;
   const [removed] = state.transactions.splice(idx, 1);
-  mutate(); renderTransactions();
-  showUndoToast('Transação excluída.', () => { state.transactions.splice(idx, 0, removed); mutate(); renderTransactions(); });
+  mutate(); renderCurrentView();
+  showUndoToast('Transação excluída.', () => { state.transactions.splice(idx, 0, removed); mutate(); renderCurrentView(); });
 }
 function duplicateTransaction(id){
   const src = state.transactions.find(t => t.id === id);
