@@ -486,15 +486,27 @@ tr:hover td{background:var(--surface-2);}
 @keyframes chatTyping{0%,60%,100%{opacity:.3; transform:translateY(0);} 30%{opacity:1; transform:translateY(-3px);}}
 
 /* Calculadora simples */
-.calc-display{font-family:var(--font-mono); font-size:32px; font-weight:600; text-align:right; padding:14px 10px; margin-bottom:14px; background:var(--bg-elev); border-radius:10px; border:1px solid var(--border); overflow-x:auto; white-space:nowrap;}
-.calc-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px;}
-.calc-btn{padding:16px 0; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:17px; font-weight:600; cursor:pointer; font-family:var(--font-mono); transition:background .12s var(--ease), transform .1s var(--ease);}
-.calc-btn:active{transform:scale(.95);}
-.calc-btn:hover{background:var(--border-soft);}
-.calc-op{background:var(--surface); color:var(--text-dim);}
-.calc-accent{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
-.calc-accent:hover{filter:brightness(1.06);}
-.calc-wide{grid-column:span 2;}
+.calc-shell{max-width:420px; margin:0 auto;}
+.calc-card{background:var(--card-grad); border:1px solid var(--border-soft); border-radius:24px; padding:20px; box-shadow:var(--shadow-2);}
+.calc-screen{background:var(--bg-elev); border:1px solid var(--border); border-radius:16px; padding:14px 18px 16px; margin-bottom:18px; text-align:right; min-height:112px; display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden;}
+.calc-expr{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); min-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.calc-display{font-family:var(--font-mono); font-size:44px; font-weight:500; line-height:1.15; margin-top:6px; white-space:nowrap; overflow-x:auto; letter-spacing:-.02em; scrollbar-width:none;}
+.calc-display::-webkit-scrollbar{display:none;}
+.calc-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;}
+.calc-btn{height:66px; border-radius:18px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:22px; font-weight:500; cursor:pointer; font-family:var(--font-mono); display:flex; align-items:center; justify-content:center; user-select:none; -webkit-tap-highlight-color:transparent; transition:filter .12s var(--ease), transform .1s var(--ease), background .15s var(--ease), color .15s var(--ease);}
+.calc-btn .icon{width:22px; height:22px;}
+.calc-btn:hover{filter:brightness(1.15);}
+.calc-btn:active, .calc-btn.kbd-press{transform:scale(.94);}
+.calc-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.calc-fn{background:var(--surface); color:var(--text-dim);}
+.calc-fn.danger{color:var(--negative);}
+.calc-accent{background:var(--accent-soft); color:var(--accent); border-color:var(--accent-soft); font-size:26px;}
+.calc-accent.calc-active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.calc-eq{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); box-shadow:var(--glow-accent); font-size:26px;}
+.calc-hint{margin:14px 6px 0; font-size:12px; line-height:1.7; color:var(--text-faint); text-align:center;}
+.calc-hint kbd{font-family:var(--font-mono); font-size:11px; padding:1px 6px; border-radius:5px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim);}
+@media(hover:none){ .calc-hint{display:none;} }
+@media(max-width:480px){ .calc-card{padding:14px; border-radius:20px;} .calc-btn{height:58px; font-size:20px; border-radius:15px;} .calc-grid{gap:8px;} .calc-display{font-size:38px;} .calc-screen{min-height:100px; padding:12px 14px 14px;} }
 
 /* Simulador */
 .sim-result-hero{text-align:center; padding:10px 0 18px;}
@@ -955,36 +967,43 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 
       <!-- CALCULADORA & SIMULAÇÕES -->
       <section class="view" id="view-calculator">
-        <div class="type-toggle" id="calcTabToggle" style="max-width:420px;">
+        <div class="type-toggle" id="calcTabToggle" style="max-width:420px; margin-left:auto; margin-right:auto;">
           <button type="button" data-tab="basic" class="active">Calculadora</button>
           <button type="button" data-tab="sim">Juros &amp; Investimentos</button>
         </div>
 
         <!-- Calculadora simples -->
         <div id="calcTabBasic">
-          <div class="card" style="max-width:340px; padding:18px;">
-            <div class="calc-display" id="calcDisplay">0</div>
-            <div class="calc-grid">
-              <button class="calc-btn calc-op" data-key="clear">C</button>
-              <button class="calc-btn calc-op" data-key="sign">±</button>
-              <button class="calc-btn calc-op" data-key="percent">%</button>
-              <button class="calc-btn calc-accent" data-key="/">÷</button>
-              <button class="calc-btn" data-key="7">7</button>
-              <button class="calc-btn" data-key="8">8</button>
-              <button class="calc-btn" data-key="9">9</button>
-              <button class="calc-btn calc-accent" data-key="*">×</button>
-              <button class="calc-btn" data-key="4">4</button>
-              <button class="calc-btn" data-key="5">5</button>
-              <button class="calc-btn" data-key="6">6</button>
-              <button class="calc-btn calc-accent" data-key="-">−</button>
-              <button class="calc-btn" data-key="1">1</button>
-              <button class="calc-btn" data-key="2">2</button>
-              <button class="calc-btn" data-key="3">3</button>
-              <button class="calc-btn calc-accent" data-key="+">+</button>
-              <button class="calc-btn calc-wide" data-key="0">0</button>
-              <button class="calc-btn" data-key=".">,</button>
-              <button class="calc-btn calc-accent" data-key="=">=</button>
+          <div class="calc-shell">
+            <div class="calc-card">
+              <div class="calc-screen">
+                <div class="calc-expr" id="calcExpr">&nbsp;</div>
+                <div class="calc-display" id="calcDisplay">0</div>
+              </div>
+              <div class="calc-grid">
+                <button class="calc-btn calc-fn danger" data-key="clear" aria-label="Limpar tudo" title="Limpar tudo (Esc)">C</button>
+                <button class="calc-btn calc-fn" data-key="back" aria-label="Apagar um dígito" title="Apagar um dígito (Backspace)"><svg class="icon" viewBox="0 0 24 24"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></button>
+                <button class="calc-btn calc-fn" data-key="percent" aria-label="Porcentagem">%</button>
+                <button class="calc-btn calc-accent" data-key="/" aria-label="Dividir">÷</button>
+                <button class="calc-btn" data-key="7">7</button>
+                <button class="calc-btn" data-key="8">8</button>
+                <button class="calc-btn" data-key="9">9</button>
+                <button class="calc-btn calc-accent" data-key="*" aria-label="Multiplicar">×</button>
+                <button class="calc-btn" data-key="4">4</button>
+                <button class="calc-btn" data-key="5">5</button>
+                <button class="calc-btn" data-key="6">6</button>
+                <button class="calc-btn calc-accent" data-key="-" aria-label="Subtrair">−</button>
+                <button class="calc-btn" data-key="1">1</button>
+                <button class="calc-btn" data-key="2">2</button>
+                <button class="calc-btn" data-key="3">3</button>
+                <button class="calc-btn calc-accent" data-key="+" aria-label="Somar">+</button>
+                <button class="calc-btn calc-fn" data-key="sign" aria-label="Inverter sinal">±</button>
+                <button class="calc-btn" data-key="0">0</button>
+                <button class="calc-btn" data-key="." aria-label="Vírgula">,</button>
+                <button class="calc-btn calc-eq" data-key="=" aria-label="Igual">=</button>
+              </div>
             </div>
+            <p class="calc-hint">Dica: use o teclado do computador — números, <kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd>, <kbd>Enter</kbd> para calcular, <kbd>Backspace</kbd> para apagar um dígito e <kbd>Esc</kbd> para limpar tudo.</p>
           </div>
         </div>
 
@@ -3691,17 +3710,29 @@ function wireCalcTabs(){
 
 /* ---- Calculadora simples (aritmética básica, não usa dados do app) ---- */
 function wireBasicCalculator(){
+  // `display` guarda o número digitado "cru" (sem pontos de milhar, vírgula
+  // como decimal); a formatação com milhar só acontece na hora de mostrar.
   let display = '0';
   let stored = null;
   let pendingOp = null;
   let justEvaluated = false;
-  const fmt = (n) => {
+  let lastExpr = '';
+  const OP_SYM = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+  const MAX_DIGITS = 15;
+  const fmtRaw = (n) => {
     if (!isFinite(n)) return 'Erro';
     const rounded = Math.round(n * 1e10) / 1e10;
-    return rounded.toLocaleString('pt-BR', { maximumFractionDigits: 10 });
+    return rounded.toLocaleString('pt-BR', { useGrouping: false, maximumFractionDigits: 10 });
   };
-  const parseDisplay = () => Number(display.replace(/\./g,'').replace(',','.'));
-  const updateDisplay = () => { $('calcDisplay').textContent = display; };
+  const group = (raw) => {
+    if (raw === 'Erro') return raw;
+    const neg = raw.startsWith('-');
+    const body = neg ? raw.slice(1) : raw;
+    const parts = body.split(',');
+    const int = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return (neg ? '-' : '') + int + (parts.length > 1 ? ',' + parts[1] : '');
+  };
+  const parseDisplay = () => Number(display.replace(',', '.'));
   const apply = (a, b, op) => {
     if (op === '+') return a + b;
     if (op === '-') return a - b;
@@ -3709,27 +3740,84 @@ function wireBasicCalculator(){
     if (op === '/') return b === 0 ? NaN : a / b;
     return b;
   };
-  $('calcTabBasic').querySelectorAll('.calc-btn').forEach(btn => btn.addEventListener('click', () => {
-    const key = btn.dataset.key;
-    if (key === 'clear'){ display = '0'; stored = null; pendingOp = null; justEvaluated = false; }
-    else if (key === 'sign'){ display = fmt(parseDisplay() * -1); }
-    else if (key === 'percent'){ display = fmt(parseDisplay() / 100); }
-    else if (key === '.'){ if (justEvaluated){ display = '0,'; justEvaluated = false; } else if (!display.includes(',')) display += ','; }
+  const render = () => {
+    const el = $('calcDisplay');
+    const txt = group(display);
+    el.textContent = txt;
+    const n = txt.length;
+    el.style.fontSize = n > 18 ? '22px' : n > 14 ? '28px' : n > 11 ? '34px' : '';
+    $('calcExpr').textContent = lastExpr || (pendingOp !== null && stored !== null ? `${group(fmtRaw(stored))} ${OP_SYM[pendingOp]}` : '\u00a0');
+    $('calcTabBasic').querySelectorAll('.calc-accent').forEach(b => b.classList.toggle('calc-active', pendingOp !== null && justEvaluated && b.dataset.key === pendingOp));
+  };
+  const resetAll = () => { display = '0'; stored = null; pendingOp = null; justEvaluated = false; lastExpr = ''; };
+  const press = (key) => {
+    if (display === 'Erro' && key !== 'clear') resetAll();
+    if (key === 'clear'){ resetAll(); }
+    else if (key === 'back'){
+      // apaga só o último dígito do número que está sendo digitado
+      if (!justEvaluated){
+        display = display.slice(0, -1);
+        if (display === '' || display === '-') display = '0';
+      }
+    }
+    else if (key === 'sign'){
+      if (display !== '0') display = display.startsWith('-') ? display.slice(1) : '-' + display;
+    }
+    else if (key === 'percent'){
+      const cur = parseDisplay();
+      if (pendingOp !== null && stored !== null && !justEvaluated && (pendingOp === '+' || pendingOp === '-')) display = fmtRaw(stored * cur / 100);
+      else display = fmtRaw(cur / 100);
+    }
+    else if (key === '.'){
+      if (justEvaluated){ display = '0,'; justEvaluated = false; lastExpr = ''; }
+      else if (!display.includes(',')) display += ',';
+    }
     else if (['+','-','*','/'].includes(key)){
-      if (pendingOp && !justEvaluated){ stored = apply(stored, parseDisplay(), pendingOp); display = fmt(stored); }
-      else { stored = parseDisplay(); }
+      if (pendingOp && !justEvaluated){ stored = apply(stored, parseDisplay(), pendingOp); display = fmtRaw(stored); }
+      else if (!pendingOp || lastExpr){ stored = parseDisplay(); }
+      lastExpr = '';
       pendingOp = key; justEvaluated = true;
     }
     else if (key === '='){
-      if (pendingOp !== null){ stored = apply(stored, parseDisplay(), pendingOp); display = fmt(stored); pendingOp = null; }
+      if (pendingOp !== null && stored !== null){
+        const b = parseDisplay();
+        const a = stored;
+        const res = apply(a, b, pendingOp);
+        lastExpr = `${group(fmtRaw(a))} ${OP_SYM[pendingOp]} ${group(fmtRaw(b))} =`;
+        stored = res; display = fmtRaw(res); pendingOp = null;
+      }
       justEvaluated = true;
     }
     else { // dígito
-      if (display === '0' || justEvaluated){ display = key; justEvaluated = false; }
-      else { display += key; }
+      if (display === '0' || justEvaluated){
+        display = key; justEvaluated = false; lastExpr = '';
+      } else if (display.replace(/[-,]/g, '').length < MAX_DIGITS){
+        display += key;
+      }
     }
-    updateDisplay();
-  }));
+    render();
+  };
+  $('calcTabBasic').querySelectorAll('.calc-btn').forEach(btn => btn.addEventListener('click', () => press(btn.dataset.key)));
+
+  // Teclado do computador: só age quando a calculadora está à vista e a
+  // pessoa não está digitando em outro campo nem com um modal aberto.
+  const KEYMAP = { ',': '.', '.': '.', 'x': '*', 'X': '*', 'Enter': '=', '=': '=', 'Backspace': 'back', 'Delete': 'clear', 'Escape': 'clear', 'c': 'clear', 'C': 'clear', '%': 'percent' };
+  document.addEventListener('keydown', (e) => {
+    if (currentView !== 'calculator' || $('calcTabBasic').classList.contains('hidden')) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if ($('modalBackdrop').classList.contains('show')) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    let key = null;
+    if (/^[0-9]$/.test(e.key) || ['+','-','*','/'].includes(e.key)) key = e.key;
+    else if (KEYMAP[e.key]) key = KEYMAP[e.key];
+    if (!key) return;
+    e.preventDefault(); // evita, por ex., o "/" abrir a busca rápida do Firefox ou o Enter clicar num botão focado
+    press(key);
+    const btn = $('calcTabBasic').querySelector(`.calc-btn[data-key="${key}"]`);
+    if (btn){ btn.classList.add('kbd-press'); setTimeout(() => btn.classList.remove('kbd-press'), 120); }
+  });
+  render();
 }
 
 /* ---- Simulador de juros e investimentos ----
