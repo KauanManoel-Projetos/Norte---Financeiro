@@ -77,8 +77,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
 <style>
 /* ============================= TOKENS ============================= */
@@ -1247,15 +1245,11 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 
         <div class="card" style="margin-bottom:16px;">
           <h4 style="margin-bottom:6px;">Backup dos dados</h4>
-          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Exporte todos os seus dados em um arquivo .json, envie direto pro Google Drive/Dropbox/e-mail pelo menu de compartilhar do seu celular ou computador, ou restaure a partir de um backup anterior.</p>
+          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Exporte todos os seus dados em um arquivo .json ou restaure a partir de um backup anterior.</p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <button class="btn" id="exportJsonBtn">
               <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Baixar backup (.json)
-            </button>
-            <button class="btn" id="shareBackupBtn">
-              <svg class="icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
-              Compartilhar (apps do celular)
             </button>
             <button class="btn" id="importJsonBtn">
               <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -1268,18 +1262,8 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             <input type="file" id="importFileInput" accept="application/json" class="hidden">
           </div>
           <p style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">A planilha Excel é só para consulta/análise — para restaurar seus dados no app, use sempre o backup em .json.</p>
-          <p id="shareUnsupportedNote" class="hidden" style="font-size:12px; color:var(--text-faint); margin:10px 0 0;">Seu navegador não suporta o menu de compartilhamento nativo — use "Baixar backup" e envie o arquivo manualmente para o Drive, Dropbox etc.</p>
         </div>
 
-        <div class="card" style="margin-bottom:16px;">
-          <h4 style="margin-bottom:6px;">Importar extrato bancário</h4>
-          <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Traga um extrato em CSV, OFX, PDF ou até uma foto/print (PNG/JPG) — o app tenta reconhecer data, descrição e valor automaticamente, e você confere/ajusta antes de importar de verdade. Leitura de foto/PDF escaneado usa reconhecimento de texto (OCR) e pode errar mais que CSV/OFX — revise com atenção na prévia.</p>
-          <button class="btn" id="importStatementBtn">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importar extrato (CSV/OFX/PDF/foto)
-          </button>
-          <input type="file" id="importStatementInput" accept=".csv,.ofx,.qfx,.txt,.pdf,.png,.jpg,.jpeg" class="hidden">
-        </div>
 
         <div class="card" style="margin-bottom:16px;">
           <h4 style="margin-bottom:6px;">Enviar backup direto para a nuvem</h4>
@@ -1334,15 +1318,6 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
    NORTE — lógica do aplicativo
    ========================================================================== */
 
-/* -------------------- LEITURA DE PDF (importação de extrato) --------------------
-   pdf.js precisa de um "worker" separado pra processar o PDF sem travar a
-   tela. Se a biblioteca não carregar (sem internet, bloqueio de CDN), a
-   importação de extrato em PDF/imagem simplesmente avisa e não trava o
-   resto do app — CSV/OFX continuam funcionando normalmente. */
-if (typeof pdfjsLib !== 'undefined'){
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-}
-
 /* -------------------- CONFIGURAÇÃO DO SUPABASE -------------------- */
 /* Cole aqui a URL e a chave "anon public" do seu projeto Supabase.
    Enquanto estiverem com os valores de exemplo abaixo, o app roda
@@ -1362,7 +1337,7 @@ if (SUPA_ON) {
 /* -------------------- ENVIO DIRETO PARA GOOGLE DRIVE / DROPBOX (opcional) --------------------
    Assim como o Supabase, isso é opcional — sem configurar, os botões de
    Drive/Dropbox na tela "Conta" simplesmente não aparecem, e o backup
-   continua funcionando normalmente por download/compartilhamento.
+   continua funcionando normalmente por download.
 
    GOOGLE DRIVE:
    1) Crie um projeto em https://console.cloud.google.com
@@ -2018,7 +1993,6 @@ async function onAuthenticated(user){
   $('logoutBtn').style.display = 'inline-flex';
   initAppUI();
   notifyAutoEvents(eventsOnBoot);
-  handleSharedContent();
 }
 
 /* -------------------- INTEGRIDADE / MIGRAÇÃO -------------------- */
@@ -6039,38 +6013,6 @@ $('exportJsonBtn').addEventListener('click', () => {
   a.click();
   showToast('Backup baixado.');
 });
-/* "Enviar para Drive/Dropbox" usa o menu de compartilhar nativo do sistema
-   (Web Share API) — não existe integração direta com contas de nuvem sem
-   configurar OAuth de cada serviço (um passo de backend, tipo o Supabase),
-   mas o menu do celular/computador já resolve isso em um toque.
-   IMPORTANTE: a maioria dos navegadores só aceita compartilhar arquivos de
-   alguns tipos (imagem, texto simples, PDF, áudio, vídeo) — "application/json"
-   costuma ser rejeitado mesmo em navegadores que suportam compartilhar
-   arquivos. Usar "text/plain" contorna isso sem mudar o conteúdo nem a
-   extensão do arquivo (continua um .json de verdade). */
-function makeShareableBackupFile(){
-  const filename = 'norte_backup_' + todayISO() + '.json';
-  return new File([JSON.stringify(state, null, 2)], filename, { type: 'text/plain' });
-}
-const canShareFiles = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [makeShareableBackupFile()] }));
-if (!canShareFiles) $('shareUnsupportedNote').classList.remove('hidden');
-$('shareBackupBtn').addEventListener('click', async () => {
-  if (canShareFiles){
-    try {
-      await navigator.share({ files: [makeShareableBackupFile()], title: 'Backup Norte', text: 'Backup dos meus dados financeiros (' + todayISO() + ')' });
-      return;
-    } catch(err){
-      if (err && err.name === 'AbortError') return; // a pessoa só cancelou o menu, tudo certo
-      console.error('Falha ao compartilhar:', err);
-      showToast('Não foi possível abrir o menu de compartilhar — baixando o arquivo para enviar manualmente.', 5000);
-      setTimeout(() => $('exportJsonBtn').click(), 2200);
-      return;
-    }
-  } else {
-    showToast('Seu navegador não suporta compartilhar arquivos — baixando o backup normalmente.');
-  }
-  $('exportJsonBtn').click();
-});
 $('importJsonBtn').addEventListener('click', () => $('importFileInput').click());
 
 /* -------------------- EXPORTAÇÃO EM EXCEL -------------------- */
@@ -6162,437 +6104,6 @@ $('importFileInput').addEventListener('change', async (e) => {
   };
   reader.readAsText(file);
   e.target.value = '';
-});
-/* -------------------- IMPORTAÇÃO DE EXTRATO (CSV/OFX) --------------------
-   Tenta reconhecer data, descrição e valor automaticamente a partir de um
-   extrato exportado do banco. Formatos de banco variam bastante, então isso
-   é uma tentativa razoável (não uma leitura garantida) — por isso sempre
-   mostra uma prévia pra pessoa conferir/ajustar categoria e conta antes de
-   confirmar de verdade. Nada é salvo sem passar por essa confirmação. */
-function parseBrNumber(raw){
-  let s = String(raw||'').trim().replace(/[R$\s]/g,'');
-  if (!s) return NaN;
-  const neg = /^-|\(.*\)$/.test(s) || /^-/.test(s);
-  s = s.replace(/[()]/g,'');
-  // "1.234,56" (BR) vs "1,234.56" ou "1234.56" (US) — decide pelo último separador
-  const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
-  if (lastComma > lastDot) s = s.replace(/\./g,'').replace(',', '.');
-  else s = s.replace(/,/g,'');
-  const n = Number(s.replace(/^-/,''));
-  if (isNaN(n)) return NaN;
-  return neg ? -n : n;
-}
-function parseFlexibleDate(raw){
-  const s = String(raw||'').trim();
-  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); // ISO
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); // DD/MM/AAAA (padrão BR)
-  if (m){
-    let [,d,mo,y] = m;
-    if (y.length === 2) y = '20' + y;
-    return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`;
-  }
-  m = s.match(/^(\d{8})/); // OFX: AAAAMMDD
-  if (m) return `${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`;
-  return null;
-}
-function splitCsvLine(line, delim){
-  const out = []; let cur = ''; let inQuotes = false;
-  for (let i = 0; i < line.length; i++){
-    const ch = line[i];
-    if (ch === '"'){ inQuotes = !inQuotes; continue; }
-    if (ch === delim && !inQuotes){ out.push(cur); cur = ''; continue; }
-    cur += ch;
-  }
-  out.push(cur);
-  return out.map(s => s.trim());
-}
-function parseCsvStatement(text){
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (!lines.length) return [];
-  const delim = (lines[0].match(/;/g)||[]).length >= (lines[0].match(/,/g)||[]).length ? ';' : ',';
-  const norm = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  const header = splitCsvLine(lines[0], delim).map(norm);
-  const findCol = (...names) => header.findIndex(h => names.some(n => h.includes(n)));
-  let dateIdx = findCol('data','date'), descIdx = findCol('descri','historic','memo','title','estabelecimento'), valueIdx = findCol('valor','amount','value');
-  const hasHeader = dateIdx >= 0 || descIdx >= 0 || valueIdx >= 0;
-  const dataLines = hasHeader ? lines.slice(1) : lines;
-  if (!hasHeader){ dateIdx = 0; descIdx = 1; valueIdx = 2; } // formato comum: data, descrição, valor
-  const rows = [];
-  dataLines.forEach(line => {
-    const cols = splitCsvLine(line, delim);
-    const date = parseFlexibleDate(cols[dateIdx]);
-    const value = parseBrNumber(cols[valueIdx]);
-    if (!date || isNaN(value) || value === 0) return;
-    rows.push({ date, description: cols[descIdx] || '', value: Math.abs(value), type: value < 0 ? 'expense' : 'income' });
-  });
-  return rows;
-}
-function parseOfxStatement(text){
-  const rows = [];
-  const blocks = text.split(/<STMTTRN>/i).slice(1);
-  blocks.forEach(block => {
-    const get = (tag) => { const m = block.match(new RegExp('<'+tag+'>([^<\\r\\n]*)','i')); return m ? m[1].trim() : ''; };
-    const date = parseFlexibleDate(get('DTPOSTED'));
-    const value = parseBrNumber(get('TRNAMT'));
-    const description = get('MEMO') || get('NAME') || '';
-    if (!date || isNaN(value) || value === 0) return;
-    rows.push({ date, description, value: Math.abs(value), type: value < 0 ? 'expense' : 'income' });
-  });
-  return rows;
-}
-function openImportStatementPreview(rows){
-  if (!rows.length){ showToast('Não consegui reconhecer nenhum lançamento nesse arquivo — o formato pode ser diferente do esperado.', 5000); return; }
-  const accOpts = state.accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-  // Cada linha é editável (nome, data, valor, tipo e categoria) — leitura de
-  // foto/PDF por OCR pode errar um dígito, e o tipo (entrada/saída) de um
-  // comprovante nem sempre é óbvio; melhor corrigir aqui do que depois.
-  const rowHtml = (r,i) => `<div class="imp-row" data-idx="${i}" style="padding:12px 0; border-bottom:1px solid var(--border-soft);">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-        <input type="checkbox" class="imp-row-check" data-idx="${i}" checked style="flex:none;">
-        <input type="text" class="imp-desc" data-idx="${i}" value="${escapeHtml(r.description || '')}" placeholder="Descrição" style="flex:1; min-width:0;">
-      </div>
-      <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;">
-        <input type="date" class="imp-date" data-idx="${i}" value="${r.date}">
-        <input type="number" step="0.01" min="0.01" class="imp-val num-input" data-idx="${i}" value="${r.value}">
-        <select class="imp-type" data-idx="${i}"><option value="expense" ${r.type==='expense'?'selected':''}>Despesa</option><option value="income" ${r.type==='income'?'selected':''}>Receita</option></select>
-        <select class="imp-row-cat" data-idx="${i}"><option value="">Categoria...</option>${categoryOptionsGrouped(r.type)}</select>
-      </div>
-      ${r.uncertain ? '<div class="horizon-hint" style="margin-top:6px; color:var(--warn);">Não deu pra saber se é entrada ou saída — confira o tipo.</div>' : ''}
-    </div>`;
-  const html = `<div class="modal-head"><h3>Conferir importação</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
-    <div class="modal-body">
-      <div class="field"><label>Importar para qual conta?</label><select id="impAccount">${accOpts}</select></div>
-      <p style="color:var(--text-dim); font-size:12.5px; margin:10px 0;">Encontrado(s) ${rows.length} lançamento(s). Desmarque o que não quiser, e corrija descrição, data, valor, tipo ou categoria se algo veio errado.</p>
-      <div style="max-height:52vh; overflow-y:auto;">${rows.map(rowHtml).join('')}</div>
-    </div>
-    <div class="modal-foot"><button class="btn btn-ghost" data-action="close">Cancelar</button><button class="btn btn-primary" data-action="confirm">Importar selecionados</button></div>`;
-  openModal(html);
-  const root = $('modalContent');
-  root.querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
-  const suggestFor = (i) => {
-    const desc = root.querySelector(`.imp-desc[data-idx="${i}"]`).value;
-    const type = root.querySelector(`.imp-type[data-idx="${i}"]`).value;
-    const sel = root.querySelector(`.imp-row-cat[data-idx="${i}"]`);
-    sel.innerHTML = '<option value="">Categoria...</option>' + categoryOptionsGrouped(type);
-    const suggestion = suggestCategoryForDescription(desc, type);
-    if (suggestion) sel.value = suggestion.categoryId;
-  };
-  rows.forEach((r,i) => suggestFor(i));
-  root.querySelectorAll('.imp-type').forEach(sel => sel.addEventListener('change', () => suggestFor(Number(sel.dataset.idx))));
-  root.querySelector('[data-action="confirm"]').addEventListener('click', () => {
-    const accountId = root.querySelector('#impAccount').value;
-    if (!accountId){ showToast('Selecione uma conta.'); return; }
-    let count = 0, skipped = 0;
-    root.querySelectorAll('.imp-row-check:checked').forEach(chk => {
-      const i = Number(chk.dataset.idx);
-      const q = (c) => root.querySelector(`.${c}[data-idx="${i}"]`);
-      const value = Number(q('imp-val').value);
-      const date = q('imp-date').value;
-      const categoryId = q('imp-row-cat').value || null;
-      if (!categoryId || !value || value <= 0 || !date){ skipped++; return; }
-      state.transactions.push({ id: uid(), type: q('imp-type').value, date, value, description: q('imp-desc').value.trim(), categoryId, accountId, paymentMethod: null, cardId: null, notes: 'Importado de extrato/comprovante' });
-      count++;
-    });
-    if (!count){ showToast('Escolha uma categoria (e confira valor e data) para pelo menos um lançamento.', 4500); return; }
-    mutate(); closeModal(); renderCurrentView();
-    showToast(`${count} lançamento(s) importado(s).` + (skipped ? ` ${skipped} ficou de fora por falta de categoria/valor.` : ''), 4500);
-  });
-}
-// Modal simples de "carregando", usado enquanto lê PDF/imagem (isso pode
-// levar alguns segundos, então a pessoa precisa de um feedback visual).
-function openImportLoadingModal(initialMessage){
-  openModal(`<div class="modal-body" style="text-align:center; padding:36px 24px;">
-    <div class="section-title" style="justify-content:center; margin-bottom:16px;"><h3 id="importLoadingMsg">${initialMessage}</h3></div>
-    <div class="progress-track"><div class="progress-fill" id="importLoadingBar" style="width:5%;"></div></div>
-  </div>`);
-  return {
-    set(pct, msg){
-      const bar = document.getElementById('importLoadingBar');
-      const label = document.getElementById('importLoadingMsg');
-      if (bar) bar.style.width = Math.max(5, Math.min(100, pct)) + '%';
-      if (msg && label) label.textContent = msg;
-    }
-  };
-}
-// Reconstrói o texto de um PDF respeitando a posição de cada trecho (agrupa
-// por linha e ordena da esquerda pra direita) — bem melhor do que só juntar
-// tudo solto, que embaralharia colunas de uma tabela de extrato.
-async function extractPdfPageLines(page){
-  const content = await page.getTextContent();
-  const rows = {};
-  content.items.forEach(it => {
-    const y = Math.round(it.transform[5]);
-    (rows[y] = rows[y] || []).push({ x: it.transform[4], str: it.str });
-  });
-  return Object.keys(rows).map(Number).sort((a,b) => b-a)
-    .map(y => rows[y].sort((a,b) => a.x - b.x).map(it => it.str).join(' '));
-}
-async function ocrImageSource(source, onProgress){
-  const { data } = await Tesseract.recognize(source, 'por', {
-    logger: (m) => { if (m.status === 'recognizing text' && onProgress) onProgress(m.progress); }
-  });
-  return data.text;
-}
-async function extractTextFromPdf(file, loading){
-  const buf = new Uint8Array(await file.arrayBuffer());
-  let fullText = '';
-  try {
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-    for (let i = 1; i <= pdf.numPages; i++){
-      loading.set(10 + (i/pdf.numPages)*30, `Lendo página ${i} de ${pdf.numPages}...`);
-      const page = await pdf.getPage(i);
-      const lines = await extractPdfPageLines(page);
-      fullText += lines.join('\n') + '\n';
-    }
-    // Menos de ~40 caracteres de texto real = quase certeza que é um PDF
-    // escaneado (imagem dentro do PDF, sem texto de verdade) — nesse caso,
-    // usa OCR igual faria com uma foto.
-    if (fullText.replace(/\s/g,'').length > 40) return fullText;
-  } catch(err){
-    console.error('Falha ao extrair texto do PDF diretamente, tentando OCR:', err);
-  }
-  // Sem texto extraível (ou falhou) — trata como PDF escaneado: renderiza
-  // cada página como imagem e lê com OCR.
-  loading.set(35, 'Lendo o PDF como imagem (OCR) — pode levar um tempinho...');
-  const buf2 = new Uint8Array(await file.arrayBuffer());
-  const pdf2 = await pdfjsLib.getDocument({ data: buf2 }).promise;
-  fullText = '';
-  for (let i = 1; i <= Math.min(pdf2.numPages, 5); i++){ // limite de 5 páginas pra não travar o navegador
-    const page = await pdf2.getPage(i);
-    const viewport = page.getViewport({ scale: 2.2 });
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width; canvas.height = viewport.height;
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-    const pageText = await ocrImageSource(canvas, (p) => loading.set(40 + (i/pdf2.numPages)*55 + p*10, `OCR na página ${i}...`));
-    fullText += pageText + '\n';
-  }
-  return fullText;
-}
-// Extrai lançamentos de um texto "solto" (vindo de OCR ou de um PDF sem
-// colunas bem definidas) — procura, em cada linha, uma data e um valor
-// monetário; o que sobra da linha vira a descrição. Menos preciso que
-// CSV/OFX (por isso a prévia de conferência é essencial aqui).
-function parseFreeformStatementText(text){
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const dateRe = /\b(\d{1,2}[\/\.]\d{1,2}[\/\.]\d{2,4}|\d{4}-\d{2}-\d{2})\b/;
-  const valueRe = /-?\s?R?\$?\s?-?\d{1,3}(?:\.\d{3})*,\d{2}\b|-?\s?R?\$?\s?-?\d+,\d{2}\b/;
-  const rows = [];
-  lines.forEach(line => {
-    const dm = line.match(dateRe);
-    if (!dm) return;
-    const vm = line.match(valueRe);
-    if (!vm) return;
-    const date = parseFlexibleDate(dm[0]);
-    const value = parseBrNumber(vm[0]);
-    if (!date || isNaN(value) || value === 0) return;
-    const isNeg = /-/.test(vm[0]);
-    let desc = line.replace(dm[0], ' ').replace(vm[0], ' ').replace(/\s{2,}/g, ' ').trim();
-    desc = desc.replace(/^[-:.\s]+|[-:.\s]+$/g, '');
-    rows.push({ date, description: desc || '(sem descrição)', value: Math.abs(value), type: isNeg ? 'expense' : 'income' });
-  });
-  return rows;
-}
-/* -------------------- LEITOR DE DOCUMENTO ÚNICO --------------------
-   Comprovante de Pix, notificação/SMS do banco, cupom ou nota fiscal: um
-   documento = UM lançamento. Ao contrário de um extrato (várias linhas, cada
-   uma com data + valor juntos), aqui data, valor e nome costumam vir em
-   linhas separadas — então este leitor olha o texto inteiro de uma vez. É
-   uma leitura por regras (não é perfeita), por isso o resultado sempre passa
-   pela tela de conferência antes de virar transação. */
-const PT_MONTHS_SHORT = { jan:1, fev:2, mar:3, abr:4, mai:5, jun:6, jul:7, ago:8, set:9, out:10, nov:11, dez:12 };
-function normText(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-function isPlausibleIsoDate(iso){
-  const [y,m,d] = String(iso).split('-').map(Number);
-  return y >= 2000 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31;
-}
-function findDocumentDate(text){
-  const m1 = text.match(/\b(\d{1,2}[\/\.]\d{1,2}[\/\.]\d{2,4}|\d{4}-\d{2}-\d{2})\b/);
-  if (m1){ const d = parseFlexibleDate(m1[0]); if (d && isPlausibleIsoDate(d)) return d; }
-  // "26 set 2026" / "26 de setembro de 2026" (comum em comprovantes de app)
-  const m2 = normText(text).match(/\b(\d{1,2})\s*(?:de\s+)?(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-z]*\.?\s*(?:de\s+)?(\d{4})\b/);
-  if (m2){
-    const iso = `${m2[3]}-${String(PT_MONTHS_SHORT[m2[2]]).padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
-    if (isPlausibleIsoDate(iso)) return iso;
-  }
-  return null;
-}
-function findDocumentValue(text){
-  const low = normText(text).replace(/\s+/g,' ');
-  const num = '(\\d{1,3}(?:\\.\\d{3})*,\\d{2}|\\d+,\\d{2})';
-  const cur = '(?:r\\s?[$s5]\\s?)?'; // "R$" — com tolerância a erro de OCR ("RS", "R5")
-  const groups = [
-    '(?:^|[^a-z])(?:valor total|total a pagar|valor a pagar|total geral|total da compra|valor da compra|total)',
-    '(?:valor do pix|valor da transferencia|valor da transacao|valor enviado|valor recebido|valor transferido|valor debitado|valor pago|valor)'
-  ];
-  for (const g of groups){
-    const re = new RegExp(g + '\\s*[:\\-]?\\s*' + cur + num, 'g');
-    let m, last = null;
-    while ((m = re.exec(low))) last = m;  // última ocorrência (o total costuma vir no fim)
-    if (last){ const v = parseBrNumber(last[1]); if (!isNaN(v) && v > 0) return v; }
-  }
-  let m = low.match(new RegExp('r\\s?[$s5]\\s?' + num));
-  if (!m) m = low.match(new RegExp(num));
-  if (m){ const v = parseBrNumber(m[1]); if (!isNaN(v) && v > 0) return v; }
-  return null;
-}
-// Devolve 'income', 'expense' ou null (não deu pra saber).
-function detectDocumentType(text){
-  let t = normText(text).replace(/\s+/g,' ');
-  // rótulos que aparecem nos DOIS lados de um comprovante (quem pagou / quem
-  // recebeu) — tirar antes de contar, senão um anula o outro
-  t = t.replace(/quem (?:recebeu|pagou|enviou)(?: o pix)?/g,' ').replace(/(?:recebedor|pagador|favorecido|beneficiario|remetente)/g,' ');
-  const inc = ['voce recebeu','pix recebido','transferencia recebida','recebido de','te enviou','te transferiu','te pagou','credito em conta','deposito','estorno','reembolso','cashback','recebimento','recebeu','recebido'];
-  const exp = ['voce pagou','voce enviou','pix enviado','transferencia enviada','enviado para','pagamento','pagou','paguei','compra','debitado','debito','saque','fatura','cupom fiscal','nfc-e','nfce','danfe','nota fiscal','consumidor','boleto','enviou'];
-  let incScore = 0, expScore = 0;
-  inc.forEach(w => { const c = t.split(w).length - 1; if (c){ incScore += c * (w.length > 9 ? 2 : 1); t = t.split(w).join(' '); } });
-  exp.forEach(w => { const c = t.split(w).length - 1; if (c){ expScore += c * (w.length > 9 ? 2 : 1); t = t.split(w).join(' '); } });
-  if (incScore > expScore) return 'income';
-  if (expScore > incScore) return 'expense';
-  return null;
-}
-function titleCaseIfShouting(s){
-  const letters = s.replace(/[^A-Za-zÀ-ÿ]/g,'');
-  if (letters.length > 3 && s === s.toUpperCase()) return s.toLowerCase().replace(/(^|[\s\-'.*])(\p{L})/gu, (m,a,b) => a + b.toUpperCase());
-  return s;
-}
-function findDocumentCounterparty(text, type){
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const NAME_STOP = /(cpf|cnpj|instituicao|banco|agencia|conta|chave|tipo|documento|transacao|autentic|id da|data|hora|valor|pix|comprovante)/;
-  const looksLikeName = (s) => s.length >= 3 && s.length <= 60 && !/\d/.test(s) && /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'\- ]+$/.test(s) && !NAME_STOP.test(normText(s));
-  const senderHdr = /^(quem pagou|quem enviou|origem|remetente|pagador|de:?|dados de quem (?:pagou|enviou))$/;
-  const receiverHdr = /^(quem recebeu|destino|favorecido|recebedor|beneficiario|para:?|dados de quem recebeu)$/;
-  const findAfterHeader = (hdrRe) => {
-    const idx = lines.findIndex(l => l.length <= 40 && hdrRe.test(normText(l).replace(/\s+/g,' ').trim()));
-    if (idx < 0) return null;
-    for (let j = idx + 1; j <= Math.min(idx + 7, lines.length - 1); j++){
-      const nm = normText(lines[j]).match(/^nome\s*:?\s*(.*)$/);
-      if (nm){
-        const inline = lines[j].replace(/^nome\s*:?\s*/i,'').trim();
-        if (looksLikeName(inline)) return inline;
-        if (lines[j+1] && looksLikeName(lines[j+1])) return lines[j+1];
-      } else if (looksLikeName(lines[j]) && lines[j].split(/\s+/).length >= 2) return lines[j];
-    }
-    return null;
-  };
-  const primary = type === 'income' ? senderHdr : receiverHdr;
-  const secondary = type === 'income' ? receiverHdr : senderHdr;
-  let name = findAfterHeader(primary) || (type ? null : findAfterHeader(receiverHdr) || findAfterHeader(senderHdr));
-  if (name) return titleCaseIfShouting(name);
-  // frases de notificação: "Marina Souza te enviou R$ 150", "pagou R$ 20 para PADARIA X"
-  const flat = text.replace(/\s+/g,' ');
-  const W = "[A-ZÀ-Ú][A-Za-zÀ-ÿ.'\\-]+";
-  const NAME = `(${W}(?: (?:(?:de|da|do|dos|das) )?${W}){0,4})`;
-  // estabelecimento: aceita "IFOOD*RESTAURANTE", "Uber *Trip", "Padaria 3 Irmãos"
-  const M = "([A-ZÀ-Ú0-9][A-Za-zÀ-ÿ0-9.'&*\\-]+(?: \\*?[A-ZÀ-Ú][A-Za-zÀ-ÿ0-9.'&*\\-]*){0,3})";
-  const looksLikeMerchant = (s) => s.length >= 3 && s.length <= 50 && /[A-Za-zÀ-ÿ]{3}/.test(s) && !/^\d/.test(s) && !/cart[aã]o|final\s*\d|agencia|conta\b/i.test(normText(s));
-  const pats = type === 'income'
-    ? [new RegExp(NAME + ' (?:te enviou|te transferiu|te pagou|enviou (?:um )?pix)'), new RegExp('(?:recebid[oa]s? de|recebeu (?:um )?(?:pix )?(?:de )?|\\bde) ' + NAME)]
-    : [new RegExp('(?:enviad[oa]s? para|enviou (?:um )?(?:pix )?para|pagou (?:a |para )?|transfer[eê]ncia (?:enviada )?para|pagamento (?:aprovado )?(?:para|a|em|no|na)? ?|compra (?:aprovada )?(?:em|no|na) )' + M), new RegExp('(?:\\bem|\\bno|\\bna|\\bpara) ' + M), new RegExp('[\\-–—] ' + M + '\\s*$')];
-  for (const re of pats){
-    for (const m of flat.matchAll(new RegExp(re.source, 'g'))){
-      const cand = m[1].trim();
-      if (type === 'income' ? looksLikeName(cand) : looksLikeMerchant(cand)) return titleCaseIfShouting(cand);
-    }
-  }
-  // cupom / nota fiscal: a 1ª linha "de nome" costuma ser o estabelecimento
-  const SKIP = /(cnpj|cpf|danfe|nfc|cupom|documento|consumidor|extrato|comprovante|endereco|rua |avenida|av\. |tel|data|hora|valor|total|item|qtd|codigo|inscricao|ie:|im:)/;
-  for (const l of lines.slice(0, 8)){
-    const letters = l.replace(/[^A-Za-zÀ-ÿ]/g,'').length;
-    if (l.length >= 3 && l.length <= 50 && letters / l.length > 0.6 && !SKIP.test(normText(l))) return titleCaseIfShouting(l);
-  }
-  return null;
-}
-function parseSingleDocumentText(text){
-  const raw = String(text || '').replace(/\r/g,'');
-  if (raw.replace(/\s/g,'').length < 8) return [];
-  const value = findDocumentValue(raw);
-  if (!value) return [];
-  const date = findDocumentDate(raw) || todayISO();
-  const detected = detectDocumentType(raw);
-  const type = detected || 'expense';
-  const name = findDocumentCounterparty(raw, type);
-  const isPix = /pix/i.test(raw);
-  let description;
-  if (name) description = isPix ? (type === 'income' ? `Pix de ${name}` : `Pix para ${name}`) : name;
-  else description = isPix ? 'Pix' : 'Importado de comprovante';
-  return [{ date, description, value, type, uncertain: detected === null }];
-}
-// Trata o que chega pelo menu "Compartilhar" do celular (Web Share Target —
-// ver "share_target" no manifest.json). Como um app instalado como PWA NÃO
-// consegue ler notificações de outros apps, esse é o caminho: o usuário
-// compartilha a notificação/mensagem do banco com o Norte e o formulário de
-// transação já abre preenchido.
-function handleSharedContent(){
-  let params;
-  try { params = new URLSearchParams(location.search); } catch(e){ return; }
-  const title = params.get('shared_title') || '';
-  const text = params.get('shared_text') || '';
-  const url = params.get('shared_url') || '';
-  if (!title && !text && !url) return;
-  try { history.replaceState(null, '', location.pathname); } catch(e){} // um refresh não reabre o mesmo compartilhamento
-  if (!state.accounts.length){ showToast('Cadastre uma conta antes de lançar transações.'); switchView('accounts'); return; }
-  const combined = [title, text, url].filter(Boolean).join('\n');
-  const rows = parseSingleDocumentText(combined);
-  if (!rows.length){
-    showToast('Recebi o texto compartilhado, mas não achei nenhum valor nele — preencha à mão.', 5000);
-    openTransactionModal(null, { type: 'expense', date: todayISO(), value: '', description: combined.replace(/\s+/g,' ').slice(0, 60) });
-    return;
-  }
-  const r = rows[0];
-  const suggestion = suggestCategoryForDescription(r.description, r.type);
-  openTransactionModal(null, { type: r.type, date: r.date, value: r.value, description: r.description, categoryId: suggestion ? suggestion.categoryId : undefined });
-  showToast(r.uncertain ? 'Compartilhamento recebido — confira se é entrada ou saída.' : 'Compartilhamento recebido — confira os dados e confirme.', 4500);
-}
-
-// Texto vindo de PDF/foto: tenta primeiro como extrato (várias linhas com
-// data + valor); se achar 0 ou 1 lançamento, tenta como documento único
-// (comprovante de Pix, cupom/nota fiscal), que costuma ter data, valor e nome
-// em linhas separadas.
-function parseImportedText(text){
-  const lineRows = parseFreeformStatementText(text);
-  if (lineRows.length > 1) return lineRows;
-  const single = parseSingleDocumentText(text);
-  return single.length ? single : lineRows;
-}
-$('importStatementBtn').addEventListener('click', () => {
-  if (!state.accounts.length){ showToast('Cadastre uma conta antes de importar um extrato.'); switchView('accounts'); return; }
-  $('importStatementInput').click();
-});
-$('importStatementInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  const name = file.name.toLowerCase();
-  try {
-    if (name.endsWith('.pdf')){
-      if (typeof pdfjsLib === 'undefined'){ showToast('Não foi possível carregar o leitor de PDF — verifique sua conexão com a internet.', 5000); return; }
-      const loading = openImportLoadingModal('Lendo o PDF...');
-      const text = await extractTextFromPdf(file, loading);
-      closeModal();
-      openImportStatementPreview(parseImportedText(text));
-    } else if (/\.(png|jpe?g)$/.test(name)){
-      if (typeof Tesseract === 'undefined'){ showToast('Não foi possível carregar o leitor de imagem (OCR) — verifique sua conexão com a internet.', 5000); return; }
-      const loading = openImportLoadingModal('Lendo o texto da imagem (OCR)...');
-      const text = await ocrImageSource(file, (p) => loading.set(10 + p*85, 'Lendo o texto da imagem (OCR)...'));
-      closeModal();
-      openImportStatementPreview(parseImportedText(text));
-    } else {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = String(reader.result);
-        const isOfx = /\.ofx$|\.qfx$/i.test(name) || /<OFX>/i.test(text);
-        const rows = isOfx ? parseOfxStatement(text) : parseCsvStatement(text);
-        openImportStatementPreview(rows);
-      };
-      reader.onerror = () => showToast('Não foi possível ler esse arquivo.');
-      reader.readAsText(file);
-    }
-  } catch(err){
-    console.error(err);
-    closeModal();
-    showToast('Não foi possível ler esse arquivo (' + (err.name||'erro') + '): ' + (err.message || err), 6000);
-  }
 });
 $('clearAllBtn').addEventListener('click', async () => {
   const ok1 = await confirmModal('Limpar todos os dados', 'Isso apagará TODOS os dados do perfil atual ("' + getActiveProfile().name + '") permanentemente — contas, transações, orçamentos e metas. Os outros perfis não são afetados. Tem certeza?', { danger: true, confirmLabel: 'Continuar' });
@@ -6703,7 +6214,7 @@ function openCloudSetupModal(provider){
         <div style="width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-family:var(--font-mono); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none;">${i+1}</div>
         <div><div style="font-weight:700; font-size:13.5px; margin-bottom:2px;">${s[0]}</div><div style="font-size:12.5px; color:var(--text-dim); line-height:1.5;">${s[1]}</div></div>
       </div>`).join('')}
-      <p style="font-size:12px; color:var(--text-faint); margin:6px 0 0; line-height:1.5;">Enquanto isso, use "Baixar backup" ou "Compartilhar" para levar seus dados pro Drive/Dropbox manualmente.</p>
+      <p style="font-size:12px; color:var(--text-faint); margin:6px 0 0; line-height:1.5;">Enquanto isso, use "Baixar backup" para levar seus dados pro Drive/Dropbox manualmente.</p>
     </div>
     <div class="modal-foot"><button class="btn btn-primary" data-action="close">Entendi</button></div>`;
   openModal(html);
@@ -6994,7 +6505,7 @@ const TOUR_STEPS = [
   },
   {
     view: 'settings', target: '[data-nav="settings"]', title: 'Conta',
-    body: `Sua área pessoal: <b>foto de perfil</b>, <b>e-mail</b> cadastrado e botão pra <b>redefinir a senha</b>. É também aqui que fica o <b>backup dos seus dados</b> — baixar em .json, exportar em planilha Excel, compartilhar ou restaurar um backup anterior — além do envio direto pro <b>Google Drive ou Dropbox</b>.`,
+    body: `Sua área pessoal: <b>foto de perfil</b>, <b>e-mail</b> cadastrado e botão pra <b>redefinir a senha</b>. É também aqui que fica o <b>backup dos seus dados</b> — baixar em .json, exportar em planilha Excel ou restaurar um backup anterior — além do envio direto pro <b>Google Drive ou Dropbox</b>.`,
     example: `Antes de "Limpar todos os dados" pra testar algo, sempre vale <b>baixar um backup primeiro</b> — é só um clique em "Baixar backup (.json)".`,
   },
   { target: '#tourBtn', title: 'Reabrir este tour quando quiser',
@@ -7180,7 +6691,6 @@ async function boot(){
     setSaveStatus('local');
     initAppUI();
     notifyAutoEvents(eventsOnBoot);
-    handleSharedContent();
   }
 }
 /* -------------------- PWA: registro do Service Worker --------------------
