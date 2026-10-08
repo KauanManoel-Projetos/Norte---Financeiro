@@ -628,6 +628,63 @@ tr:hover td{background:var(--surface-2);}
 .ce-kpi-note{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 @media(max-width:600px){ .ce-head h3{font-size:22px;} .ce-subs{margin-left:10px;} }
 
+/* Notificações: banner dentro do app */
+#norteBanners{position:fixed; top:calc(10px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%); width:min(94vw, 430px); z-index:140; display:flex; flex-direction:column; gap:10px; pointer-events:none;}
+.nb{--nb:var(--accent); pointer-events:auto; position:relative; overflow:hidden; border-radius:20px; padding:11px 14px 15px 18px; background:var(--bg-elev); border:1px solid var(--border); box-shadow:0 16px 44px rgba(0,0,0,.5); color:var(--text); cursor:pointer; touch-action:pan-y; animation:nb-in .5s cubic-bezier(.2,1.15,.3,1);}
+.nb::before{content:''; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--nb);}
+.nb.out{animation:nb-out .32s ease-in forwards;}
+@keyframes nb-in{0%{opacity:0; transform:translateY(-26px) scale(.96);} 100%{opacity:1; transform:translateY(0) scale(1);}}
+@keyframes nb-out{to{opacity:0; transform:translateY(-22px) scale(.97);}}
+.nb-due-tomorrow{--nb:#F5B942;} .nb-due-today{--nb:#FF6B5E;} .nb-tx-income{--nb:#4ade80;} .nb-tx-expense{--nb:#ff7b7b;}
+.nb-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:11px; color:var(--text-faint); letter-spacing:.04em; text-transform:uppercase; font-weight:600;}
+.nb-app{display:inline-flex; align-items:center; gap:7px;}
+.nb-app i{font-style:normal; font-family:var(--font-display); font-size:12px; width:18px; height:18px; border-radius:5px; background:var(--accent); color:var(--accent-ink); display:inline-flex; align-items:center; justify-content:center; font-weight:700;}
+.nb-main{display:flex; gap:12px; align-items:flex-start;}
+.nb-ico{flex:none; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--surface-2); color:var(--nb);}
+.nb-ico .icon{width:20px; height:20px;}
+@supports (background:color-mix(in srgb, red 10%, transparent)){ .nb-ico{background:color-mix(in srgb, var(--nb) 18%, transparent);} }
+.nb-txt{min-width:0; flex:1;}
+.nb-title{font-weight:700; font-size:14.5px; line-height:1.3;}
+.nb-body{font-size:13px; color:var(--text-dim); margin-top:2px; line-height:1.4;}
+.nb-actions{display:flex; gap:8px; margin:11px 0 0 50px;}
+.nb-actions button{border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-family:inherit; font-size:12.5px; font-weight:600; padding:6px 14px; border-radius:999px; cursor:pointer;}
+.nb-actions button[data-nb="open"]{background:var(--nb); border-color:var(--nb); color:#1a1408;}
+.nb-bar{position:absolute; left:5px; right:0; bottom:0; height:3px; background:var(--nb); transform-origin:left; animation:nb-bar 8s linear forwards; opacity:.85;}
+@keyframes nb-bar{from{transform:scaleX(1);} to{transform:scaleX(0);}}
+@media (prefers-reduced-motion:reduce){ .nb, .nb-bar{animation-duration:.01s;} }
+/* sino da barra superior */
+#notifBtn{position:relative;}
+.notif-dot{position:absolute; top:3px; right:2px; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; line-height:1;}
+/* central de notificações (modal) */
+.nm-status{display:flex; align-items:center; gap:12px; padding:14px; border-radius:14px; border:1px solid var(--border-soft); background:var(--surface-2);}
+.nm-st-ico{width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--surface); color:var(--text-faint); flex:none;}
+.nm-status.on .nm-st-ico{background:var(--accent-soft); color:var(--accent);}
+.nm-status.on{border-color:var(--accent);}
+.nm-st-sub{font-size:12.5px; color:var(--text-dim); margin-top:2px; line-height:1.45;}
+.nm-hint{font-size:12px; color:var(--text-faint); line-height:1.6; margin:10px 0 0;}
+.nm-h{margin:20px 0 6px; font-family:var(--font-body); font-size:13px; font-weight:700;}
+.nm-toggle{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 2px; border-bottom:1px solid var(--border-soft); cursor:pointer;}
+.nm-toggle:last-of-type{border-bottom:none;}
+.nm-tl{font-size:13.5px; font-weight:600;}
+.nm-ts{font-size:12px; color:var(--text-faint); margin-top:2px; line-height:1.4;}
+.nm-toggle input[type=checkbox]{position:absolute; opacity:0; pointer-events:none;}
+.nm-sw{flex:none; width:44px; height:26px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); position:relative; transition:background .2s var(--ease), border-color .2s var(--ease);}
+.nm-sw::after{content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-faint); transition:transform .2s var(--ease), background .2s var(--ease);}
+.nm-toggle input:checked + .nm-sw{background:var(--accent-soft); border-color:var(--accent);}
+.nm-toggle input:checked + .nm-sw::after{transform:translateX(18px); background:var(--accent);}
+.nm-select{padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg-elev); color:var(--text); font-family:inherit; font-size:13px;}
+.nm-row{display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border-soft);}
+.nm-row:last-child{border-bottom:none;}
+.nm-row-main{flex:1; min-width:0;}
+.nm-row-t{font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.nm-row-s{font-size:12px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.nm-when{font-size:11px; color:var(--text-faint); flex:none;}
+.nm-chip{flex:none; min-width:62px; text-align:center; font-size:11.5px; font-weight:700; padding:5px 8px; border-radius:999px; background:var(--surface-2); color:var(--text-dim);}
+.nm-chip.warm{background:rgba(245,185,66,.18); color:#F5B942;}
+.nm-chip.hot{background:rgba(255,107,94,.18); color:#FF6B5E;}
+.nm-dot{width:9px; height:9px; border-radius:50%; background:var(--accent); flex:none;}
+.nm-due-tomorrow{background:#F5B942;} .nm-due-today{background:#FF6B5E;} .nm-tx-income{background:#4ade80;} .nm-tx-expense{background:#ff7b7b;}
+
 /* Mascote */
 .pet-card{display:grid; grid-template-columns:180px 1fr; gap:20px; align-items:center; padding:18px 24px; margin-bottom:16px; position:relative; overflow:hidden;}
 .pet-card::before{content:''; position:absolute; inset:0; pointer-events:none; opacity:.55; background:radial-gradient(circle at 12% 60%, var(--accent-soft), transparent 55%); transition:background .6s var(--ease);}
@@ -968,6 +1025,10 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
       <span class="tag" id="readOnlyBadge" style="display:none; background:var(--warn-soft); color:var(--warn); margin-left:8px;">Modo leitura</span>
       <div class="spacer"></div>
       <div style="display:flex; align-items:center; gap:2px;">
+        <button class="btn btn-icon" id="notifBtn" title="Notificações" aria-label="Abrir notificações">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot hidden" id="notifDot"></span>
+        </button>
         <button class="btn btn-icon" id="tourBtn" title="Tour guiado" aria-label="Iniciar tour guiado">
           <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.5 9.2a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
         </button>
@@ -1534,6 +1595,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 <!-- ============================= MODAL ============================= -->
 <div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalContent"></div></div>
 <div class="toast" id="toast"></div>
+<div id="norteBanners" aria-live="polite"></div>
 <div class="tour-overlay-part" id="tourOverlayTop" style="display:none;"></div>
 <div class="tour-overlay-part" id="tourOverlayBottom" style="display:none;"></div>
 <div class="tour-overlay-part" id="tourOverlayLeft" style="display:none;"></div>
@@ -6116,11 +6178,8 @@ function renderNotes(){
 $('addNoteBtn').addEventListener('click', () => openNoteModal());
 $('noteSearch').addEventListener('input', () => renderNotes());
 $('noteFilterLabel').addEventListener('change', () => renderNotes());
-$('notifyPermBtn').addEventListener('click', async () => {
-  if (!('Notification' in window)){ showToast('Este navegador não suporta avisos.'); return; }
-  const perm = await Notification.requestPermission();
-  showToast(perm === 'granted' ? 'Avisos do navegador ativados.' : 'Avisos não foram permitidos pelo navegador.');
-});
+$('notifyPermBtn').addEventListener('click', () => openNotifModal());
+$('notifBtn').addEventListener('click', () => openNotifModal());
 function updateSoundToggleIcon(){
   $('soundToggleIcon').innerHTML = soundEnabled
     ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>'
@@ -6330,56 +6389,405 @@ function openNoteModal(id){
   });
 }
 
+/* -------------------- NOTIFICAÇÕES --------------------
+   - Avisos de vencimento: 1 dia antes e no dia (contas fixas, faturas de cartão
+     e a pagar/receber), no horário escolhido.
+   - Aviso ao adicionar uma transação.
+   - Dois formatos: banner bonito dentro do app (quando ele está aberto na tela)
+     e notificação do sistema (barra de notificações / tela de bloqueio / pop-up)
+     quando o app está em segundo plano.
+   Limite do navegador: sem um servidor de push, nada dispara com o app
+   totalmente fechado — o que dá é a "sincronização periódica" do Chrome/Android
+   (melhor esforço), por isso o app grava a agenda de vencimentos no IndexedDB
+   pro service worker (sw.js) poder avisar sozinho. */
+const NOTIF_PREFS_KEY = 'norte_notif_prefs_v1';
+const NOTIF_LOG_KEY = 'norte_notif_log_v1';
+const NOTIF_SENT_LS_KEY = 'norte_notif_sent_v1';
+const NOTIF_DEFAULTS = { dayBefore: true, dayOf: true, newTx: true, systemWhileOpen: false, hour: 8 };
+const notifPad = (n) => String(n).padStart(2, '0');
+const notifYmd = (d) => d.getFullYear() + '-' + notifPad(d.getMonth() + 1) + '-' + notifPad(d.getDate());
+function notifAddDays(iso, n){ const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return notifYmd(d); }
+function notifPrefs(){
+  try { return Object.assign({}, NOTIF_DEFAULTS, JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}')); }
+  catch (e){ return Object.assign({}, NOTIF_DEFAULTS); }
+}
+function notifSavePrefs(p){
+  try { localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(p)); } catch (e){}
+  notifIdbSet('prefs', p);
+}
+
+/* ---- IndexedDB (compartilhado com o service worker) ---- */
+function notifIdb(){
+  return new Promise((res, rej) => {
+    if (!('indexedDB' in window)){ rej(new Error('sem indexedDB')); return; }
+    const r = indexedDB.open('norte-notif', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function notifIdbSet(k, v){
+  try {
+    const db = await notifIdb();
+    await new Promise((res, rej) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+    db.close();
+  } catch (e){}
+}
+async function notifIdbGet(k){
+  try {
+    const db = await notifIdb();
+    const v = await new Promise((res, rej) => { const rq = db.transaction('kv').objectStore('kv').get(k); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); });
+    db.close();
+    return v;
+  } catch (e){ return undefined; }
+}
+let notifSentCache = null;
+async function notifLoadSent(){
+  let v = await notifIdbGet('sent');
+  if (!v || typeof v !== 'object'){
+    try { v = JSON.parse(localStorage.getItem(NOTIF_SENT_LS_KEY) || '{}'); } catch (e){ v = {}; }
+  }
+  notifSentCache = v || {};
+  return notifSentCache;
+}
+async function notifMarkSent(key){
+  const s = notifSentCache || {};
+  s[key] = Date.now();
+  const cutoff = Date.now() - 25 * 86400000;
+  Object.keys(s).forEach(k => { if (s[k] < cutoff) delete s[k]; });
+  notifSentCache = s;
+  try { localStorage.setItem(NOTIF_SENT_LS_KEY, JSON.stringify(s)); } catch (e){}
+  await notifIdbSet('sent', s);
+}
+
+/* ---- Histórico (central de notificações) ---- */
+function notifLog(){ try { return JSON.parse(localStorage.getItem(NOTIF_LOG_KEY) || '[]'); } catch (e){ return []; } }
+function notifLogAdd(n){
+  const list = notifLog();
+  list.unshift({ id: Date.now() + '' + Math.floor(Math.random() * 1000), at: Date.now(), kind: n.kind || 'info', title: n.title, body: n.body || '', view: n.view || null, read: false });
+  try { localStorage.setItem(NOTIF_LOG_KEY, JSON.stringify(list.slice(0, 40))); } catch (e){}
+  notifUpdateBadge();
+}
+function notifUpdateBadge(){
+  const dot = $('notifDot'); if (!dot) return;
+  const n = notifLog().filter(x => !x.read).length;
+  dot.classList.toggle('hidden', n === 0);
+  dot.textContent = n > 9 ? '9+' : String(n);
+}
+
+/* ---- Vencimentos: o que vence nos próximos dias ---- */
+function notifCollectDue(daysAhead){
+  const now = new Date();
+  const todayIso = notifYmd(now), endIso = notifAddDays(todayIso, daysAhead);
+  const inWin = (iso) => iso >= todayIso && iso <= endIso;
+  const items = [];
+  state.fixedBills.forEach(b => {
+    if (b.finished) return;
+    const dues = [];
+    const dayN = Math.max(1, Number(b.dueDay) || 1);
+    if (b.frequency === 'yearly'){
+      const m = Math.min(12, Math.max(1, Number(b.dueMonth) || 1));
+      [now.getFullYear(), now.getFullYear() + 1].forEach(y => {
+        const iso = `${y}-${notifPad(m)}-${notifPad(Math.min(daysInMonth(y, m), dayN))}`;
+        if (inWin(iso)) dues.push({ due: iso, period: String(y) });
+      });
+    } else if (b.frequency === 'weekly'){
+      const wd = Number(b.dueWeekday) || 0;
+      for (let i = 0; i <= daysAhead; i++){
+        const iso = notifAddDays(todayIso, i);
+        const dt = new Date(iso + 'T12:00:00');
+        if (dt.getDay() === wd) dues.push({ due: iso, period: weekKey(dt) });
+      }
+    } else {
+      [0, 1].forEach(k => {
+        const d = new Date(now.getFullYear(), now.getMonth() + k, 1);
+        const y = d.getFullYear(), m = d.getMonth() + 1;
+        const iso = `${y}-${notifPad(m)}-${notifPad(Math.min(daysInMonth(y, m), dayN))}`;
+        if (inWin(iso)) dues.push({ due: iso, period: `${y}-${notifPad(m)}` });
+      });
+    }
+    let idx = b.occurrencesCount || 0;
+    dues.forEach(dq => {
+      if (b.startDate && dq.due < b.startDate) return;
+      if ((b.launchedMonths || []).includes(dq.period)) return;
+      idx++;
+      if (b.totalOccurrences && idx > b.totalOccurrences) return;
+      items.push({ kind: 'bill', id: b.id, name: b.name, due: dq.due, amount: Number(b.value), income: b.type === 'income', auto: b.autoDebit !== false, installment: b.totalOccurrences ? { n: idx, total: b.totalOccurrences } : null });
+    });
+  });
+  (state.creditCards || []).filter(c => c.kind === 'credit').forEach(c => {
+    const inv = cardNextOpenInvoice(c);
+    if (!inv || !(inv.total > 0)) return;
+    const iso = notifYmd(inv.dueDate);
+    if (inWin(iso)) items.push({ kind: 'invoice', id: c.id + ':' + inv.period, name: c.name, due: iso, amount: inv.total });
+  });
+  (state.payables || []).filter(p => p.status === 'pending' && p.dueDate && inWin(p.dueDate)).forEach(p => {
+    items.push({ kind: p.kind === 'pay' ? 'pay' : 'receive', id: p.id, name: p.description, due: p.dueDate, amount: Number(p.value) });
+  });
+  return items.sort((a, b) => a.due.localeCompare(b.due));
+}
+function notifText(it, when){
+  const val = fmtBRL(it.amount);
+  const day = when === 'today' ? 'Hoje' : 'Amanhã';
+  const nudge = when === 'today' ? 'não esqueça de pagar' : 'fique atento';
+  let inst = '';
+  if (it.installment) inst = it.installment.n === it.installment.total ? ' · última parcela' : ` · parcela ${it.installment.n}/${it.installment.total}`;
+  let title, body, view = 'fixedbills';
+  if (it.kind === 'bill'){
+    if (it.income){ title = `${day} você recebe: ${it.name}`; body = val + inst; }
+    else { title = `${day} vence: ${it.name}`; body = val + inst + (when === 'today' && it.auto ? ' · débito automático' : ' · ' + nudge); }
+  } else if (it.kind === 'invoice'){
+    title = `${day} vence a fatura do ${it.name}`; body = val + ' · ' + nudge; view = 'cards';
+  } else if (it.kind === 'receive'){
+    title = `${day} você recebe: ${it.name}`; body = val; view = 'payables';
+  } else {
+    title = `${day} vence: ${it.name}`; body = val + ' · ' + nudge; view = 'payables';
+  }
+  return { title, body, view };
+}
+
+/* ---- Entrega: banner no app + notificação do sistema ---- */
+const NOTIF_KIND_ICON = {
+  'due-tomorrow': () => ICONS.fixedbills, 'due-today': () => ICONS.bell, reminder: () => ICONS.bell, info: () => ICONS.bell,
+  'tx-income': () => '<svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
+  'tx-expense': () => '<svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>',
+};
+function notifShowBanner(n){
+  const box = $('norteBanners'); if (!box) return;
+  while (box.children.length >= 3) box.firstElementChild.remove();
+  const el = document.createElement('div');
+  el.className = 'nb nb-' + (n.kind || 'info');
+  const icon = (NOTIF_KIND_ICON[n.kind] || NOTIF_KIND_ICON.info)();
+  el.innerHTML = `<div class="nb-head"><span class="nb-app"><i>N</i>Norte</span><span class="nb-time">agora</span></div>
+    <div class="nb-main"><div class="nb-ico">${icon}</div><div class="nb-txt"><div class="nb-title">${escapeHtml(n.title)}</div><div class="nb-body">${escapeHtml(n.body || '')}</div></div></div>
+    ${n.view ? '<div class="nb-actions"><button type="button" data-nb="open">Ver</button><button type="button" data-nb="close">Dispensar</button></div>' : ''}
+    <div class="nb-bar"></div>`;
+  box.appendChild(el);
+  let gone = false;
+  const close = () => { if (gone) return; gone = true; el.classList.add('out'); setTimeout(() => el.remove(), 320); };
+  const timer = setTimeout(close, 8000);
+  el.addEventListener('click', (e) => {
+    const act = e.target.closest('[data-nb]');
+    if (act && act.dataset.nb === 'close'){ clearTimeout(timer); close(); return; }
+    if (n.view && (!act || act.dataset.nb === 'open')){ clearTimeout(timer); close(); switchView(n.view); }
+  });
+  let y0 = null;
+  el.addEventListener('touchstart', (e) => { y0 = e.touches[0].clientY; clearTimeout(timer); }, { passive: true });
+  el.addEventListener('touchmove', (e) => { if (y0 === null) return; const dy = Math.min(0, e.touches[0].clientY - y0); el.style.transform = `translateY(${dy}px)`; el.style.opacity = String(1 + dy / 140); }, { passive: true });
+  el.addEventListener('touchend', () => { if (y0 === null) return; const m = /translateY\((-?[\d.]+)px\)/.exec(el.style.transform); y0 = null; if (m && Number(m[1]) < -40) close(); else { el.style.transform = ''; el.style.opacity = ''; setTimeout(close, 4000); } });
+}
+async function notifShowSystem(n){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+  const opts = {
+    body: n.body || '', tag: n.tag || ('norte-' + Date.now()), icon: 'icon-192.png', badge: 'badge-96.png',
+    vibrate: [140, 70, 140], timestamp: Date.now(),
+    data: { view: n.view || null, url: './index.html' + (n.view ? '?open=' + n.view : '') },
+  };
+  try {
+    // no celular (Android/iOS) só funciona pelo service worker; "new Notification" falha lá
+    const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration() : null;
+    if (reg && reg.showNotification){ await reg.showNotification(n.title, opts); return true; }
+  } catch (e){}
+  try { new Notification(n.title, opts); return true; } catch (e){ return false; }
+}
+async function norteNotify(n){
+  notifLogAdd(n);
+  const prefs = notifPrefs();
+  const visible = document.visibilityState === 'visible';
+  if (visible) notifShowBanner(n);
+  if (!visible || prefs.systemWhileOpen || n.forceSystem) await notifShowSystem(n);
+  if (visible && !n.silent && typeof playReminderSound === 'function') playReminderSound();
+}
+
+/* ---- Verificação dos vencimentos ---- */
+let notifChecking = false, notifLastSchedule = '';
+async function notifSyncSchedule(){
+  const items = notifCollectDue(10).map(it => {
+    const tm = notifText(it, 'tomorrow'), td = notifText(it, 'today');
+    return { key: `${it.kind}|${it.id}|${it.due}`, due: it.due, view: td.view, tomorrow: { title: tm.title, body: tm.body }, today: { title: td.title, body: td.body } };
+  });
+  const json = JSON.stringify(items);
+  if (json === notifLastSchedule) return;
+  notifLastSchedule = json;
+  await notifIdbSet('schedule', items);
+}
+async function notifCheckDue(){
+  if (notifChecking || !state || !state.fixedBills) return;
+  notifChecking = true;
+  try {
+    notifSyncSchedule();
+    const prefs = notifPrefs(), now = new Date();
+    if (now.getHours() < prefs.hour) return;
+    const todayIso = notifYmd(now), tomorrowIso = notifAddDays(todayIso, 1);
+    const sent = await notifLoadSent();
+    const groups = { today: [], tomorrow: [] };
+    notifCollectDue(1).forEach(it => {
+      const when = it.due === todayIso ? 'today' : it.due === tomorrowIso ? 'tomorrow' : null;
+      if (!when || (when === 'today' && !prefs.dayOf) || (when === 'tomorrow' && !prefs.dayBefore)) return;
+      const key = `${it.kind}|${it.id}|${it.due}|${when}`;
+      if (sent[key]) return;
+      groups[when].push({ it, key });
+    });
+    for (const when of ['tomorrow', 'today']){
+      const list = groups[when];
+      if (!list.length) continue;
+      for (const g of list) await notifMarkSent(g.key);
+      const kind = when === 'today' ? 'due-today' : 'due-tomorrow';
+      if (list.length > 2){
+        const names = list.slice(0, 3).map(g => g.it.name).join(', ') + (list.length > 3 ? ` e mais ${list.length - 3}` : '');
+        const total = list.filter(g => !(g.it.kind === 'receive' || g.it.income)).reduce((s, g) => s + g.it.amount, 0);
+        norteNotify({ kind, title: `${when === 'today' ? 'Hoje' : 'Amanhã'} vencem ${list.length} itens`, body: `${names}${total ? ' · ' + fmtBRL(total) : ''}`, tag: `grp|${todayIso}|${when}`, view: 'fixedbills' });
+      } else {
+        list.forEach((g, i) => { const t = notifText(g.it, when); setTimeout(() => norteNotify({ kind, title: t.title, body: t.body, tag: g.key, view: t.view }), i * 900); });
+      }
+    }
+  } finally { notifChecking = false; }
+}
+
+/* ---- Aviso de transação nova (mesma ideia do mascote: compara ids) ---- */
+const notifTxRT = { known: null, state: null };
+function notifDetectNewTx(){
+  if (!state || !state.transactions) return;
+  if (notifTxRT.state !== state || !notifTxRT.known){ notifTxRT.state = state; notifTxRT.known = new Set(state.transactions.map(t => t.id)); return; }
+  const fresh = state.transactions.filter(t => !notifTxRT.known.has(t.id));
+  if (!fresh.length) return;
+  fresh.forEach(t => notifTxRT.known.add(t.id));
+  if (!notifPrefs().newTx || fresh.length > 40) return; // importação em massa: sem aviso
+  const moves = fresh.filter(t => t.type === 'income' || t.type === 'expense');
+  if (!moves.length) return;
+  if (moves.length > 3){
+    const inc = moves.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.value), 0);
+    const exp = moves.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.value), 0);
+    norteNotify({ kind: 'info', title: `${moves.length} transações adicionadas`, body: [inc ? 'Receitas ' + fmtBRL(inc) : '', exp ? 'Despesas ' + fmtBRL(exp) : ''].filter(Boolean).join(' · '), tag: 'tx-multi-' + Date.now(), view: 'transactions', silent: true });
+    return;
+  }
+  moves.forEach((t, i) => {
+    const income = t.type === 'income';
+    const cat = categoryById(t.categoryId), acc = accountById(t.accountId);
+    const parts = [fmtBRL(t.value), t.description || (cat ? categoryDisplayName(cat) : ''), acc ? acc.name : ''].filter(Boolean);
+    setTimeout(() => norteNotify({ kind: income ? 'tx-income' : 'tx-expense', title: income ? 'Receita adicionada' : 'Despesa adicionada', body: parts.join(' · '), tag: 'tx-' + t.id, view: 'transactions', silent: true }), i * 700);
+  });
+}
+
+/* ---- Registro / permissão / inicialização ---- */
+async function notifRegisterPeriodic(){
+  try {
+    if (!('serviceWorker' in navigator) || !('Notification' in window) || Notification.permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    if ('periodicSync' in reg) await reg.periodicSync.register('norte-due-check', { minInterval: 6 * 3600 * 1000 });
+  } catch (e){}
+}
+function notifInit(){
+  notifSavePrefs(notifPrefs());
+  notifUpdateBadge();
+  notifRegisterPeriodic();
+  setTimeout(notifCheckDue, 1500);
+  const p = new URLSearchParams(location.search).get('open');
+  if (p){ try { switchView(p); history.replaceState(null, '', location.pathname); } catch (e){} }
+}
+setInterval(() => { if (state && state.fixedBills) notifCheckDue(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state && state.fixedBills) notifCheckDue(); });
+if ('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message', (ev) => {
+    if (ev.data && ev.data.type === 'norte-open' && ev.data.view){ try { switchView(ev.data.view); } catch (e){} }
+  });
+}
+
+/* ---- Tela "Notificações" (central + configurações) ---- */
+function notifPermState(){
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission; // default | granted | denied
+}
+const notifIsIos = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const notifIsStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function notifTimeAgo(ts){
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return 'agora';
+  if (m < 60) return `há ${m} min`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `há ${h} h`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'ontem' : `há ${d} dias`;
+}
+function openNotifModal(){
+  const perm = notifPermState();
+  const prefs = notifPrefs();
+  const todayIso = notifYmd(new Date());
+  const upcoming = notifCollectDue(7);
+  const log = notifLog().slice(0, 12);
+  const statusHtml = () => {
+    const p = notifPermState();
+    const ios = notifIsIos() && !notifIsStandalone() ? `<p class="nm-hint">No iPhone/iPad, as notificações só funcionam com o app instalado: toque em Compartilhar e depois em <b>Adicionar à Tela de Início</b>, abra o Norte por lá e ative aqui.</p>` : '';
+    if (p === 'unsupported') return `<div class="nm-status off"><div class="nm-st-ico">${ICONS.bell}</div><div><b>Sem suporte neste navegador</b><div class="nm-st-sub">Os avisos dentro do app continuam funcionando.</div></div></div>${ios}`;
+    if (p === 'granted') return `<div class="nm-status on"><div class="nm-st-ico">${ICONS.bell}</div><div><b>Ativadas neste aparelho</b><div class="nm-st-sub">Chegam na barra de notificações e na tela de bloqueio.</div></div></div>`;
+    if (p === 'denied') return `<div class="nm-status off"><div class="nm-st-ico">${ICONS.bell}</div><div><b>Bloqueadas pelo navegador</b><div class="nm-st-sub">Libere em Configurações do navegador (ou do app instalado) → Notificações → Norte.</div></div></div>${ios}`;
+    return `<div class="nm-status"><div class="nm-st-ico">${ICONS.bell}</div><div style="flex:1;"><b>Ainda não ativadas</b><div class="nm-st-sub">Ative para receber avisos fora do app.</div></div><button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button></div>${ios}`;
+  };
+  const hourOpts = Array.from({ length: 16 }, (_, i) => i + 6).map(h => `<option value="${h}" ${h === prefs.hour ? 'selected' : ''}>${notifPad(h)}:00</option>`).join('');
+  const dayLbl = (iso) => iso === todayIso ? 'Hoje' : iso === notifAddDays(todayIso, 1) ? 'Amanhã' : fmtDate(iso).slice(0, 5);
+  const upHtml = upcoming.length ? upcoming.map(it => {
+    const t = notifText(it, 'today');
+    return `<div class="nm-row"><span class="nm-chip ${it.due === todayIso ? 'hot' : it.due === notifAddDays(todayIso, 1) ? 'warm' : ''}">${dayLbl(it.due)}</span><div class="nm-row-main"><div class="nm-row-t">${escapeHtml(it.name)}</div><div class="nm-row-s">${fmtBRL(it.amount)}${it.installment ? ` · ${it.installment.n === it.installment.total ? 'última parcela' : 'parcela ' + it.installment.n + '/' + it.installment.total}` : ''}</div></div></div>`;
+  }).join('') : '<p class="nm-hint" style="margin:0;">Nada vencendo nos próximos 7 dias.</p>';
+  const logHtml = log.length ? log.map(x => `<div class="nm-row"><span class="nm-dot nm-${x.kind}"></span><div class="nm-row-main"><div class="nm-row-t">${escapeHtml(x.title)}</div><div class="nm-row-s">${escapeHtml(x.body)}</div></div><span class="nm-when">${notifTimeAgo(x.at)}</span></div>`).join('') : '<p class="nm-hint" style="margin:0;">As notificações que chegarem aparecem aqui.</p>';
+  const toggle = (id, label, sub, on) => `<label class="nm-toggle"><div><div class="nm-tl">${label}</div><div class="nm-ts">${sub}</div></div><input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="nm-sw"></span></label>`;
+  openModal(`<div class="modal-head"><h3>Notificações</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body">
+      <div id="nmStatus">${statusHtml()}</div>
+      <h4 class="nm-h">O que avisar</h4>
+      ${toggle('nmDayBefore', 'Um dia antes do vencimento', 'Ex.: "Amanhã vence: Curso · parcela 1/6"', prefs.dayBefore)}
+      ${toggle('nmDayOf', 'No dia do vencimento', 'Ex.: "Hoje vence: Aluguel · débito automático"', prefs.dayOf)}
+      ${toggle('nmNewTx', 'Quando eu adicionar uma transação', 'Receita ou despesa nova', prefs.newTx)}
+      ${toggle('nmSysOpen', 'Também como notificação do sistema com o app aberto', 'Aparece em pop-up mesmo enquanto você usa o Norte', prefs.systemWhileOpen)}
+      <div class="nm-toggle" style="cursor:default;"><div><div class="nm-tl">Horário dos avisos de vencimento</div><div class="nm-ts">Não avisa antes dessa hora</div></div><select id="nmHour" class="nm-select">${hourOpts}</select></div>
+      <h4 class="nm-h">Próximos vencimentos (7 dias)</h4>
+      ${upHtml}
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px;"><h4 class="nm-h" style="margin:0;">Últimas notificações</h4>${log.length ? '<button class="btn btn-ghost btn-sm" data-nm="clear">Limpar</button>' : ''}</div>
+      <div style="margin-top:8px;">${logHtml}</div>
+      <p class="nm-hint" style="margin-top:14px;">Com o app totalmente fechado, quem decide quando acordar o Norte é o sistema: no Android (app instalado) costuma funcionar, mas o horário pode variar. Pra receber sempre, abra o app uma vez por dia.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-nm="test">Enviar teste</button><button class="btn btn-primary" data-action="close">Fechar</button></div>`);
+  const root = $('modalContent');
+  const saveFromUi = () => {
+    notifSavePrefs({
+      dayBefore: root.querySelector('#nmDayBefore').checked, dayOf: root.querySelector('#nmDayOf').checked,
+      newTx: root.querySelector('#nmNewTx').checked, systemWhileOpen: root.querySelector('#nmSysOpen').checked,
+      hour: Number(root.querySelector('#nmHour').value) || 8,
+    });
+  };
+  root.querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
+  root.querySelectorAll('input[type=checkbox], #nmHour').forEach(el => el.addEventListener('change', saveFromUi));
+  root.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-nm]'); if (!b) return;
+    if (b.dataset.nm === 'enable'){
+      try {
+        const r = await Notification.requestPermission();
+        $('nmStatus').innerHTML = statusHtml();
+        if (r === 'granted'){ notifRegisterPeriodic(); notifShowSystem({ title: 'Notificações ativadas', body: 'Tudo certo! Você será avisado antes dos vencimentos.', tag: 'norte-welcome', view: null }); }
+      } catch (err){ showToast('Não consegui pedir a permissão agora.'); }
+    } else if (b.dataset.nm === 'test'){
+      norteNotify({ kind: 'due-tomorrow', title: 'Amanhã vence: Exemplo de conta', body: 'R$ 120,00 · parcela 1/6 · fique atento', tag: 'norte-test-' + Date.now(), view: 'fixedbills', forceSystem: true });
+    } else if (b.dataset.nm === 'clear'){
+      try { localStorage.setItem(NOTIF_LOG_KEY, '[]'); } catch (err){}
+      notifUpdateBadge(); openNotifModal();
+    }
+  });
+  // marca tudo como lido
+  const all = notifLog(); all.forEach(x => x.read = true);
+  try { localStorage.setItem(NOTIF_LOG_KEY, JSON.stringify(all)); } catch (e){}
+  notifUpdateBadge();
+}
+
 /* Verifica lembretes periodicamente (só funciona com o app aberto no navegador —
    não existe "aviso com app fechado" sem um serviço de push no backend). */
-// Avisa (notificação do navegador) quando uma conta fixa ou fatura de cartão
-// está a até 2 dias de vencer — só funciona com o app aberto e o aviso do
-// navegador já ativado (mesmo botão usado pelos lembretes de notas). Cada
-// vencimento só notifica uma vez (controlado por reminderNotified).
-function checkBillAndInvoiceReminders(){
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const horizon = new Date(today); horizon.setDate(today.getDate() + 2);
-  let notifiedAny = false;
-  state.fixedBills.forEach(b => {
-    if (b.finished || !isBillStarted(b)) return;
-    const periodKey = currentPeriodKey(b.frequency);
-    if (b.launchedMonths.includes(periodKey) || b.reminderNotified.includes(periodKey)) return;
-    const due = billNextDueDate(b);
-    if (due >= today && due <= horizon){
-      try { new Notification('Conta fixa perto de vencer', { body: `"${b.name}" vence em breve — ${fmtBRL(b.value)}.`, tag: 'bill-' + b.id + '-' + periodKey }); } catch(e){}
-      b.reminderNotified.push(periodKey);
-      notifiedAny = true;
-    }
-  });
-  state.creditCards.filter(c => c.kind === 'credit').forEach(c => {
-    const inv = cardNextOpenInvoice(c);
-    if (!inv || inv.total <= 0 || c.reminderNotified.includes(inv.period)) return;
-    if (inv.dueDate >= today && inv.dueDate <= horizon){
-      try { new Notification('Fatura perto de vencer', { body: `A fatura do cartão "${c.name}" vence em breve — ${fmtBRL(inv.total)}.`, tag: 'invoice-' + c.id + '-' + inv.period }); } catch(e){}
-      c.reminderNotified.push(inv.period);
-      notifiedAny = true;
-    }
-  });
-  state.payables.filter(p => p.status === 'pending' && p.dueDate && !p.reminderNotified).forEach(p => {
-    const due = new Date(p.dueDate + 'T00:00:00');
-    if (due >= today && due <= horizon){
-      const verb = p.kind === 'pay' ? 'pagar' : 'receber';
-      try { new Notification(`Item a ${verb} perto de vencer`, { body: `"${p.description}" — ${fmtBRL(p.value)}.`, tag: 'payable-' + p.id }); } catch(e){}
-      p.reminderNotified = true;
-      notifiedAny = true;
-    }
-  });
-  if (notifiedAny) persistLocalCache();
-}
 function checkReminders(){
   const dueNow = state.notes.filter(n => isReminderDue(n) && !n.notifiedOnce);
-  checkBillAndInvoiceReminders();
+  notifCheckDue();
   if (!dueNow.length) return;
   dueNow.forEach(n => {
     n.notifiedOnce = true;
-    if ('Notification' in window && Notification.permission === 'granted'){
-      try { new Notification('Lembrete: ' + n.title, { body: n.dueTime ? ('Hoje às ' + n.dueTime) : 'Vence hoje', tag: n.id }); } catch(e){}
+    {
+      norteNotify({ kind: 'reminder', title: 'Lembrete: ' + n.title, body: n.dueTime ? ('Hoje às ' + n.dueTime) : 'Vence hoje', tag: 'note-' + n.id, view: 'notes', silent: true });
     }
   });
   playReminderSound();
@@ -6508,6 +6916,7 @@ $('reportPrintBtn').addEventListener('click', () => window.print());
 /* -------------------- MUTATE / SAVE -------------------- */
 function mutate(){
   scheduleSave();
+  notifDetectNewTx();
   renderNav();
   if (currentView === 'dashboard') renderDashboard();
 }
@@ -7783,6 +8192,8 @@ function initAppUI(){
   renderProfileSwitcher();
   switchView('dashboard');
   setTimeout(checkReminders, 1200);
+  notifDetectNewTx();
+  notifInit();
   if (!localStorage.getItem(TOUR_SEEN_KEY)) setTimeout(offerTourModal, 900);
 }
 
