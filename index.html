@@ -733,6 +733,25 @@ tr:hover td{background:var(--surface-2);}
 .pet-lvl.done{opacity:.7;}
 .pet-lvl.cur{border-color:var(--accent); background:var(--accent-soft);}
 .pet-lvl.cur b{color:var(--accent);}
+
+/* reações a lançamentos */
+.pet-svg.do-cheer .pet-root{animation:pet-cheer 1.6s ease-in-out;}
+@keyframes pet-cheer{0%,100%{transform:translateY(0) scale(1,1) rotate(0);} 10%{transform:translateY(0) scale(1.07,.9);} 25%{transform:translateY(-28px) scale(.96,1.06) rotate(-5deg);} 40%{transform:translateY(0) scale(1.06,.92);} 55%{transform:translateY(-22px) scale(.97,1.05) rotate(5deg);} 70%{transform:translateY(0) scale(1.04,.95);} 85%{transform:translateY(-8px) rotate(0);}}
+.pet-svg.do-cheer .pet-tail{animation-duration:.33s;}
+.pet-svg.do-cheer .pet-wing-l{animation:pet-bigflap-l .28s ease-in-out 5;}
+.pet-svg.do-cheer .pet-wing-r{animation:pet-bigflap-r .28s ease-in-out 5;}
+.pet-svg.do-grumble .pet-root{animation:pet-grumble 1.5s ease-in-out;}
+@keyframes pet-grumble{0%,100%{transform:translateX(0) scale(1,1);} 8%{transform:translateX(-4px) scale(1.02,.96);} 16%{transform:translateX(4px) scale(1.02,.96);} 24%{transform:translateX(-4px) scale(1.02,.96);} 32%{transform:translateX(3px) scale(1.02,.96);} 45%,85%{transform:translateX(0) scale(1.03,.94) translateY(3px);}}
+.pet-svg.do-grumble .pet-tail{animation-play-state:paused;}
+.mood-grumpy .pet-lid{animation:none; transform:scaleY(.32);}
+.pet-anger{animation:pet-anger .7s ease-in-out infinite; transform-box:fill-box; transform-origin:center;}
+@keyframes pet-anger{0%,100%{transform:scale(1);} 50%{transform:scale(1.28);}}
+.pet-particle.coin{width:11px; height:11px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff3b0, #f4c84a 55%, #c9961f); box-shadow:0 0 6px rgba(244,200,74,.6);}
+.pet-particle.puff{width:13px; height:13px; border-radius:50%; background:rgba(190,190,205,.6);}
+.pet-float.pos{color:#4ade80;}
+.pet-float.neg{color:#ff7b7b;}
+.pet-card[data-mood="joy"]::before{background:radial-gradient(circle at 12% 60%, rgba(74,222,128,.16), transparent 58%);}
+.pet-card[data-mood="grumpy"]::before{background:radial-gradient(circle at 12% 60%, rgba(255,107,107,.18), transparent 58%);}
 /* modais */
 .pet-strip{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px;}
 .pet-strip-cell{text-align:center; padding:8px 4px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border-soft);}
@@ -3545,6 +3564,9 @@ function petStar(x, y, s, fill, cls, delay){
   return `<path class="${cls}" style="animation-delay:${delay}s" d="M${x} ${y-s} L${x+s*0.3} ${y-s*0.3} L${x+s} ${y} L${x+s*0.3} ${y+s*0.3} L${x} ${y+s} L${x-s*0.3} ${y+s*0.3} L${x-s} ${y} L${x-s*0.3} ${y-s*0.3}Z" fill="${fill}"/>`;
 }
 function petEyes(xs, y, r, mood, faceFill, iris){
+  if (mood === 'joy'){
+    return xs.map(x => `<path d="M${x-r} ${y+r*0.4} Q${x} ${y-r*1.0} ${x+r} ${y+r*0.4}" fill="none" stroke="${PET_INK}" stroke-width="3.8" stroke-linecap="round"/>`).join('');
+  }
   if (mood === 'sleepy'){
     return xs.map(x => `<path d="M${x-r} ${y} Q${x} ${y+r*0.75} ${x+r} ${y}" fill="none" stroke="${PET_INK}" stroke-width="3" stroke-linecap="round"/>`).join('');
   }
@@ -3552,6 +3574,10 @@ function petEyes(xs, y, r, mood, faceFill, iris){
     <circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>
     <g class="pet-pupil"><circle cx="${x}" cy="${y}" r="${(r*0.68).toFixed(1)}" fill="${iris}"/><circle cx="${x}" cy="${y}" r="${(r*0.38).toFixed(1)}" fill="#1b1410"/><circle cx="${(x-r*0.22).toFixed(1)}" cy="${(y-r*0.24).toFixed(1)}" r="${(r*0.18).toFixed(1)}" fill="#fff"/></g>
     <ellipse class="pet-lid" style="animation-delay:${i*0.04}s" cx="${x}" cy="${y}" rx="${r+1.2}" ry="${r+1.2}" fill="${faceFill}"/>`).join('') + '</g>';
+  if (mood === 'grumpy'){
+    out += `<path d="M${xs[0]-r-1} ${y-r-6} L${xs[0]+r*0.9} ${y-r+1}" stroke="${PET_INK}" stroke-width="3.6" stroke-linecap="round"/>`;
+    out += `<path d="M${xs[1]+r+1} ${y-r-6} L${xs[1]-r*0.9} ${y-r+1}" stroke="${PET_INK}" stroke-width="3.6" stroke-linecap="round"/>`;
+  }
   if (mood === 'worried'){
     out += `<path d="M${xs[0]-r} ${y-r-2} L${xs[0]+r*0.6} ${y-r-7}" stroke="${PET_INK}" stroke-width="3" stroke-linecap="round"/>`;
     out += `<path d="M${xs[1]+r} ${y-r-2} L${xs[1]-r*0.6} ${y-r-7}" stroke="${PET_INK}" stroke-width="3" stroke-linecap="round"/>`;
@@ -3559,6 +3585,7 @@ function petEyes(xs, y, r, mood, faceFill, iris){
   return out;
 }
 function petMouth(x, y, mood){
+  if (mood === 'joy') mood = 'radiant'; else if (mood === 'grumpy') mood = 'worried';
   const st = `fill="none" stroke="${PET_INK}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"`;
   if (mood === 'radiant') return `<path d="M${x-10} ${y} Q${x} ${y+17} ${x+10} ${y}Z" fill="#7a2e3a" stroke="${PET_INK}" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="${x}" cy="${y+8}" rx="4.5" ry="3" fill="#F28FA3"/>`;
   if (mood === 'happy') return `<path d="M${x-9} ${y} Q${x} ${y+10} ${x+9} ${y}" ${st}/>`;
@@ -3567,6 +3594,7 @@ function petMouth(x, y, mood){
   return `<path d="M${x-6} ${y+1} Q${x} ${y+5} ${x+6} ${y+1}" ${st}/>`;
 }
 function petCheeks(x1, x2, y, mood){
+  if (mood === 'joy') mood = 'radiant';
   if (mood !== 'happy' && mood !== 'radiant') return '';
   return `<circle cx="${x1}" cy="${y}" r="7.5" fill="#F58DA0" opacity=".42"/><circle cx="${x2}" cy="${y}" r="7.5" fill="#F58DA0" opacity=".42"/>`;
 }
@@ -3574,6 +3602,8 @@ function petOutline(c){ return c.body2; }
 
 /* Cabeça no tamanho "filhote" (centro 100,104 / raio 50). Nas fases maiores ela é reduzida via transform. */
 function petHead(sp, c, mood){
+  const eyeMood = mood;
+  if (mood === 'joy') mood = 'radiant'; else if (mood === 'grumpy') mood = 'worried';
   const ol = petOutline(c);
   let behind = '', face = '', front = '';
   if (sp === 'cat'){
@@ -3610,7 +3640,7 @@ function petHead(sp, c, mood){
   const eyeY = sp === 'dragon' ? 100 : 104;
   const faceFill = c.body;
   return `${behind}<circle cx="100" cy="104" r="50" fill="${c.body}" stroke="${ol}" stroke-width="3"/>${face}
-    ${petEyes([78, 122], eyeY, 13, mood, faceFill, c.iris)}${petCheeks(62, 138, eyeY + 20, mood)}${front}`;
+    ${petEyes([78, 122], eyeY, 13, eyeMood, faceFill, c.iris)}${petCheeks(62, 138, eyeY + 20, mood)}${front}`;
 }
 
 /* ---------- FASE 1: ovo ---------- */
@@ -3727,6 +3757,7 @@ function petPlume(x, y, rot, sc, f1, f2, ol){
   return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sc})"><path d="M0 0 C-10 12 -9 32 0 50 C9 32 10 12 0 0Z" fill="${f1}" stroke="${ol}" stroke-width="${(2.4 / sc).toFixed(2)}" stroke-linejoin="round"/><path d="M0 7 C-5 17 -4 30 0 41 C4 30 5 17 0 7Z" fill="${f2}"/></g>`;
 }
 function petBeak(c, x, y, s, mood){
+  if (mood === 'joy') mood = 'radiant'; else if (mood === 'grumpy') mood = 'worried';
   const bo = '#B8741A';
   const top = `<path d="M${x - 8*s} ${y} Q${x} ${y - 3*s} ${x + 8*s} ${y} L${x} ${y + 12*s}Z" fill="${c.beak}" stroke="${bo}" stroke-width="2" stroke-linejoin="round"/>`;
   if (mood === 'radiant') return `<path d="M${x - 6*s} ${y + 1} L${x + 6*s} ${y + 1} L${x} ${y + 17*s}Z" fill="#7a2e3a" stroke="${bo}" stroke-width="2" stroke-linejoin="round"/>${top}`;
@@ -3801,10 +3832,11 @@ function petSvg(species, stage, mood, opts){
   else if (stage === 2) art = petYoung(species, c, mood);
   else art = petMystic(species, c, mood);
   const pm = stage === 0 ? 0 : stage === 1 ? 4 : (species === 'owl' ? 4 : 3);
-  const sparks = (mood === 'radiant') ? `${petStar(30, 50, 7, '#FFE27A', 'pet-spark', 0)}${petStar(172, 44, 9, '#FFE27A', 'pet-spark', 0.5)}${petStar(160, 112, 5, '#FFF3B0', 'pet-spark', 1)}` : '';
+  const anger = mood === 'grumpy' ? `<g class="pet-anger"><path d="M146 44 q6 0 6 6 M158 44 q-6 0 -6 6 M146 62 q6 0 6 -6 M158 62 q-6 0 -6 -6" fill="none" stroke="#E5484D" stroke-width="3.4" stroke-linecap="round"/></g>` : '';
+  const sparks = (mood === 'radiant' || mood === 'joy') ? `${petStar(30, 50, 7, '#FFE27A', 'pet-spark', 0)}${petStar(172, 44, 9, '#FFE27A', 'pet-spark', 0.5)}${petStar(160, 112, 5, '#FFF3B0', 'pet-spark', 1)}` : '';
   const zzz = (mood === 'sleepy' && stage > 0) ? `<g class="pet-zzz"><text x="138" y="52" font-size="22" font-weight="800" fill="#9fb4ff" font-family="sans-serif">Z</text><text x="158" y="34" font-size="16" font-weight="800" fill="#9fb4ff" font-family="sans-serif" style="animation-delay:.6s">z</text></g>` : '';
   const shadow = `<ellipse cx="100" cy="185" rx="${stage===0?46:56}" ry="7" fill="#000" opacity=".28"/>`;
-  return `<svg class="pet-svg sp-${species} ${opts.cls || ''} mood-${mood} stage-${stage}" viewBox="0 0 200 200" style="--pm:${pm}; overflow:visible" role="img" aria-label="${(PET_SPECIES[species]||{}).label || ''} — ${(PET_SPECIES[species]||{}).stages ? PET_SPECIES[species].stages[stage] : ''}" xmlns="http://www.w3.org/2000/svg">${shadow}<g class="pet-root">${art}</g>${sparks}${zzz}</svg>`;
+  return `<svg class="pet-svg sp-${species} ${opts.cls || ''} mood-${mood} stage-${stage}" viewBox="0 0 200 200" style="--pm:${pm}; overflow:visible" role="img" aria-label="${(PET_SPECIES[species]||{}).label || ''} — ${(PET_SPECIES[species]||{}).stages ? PET_SPECIES[species].stages[stage] : ''}" xmlns="http://www.w3.org/2000/svg">${shadow}<g class="pet-root">${art}</g>${sparks}${anger}${zzz}</svg>`;
 }
 
 /* ---- Regras do mascote: XP, nível, humor ----
@@ -3888,10 +3920,16 @@ function petLine(mood, stage, random){
   }
   return msg;
 }
-const PET_MOOD_LABEL = { radiant: 'Radiante', happy: 'Feliz', neutral: 'Tranquilo', worried: 'Preocupado', sleepy: 'Dormindo' };
+const PET_MOOD_LABEL = { radiant: 'Radiante', happy: 'Feliz', neutral: 'Tranquilo', worried: 'Preocupado', sleepy: 'Dormindo', joy: 'Felizão', grumpy: 'Emburrado' };
+const PET_REACT_LINES = {
+  income: ['Dinheiro entrando! Uhuul!', 'Receita nova! Adorei!', 'Isso aí, o saldo agradece!', 'Que notícia boa!'],
+  incomeBig: ['Uau! Essa foi grande! Estou nas nuvens!', 'Receitão! Vamos comemorar... com planejamento!'],
+  expense: ['Hmm... mais uma despesa.', 'Será que precisava mesmo?', 'Tá anotado, mas fica de olho no orçamento.', 'Ai, o bolso sentiu...'],
+  expenseBig: ['Eita! Essa doeu no bolso...', 'Gasto grande! Vamos compensar nos próximos dias?'],
+};
 
 /* ---- Animação: olhar, brincadeiras, efeitos ---- */
-const petRT = { lastPointer: 0, ticking: false, trick: null };
+const petRT = { lastPointer: 0, ticking: false, trick: null, react: null, reactTimer: null, known: null, knownState: null };
 const PET_TRICKS = {
   dragon: ['tilt', 'flap', 'puff', 'wiggle'], fox: ['tilt', 'spin', 'wiggle', 'wag'], cat: ['tilt', 'wiggle', 'bow', 'wag'],
   dog: ['bow', 'spin', 'wag', 'tilt', 'wiggle'], owl: ['turn', 'tilt', 'flap', 'wiggle'], phoenix: ['flap', 'puff', 'spin', 'wiggle'],
@@ -3940,6 +3978,7 @@ setInterval(() => {
     const l = looks[Math.floor(Math.random() * looks.length)];
     petSetGaze(l[0], l[1]);
   }
+  if (petRT.react && petRT.react.until > Date.now()) return;
   if (petMood() === 'sleepy' || petCurStage() === 0 || petRT.trick) return;
   const r = Math.random();
   if (r < 0.26) petRandomTrick();
@@ -3959,16 +3998,17 @@ function petBurst(kind, count){
     el.style.setProperty('--rot', (Math.random() * 540 - 270) + 'deg');
     el.style.left = (42 + Math.random() * 16) + '%'; el.style.top = (kind === 'ember' ? 30 + Math.random() * 10 : 38 + Math.random() * 14) + '%';
     if (kind === 'heart'){ el.textContent = '♥'; el.style.color = '#FF6B8A'; el.style.fontSize = (12 + Math.random() * 10) + 'px'; }
+    else if (kind === 'coin' || kind === 'puff'){ el.style.setProperty('--dy', (-(50 + Math.random() * 70)) + 'px'); el.style.setProperty('--dx', (Math.random() * 90 - 45) + 'px'); }
     else if (kind === 'ember'){ el.style.background = embers[i % embers.length]; el.style.boxShadow = '0 0 6px ' + embers[i % embers.length]; }
     else { el.style.background = colors[i % colors.length]; }
     stage.appendChild(el);
     setTimeout(() => el.remove(), 1400);
   }
 }
-function petFloatText(txt){
+function petFloatText(txt, cls){
   const stage = $('petStage'); if (!stage) return;
   const el = document.createElement('span');
-  el.className = 'pet-float'; el.textContent = txt;
+  el.className = 'pet-float' + (cls ? ' ' + cls : ''); el.textContent = txt;
   stage.appendChild(el);
   setTimeout(() => el.remove(), 1700);
 }
@@ -3988,6 +4028,44 @@ function petPoke(){
   petSay(petLine(mood, stage, true));
 }
 
+/* ---- Reação a cada lançamento novo ----
+   Receita: ele comemora. Despesa: ele fecha a cara. A detecção compara os ids
+   das transações com os que já tinha visto, então vale para qualquer forma de
+   lançar (modal, parcelas, conta fixa, etc.) e editar não dispara nada. */
+function petDetectReaction(){
+  if (!state) return null;
+  if (petRT.knownState !== state || !petRT.known){
+    petRT.knownState = state; petRT.known = new Set(state.transactions.map(t => t.id));
+    return null;
+  }
+  const fresh = state.transactions.filter(t => !petRT.known.has(t.id));
+  if (!fresh.length) return null;
+  fresh.forEach(t => petRT.known.add(t.id));
+  if (fresh.length > 5) return null; // importação / carga em massa: sem festa
+  const moves = fresh.filter(t => t.type === 'income' || t.type === 'expense');
+  if (!moves.length) return null;
+  const kind = moves[moves.length - 1].type;
+  const list = moves.filter(t => t.type === kind);
+  const total = list.reduce((sum, t) => sum + Number(t.value), 0);
+  const hist = state.transactions.filter(t => t.type === kind && !list.includes(t)).slice(-30);
+  const avg = hist.length >= 8 ? hist.reduce((sum, t) => sum + Number(t.value), 0) / hist.length : null;
+  const big = avg ? total >= avg * 2.5 : total >= (kind === 'income' ? 1000 : 400);
+  return { kind, total, count: list.length, big };
+}
+function petPlayReaction(r){
+  const svg = petSvgEl(); if (!svg) return;
+  const income = r.kind === 'income';
+  const cls = income ? 'do-cheer' : 'do-grumble';
+  petRT.trick = null;
+  svg.classList.remove('do-cheer', 'do-grumble'); void svg.getBoundingClientRect(); svg.classList.add(cls);
+  setTimeout(() => { const sv = petSvgEl(); if (sv) sv.classList.remove(cls); }, 1700);
+  if (income){ petBurst('coin', r.big ? 16 : 8); petBurst('heart', r.big ? 6 : 3); }
+  else petBurst('puff', r.big ? 9 : 5);
+  petFloatText((income ? '+ ' : '− ') + fmtBRL(r.total), income ? 'pos' : 'neg');
+  const lines = PET_REACT_LINES[(income ? 'income' : 'expense') + (r.big ? 'Big' : '')];
+  petSay(lines[Math.floor(Math.random() * lines.length)]);
+}
+
 /* ---- Card do Dashboard ---- */
 function petStageStripHtml(species, level){
   const sp = PET_SPECIES[species];
@@ -4000,10 +4078,11 @@ function petStageStripHtml(species, level){
 }
 function renderPetCard(){
   const wrap = $('petCard'); if (!wrap) return;
-  if (numbersOnlyMode){ wrap.classList.add('hidden'); return; }
+  if (numbersOnlyMode){ petDetectReaction(); wrap.classList.add('hidden'); return; }
   wrap.classList.remove('hidden');
   const p = state.pet;
   if (!p){
+    petDetectReaction();
     if (wrap.dataset.key !== 'invite'){
       wrap.dataset.key = 'invite'; wrap.dataset.svg = '';
       wrap.innerHTML = `<div class="card pet-card pet-invite">
@@ -4026,7 +4105,14 @@ function renderPetCard(){
   const stage = petStageFromLevel(level), prevStage = petStageFromLevel(prevLevel);
   const mounted = wrap.dataset.key === 'pet';
   if (xp !== p.xp || prevSeen !== xp){ p.xp = xp; p.seenXp = xp; scheduleSave(); }
-  const mood = petMood();
+  const reaction = petDetectReaction();
+  if (reaction){
+    petRT.react = { mood: reaction.kind === 'income' ? 'joy' : 'grumpy', until: Date.now() + 3600 };
+    clearTimeout(petRT.reactTimer);
+    petRT.reactTimer = setTimeout(() => { petRT.react = null; if (currentView === 'dashboard') renderPetCard(); }, 3700);
+  }
+  const reacting = !!(petRT.react && petRT.react.until > Date.now());
+  const mood = reacting ? petRT.react.mood : petMood();
   const sp = PET_SPECIES[p.species] || PET_SPECIES.dragon;
   const b = petLevelBounds(level);
   const pct = Math.max(0, Math.min(100, ((xp - b.from) / (b.to - b.from)) * 100));
@@ -4057,6 +4143,7 @@ function renderPetCard(){
     const svg = petSvgEl(); if (svg){ svg.style.setProperty('--gx', gx || '0'); svg.style.setProperty('--gy', gy || '0'); }
     $('petBubble').textContent = petLine(mood, stage, false);
   }
+  if (reaction) petPlayReaction(reaction);
   $('petCardBox').dataset.mood = stage === 0 ? 'egg' : mood;
   $('petName').textContent = p.name || sp.defaultName;
   $('petSub').textContent = sp.stages[stage];
@@ -4073,7 +4160,7 @@ function renderPetCard(){
   // --- comemorações (só quando o card já estava na tela ou houve mudança real)
   const gained = xp - prevSeen;
   if (gained > 0){
-    if (mounted) setTimeout(() => { petFloatText('+' + gained + ' XP'); petBurst('confetti', Math.min(14, 4 + gained)); }, 120);
+    if (mounted) setTimeout(() => { petFloatText('+' + gained + ' XP'); petBurst('confetti', Math.min(14, 4 + gained)); }, reaction ? 1100 : 120);
     if (stage > prevStage){
       showToast(`${p.name || sp.defaultName} evoluiu para ${sp.stages[stage]}!`, 4200);
       const st = $('petStage'); st.classList.add('evolve'); setTimeout(() => st.classList.remove('evolve'), 1800);
