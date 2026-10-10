@@ -684,6 +684,9 @@ tr:hover td{background:var(--surface-2);}
 .nm-chip.hot{background:rgba(255,107,94,.18); color:#FF6B5E;}
 .nm-dot{width:9px; height:9px; border-radius:50%; background:var(--accent); flex:none;}
 .nm-due-tomorrow{background:#F5B942;} .nm-due-today{background:#FF6B5E;} .nm-tx-income{background:#4ade80;} .nm-tx-expense{background:#ff7b7b;}
+.nm-diag{margin-top:16px; font-size:12px; color:var(--text-faint);}
+.nm-diag summary{cursor:pointer; padding:6px 0;}
+.nm-diag pre{white-space:pre-wrap; word-break:break-word; font-family:var(--font-mono); font-size:11px; line-height:1.6; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px; margin:6px 0 0;}
 
 /* Mascote */
 .pet-card{display:grid; grid-template-columns:180px 1fr; gap:20px; align-items:center; padding:18px 24px; margin-bottom:16px; position:relative; overflow:hidden;}
@@ -6403,7 +6406,8 @@ function openNoteModal(id){
 const NOTIF_PREFS_KEY = 'norte_notif_prefs_v1';
 const NOTIF_LOG_KEY = 'norte_notif_log_v1';
 const NOTIF_SENT_LS_KEY = 'norte_notif_sent_v1';
-const NOTIF_DEFAULTS = { dayBefore: true, dayOf: true, newTx: true, systemWhileOpen: false, hour: 8 };
+const NOTIF_DEFAULTS = { twoDays: true, dayBefore: true, dayOf: true, newTx: true, systemWhileOpen: false, hour: 9 };
+const VAPID_PUBLIC_KEY = 'BHD480a4vFfTnYY7RMB6iUP6-xX5EDcJRaqI67i_iHtynj-rQ3_822troFGNpABibUnQdzGDsiiHqbb10sFZLOA'; // chave PÚBLICA do push (a privada fica só nos "Secrets" do Supabase)
 const notifPad = (n) => String(n).padStart(2, '0');
 const notifYmd = (d) => d.getFullYear() + '-' + notifPad(d.getMonth() + 1) + '-' + notifPad(d.getDate());
 function notifAddDays(iso, n){ const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return notifYmd(d); }
@@ -6476,12 +6480,13 @@ function notifUpdateBadge(){
 }
 
 /* ---- Vencimentos: o que vence nos próximos dias ---- */
-function notifCollectDue(daysAhead){
+function notifCollectDue(daysAhead, st){
+  st = st || state;
   const now = new Date();
   const todayIso = notifYmd(now), endIso = notifAddDays(todayIso, daysAhead);
   const inWin = (iso) => iso >= todayIso && iso <= endIso;
   const items = [];
-  state.fixedBills.forEach(b => {
+  st.fixedBills.forEach(b => {
     if (b.finished) return;
     const dues = [];
     const dayN = Math.max(1, Number(b.dueDay) || 1);
@@ -6515,20 +6520,25 @@ function notifCollectDue(daysAhead){
       items.push({ kind: 'bill', id: b.id, name: b.name, due: dq.due, amount: Number(b.value), income: b.type === 'income', auto: b.autoDebit !== false, installment: b.totalOccurrences ? { n: idx, total: b.totalOccurrences } : null });
     });
   });
-  (state.creditCards || []).filter(c => c.kind === 'credit').forEach(c => {
+  (st.creditCards || []).filter(c => c.kind === 'credit').forEach(c => {
     const inv = cardNextOpenInvoice(c);
     if (!inv || !(inv.total > 0)) return;
     const iso = notifYmd(inv.dueDate);
     if (inWin(iso)) items.push({ kind: 'invoice', id: c.id + ':' + inv.period, name: c.name, due: iso, amount: inv.total });
   });
-  (state.payables || []).filter(p => p.status === 'pending' && p.dueDate && inWin(p.dueDate)).forEach(p => {
+  (st.payables || []).filter(p => p.status === 'pending' && p.dueDate && inWin(p.dueDate)).forEach(p => {
     items.push({ kind: p.kind === 'pay' ? 'pay' : 'receive', id: p.id, name: p.description, due: p.dueDate, amount: Number(p.value) });
   });
   return items.sort((a, b) => a.due.localeCompare(b.due));
 }
+const NOTIF_WHEN_DAY = { today: 'Hoje', tomorrow: 'Amanhã', in2: 'Em 2 dias' };
+function notifWhenOf(dueIso, todayIso){
+  const d = Math.round((new Date(dueIso + 'T12:00:00') - new Date(todayIso + 'T12:00:00')) / 86400000);
+  return d === 0 ? 'today' : d === 1 ? 'tomorrow' : d === 2 ? 'in2' : null;
+}
 function notifText(it, when){
   const val = fmtBRL(it.amount);
-  const day = when === 'today' ? 'Hoje' : 'Amanhã';
+  const day = NOTIF_WHEN_DAY[when] || 'Hoje';
   const nudge = when === 'today' ? 'não esqueça de pagar' : 'fique atento';
   let inst = '';
   if (it.installment) inst = it.installment.n === it.installment.total ? ' · última parcela' : ` · parcela ${it.installment.n}/${it.installment.total}`;
@@ -6600,16 +6610,47 @@ async function norteNotify(n){
 }
 
 /* ---- Verificação dos vencimentos ---- */
-let notifChecking = false, notifLastSchedule = '';
-async function notifSyncSchedule(){
-  const items = notifCollectDue(10).map(it => {
-    const tm = notifText(it, 'tomorrow'), td = notifText(it, 'today');
-    return { key: `${it.kind}|${it.id}|${it.due}`, due: it.due, view: td.view, tomorrow: { title: tm.title, body: tm.body }, today: { title: td.title, body: td.body } };
+let notifChecking = false, notifLastSchedule = '', notifLastUpload = '';
+function notifTz(){ try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo'; } catch (e){ return 'America/Sao_Paulo'; } }
+// o cálculo das faturas de cartão lê o estado global; troca por um instante pra olhar outro perfil
+function notifWithState(st, fn){ const saved = state; state = st; try { return fn(); } finally { state = saved; } }
+let notifSoonT = null;
+function notifScheduleSoon(){ clearTimeout(notifSoonT); notifSoonT = setTimeout(() => notifSyncSchedule(), 4000); }
+function notifBuildSchedule(){
+  // todos os perfis da conta entram na agenda enviada ao servidor (push com o app fechado)
+  const profs = (appData && appData.profiles && appData.profiles.length) ? appData.profiles : [{ id: 'x', name: '', data: state }];
+  const multi = profs.length > 1;
+  const out = [];
+  profs.forEach(pf => {
+    if (!pf.data || !pf.data.fixedBills) return;
+    notifWithState(pf.data, () => notifCollectDue(10, pf.data)).forEach(it => {
+      const texts = {};
+      ['in2', 'tomorrow', 'today'].forEach(w => { const t = notifText(it, w); texts[w] = { title: t.title + (multi && pf.name ? ` (${pf.name})` : ''), body: t.body }; });
+      out.push({ key: `${it.kind}|${it.id}|${it.due}`, due: it.due, view: notifText(it, 'today').view, texts });
+    });
   });
+  return out;
+}
+async function notifSyncSchedule(force){
+  if (!state || !state.fixedBills) return;
+  const items = notifBuildSchedule();
   const json = JSON.stringify(items);
-  if (json === notifLastSchedule) return;
-  notifLastSchedule = json;
-  await notifIdbSet('schedule', items);
+  if (force || json !== notifLastSchedule){
+    notifLastSchedule = json;
+    await notifIdbSet('schedule', items);
+  }
+  // servidor (Supabase): só se já tem aparelho inscrito e conta logada
+  if (notifPushOk && SUPA_ON && currentUser){
+    const prefs = notifPrefs();
+    const up = JSON.stringify([items, prefs, notifTz()]);
+    if (force || up !== notifLastUpload){
+      notifLastUpload = up;
+      try {
+        const { error } = await supa.from('push_schedule').upsert({ user_id: currentUser.id, items, prefs, tz: notifTz(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        if (error) throw error;
+      } catch (e){ notifLastUpload = ''; notifPushErr = (e && e.message) || String(e); }
+    }
+  }
 }
 async function notifCheckDue(){
   if (notifChecking || !state || !state.fixedBills) return;
@@ -6618,17 +6659,17 @@ async function notifCheckDue(){
     notifSyncSchedule();
     const prefs = notifPrefs(), now = new Date();
     if (now.getHours() < prefs.hour) return;
-    const todayIso = notifYmd(now), tomorrowIso = notifAddDays(todayIso, 1);
+    const todayIso = notifYmd(now);
     const sent = await notifLoadSent();
-    const groups = { today: [], tomorrow: [] };
-    notifCollectDue(1).forEach(it => {
-      const when = it.due === todayIso ? 'today' : it.due === tomorrowIso ? 'tomorrow' : null;
-      if (!when || (when === 'today' && !prefs.dayOf) || (when === 'tomorrow' && !prefs.dayBefore)) return;
+    const groups = { in2: [], tomorrow: [], today: [] };
+    notifCollectDue(2).forEach(it => {
+      const when = notifWhenOf(it.due, todayIso);
+      if (!when || (when === 'in2' && !prefs.twoDays) || (when === 'tomorrow' && !prefs.dayBefore) || (when === 'today' && !prefs.dayOf)) return;
       const key = `${it.kind}|${it.id}|${it.due}|${when}`;
       if (sent[key]) return;
       groups[when].push({ it, key });
     });
-    for (const when of ['tomorrow', 'today']){
+    for (const when of ['in2', 'tomorrow', 'today']){
       const list = groups[when];
       if (!list.length) continue;
       for (const g of list) await notifMarkSent(g.key);
@@ -6636,12 +6677,66 @@ async function notifCheckDue(){
       if (list.length > 2){
         const names = list.slice(0, 3).map(g => g.it.name).join(', ') + (list.length > 3 ? ` e mais ${list.length - 3}` : '');
         const total = list.filter(g => !(g.it.kind === 'receive' || g.it.income)).reduce((s, g) => s + g.it.amount, 0);
-        norteNotify({ kind, title: `${when === 'today' ? 'Hoje' : 'Amanhã'} vencem ${list.length} itens`, body: `${names}${total ? ' · ' + fmtBRL(total) : ''}`, tag: `grp|${todayIso}|${when}`, view: 'fixedbills' });
+        norteNotify({ kind, title: `${NOTIF_WHEN_DAY[when]} vencem ${list.length} itens`, body: `${names}${total ? ' · ' + fmtBRL(total) : ''}`, tag: `grp|${todayIso}|${when}`, view: 'fixedbills' });
       } else {
         list.forEach((g, i) => { const t = notifText(g.it, when); setTimeout(() => norteNotify({ kind, title: t.title, body: t.body, tag: g.key, view: t.view }), i * 900); });
       }
     }
   } finally { notifChecking = false; }
+}
+
+/* ---- Push de servidor (chega com o app fechado) ---- */
+let notifPushOk = false, notifPushErr = '';
+function notifB64ToBytes(b64){
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+function notifSameKey(sub){
+  try {
+    const cur = sub.options && sub.options.applicationServerKey;
+    if (!cur) return true;
+    const a = new Uint8Array(cur), b = notifB64ToBytes(VAPID_PUBLIC_KEY);
+    return a.length === b.length && a.every((v, i) => v === b[i]);
+  } catch (e){ return true; }
+}
+async function notifPushSubscribe(){
+  notifPushErr = '';
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)){ notifPushErr = 'Este navegador não suporta push.'; return false; }
+  if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY.indexOf('__') === 0){ notifPushErr = 'Chave do push não configurada no app.'; return false; }
+  if (!SUPA_ON || !currentUser){ notifPushErr = 'Entre na sua conta para receber os avisos com o app fechado.'; return false; }
+  if (!('Notification' in window) || Notification.permission !== 'granted'){ notifPushErr = 'Permissão de notificação ainda não concedida.'; return false; }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && !notifSameKey(sub)){ await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: notifB64ToBytes(VAPID_PUBLIC_KEY) });
+    const j = sub.toJSON();
+    const { error } = await supa.from('push_subscriptions').upsert({
+      user_id: currentUser.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
+      user_agent: navigator.userAgent.slice(0, 200), tz: notifTz(), updated_at: new Date().toISOString(),
+    }, { onConflict: 'endpoint' });
+    if (error) throw error;
+    notifPushOk = true;
+    await notifSyncSchedule(true);
+    return true;
+  } catch (e){
+    notifPushOk = false;
+    notifPushErr = (e && (e.message || e.details)) || String(e);
+    return false;
+  }
+}
+async function notifPushUnsubscribe(){
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub){
+      const ep = sub.endpoint;
+      await sub.unsubscribe();
+      if (SUPA_ON && currentUser) await supa.from('push_subscriptions').delete().eq('endpoint', ep);
+    }
+  } catch (e){}
+  notifPushOk = false;
 }
 
 /* ---- Aviso de transação nova (mesma ideia do mascote: compara ids) ---- */
@@ -6681,6 +6776,7 @@ function notifInit(){
   notifSavePrefs(notifPrefs());
   notifUpdateBadge();
   notifRegisterPeriodic();
+  if ('Notification' in window && Notification.permission === 'granted') notifPushSubscribe();
   setTimeout(notifCheckDue, 1500);
   const p = new URLSearchParams(location.search).get('open');
   if (p){ try { switchView(p); history.replaceState(null, '', location.pathname); } catch (e){} }
@@ -6709,69 +6805,128 @@ function notifTimeAgo(ts){
   const d = Math.round(h / 24);
   return d === 1 ? 'ontem' : `há ${d} dias`;
 }
+function notifPushStatusKind(){
+  const p = notifPermState();
+  if (p === 'unsupported') return 'unsupported';
+  if (p === 'denied') return 'denied';
+  if (p !== 'granted') return 'default';
+  if (!('PushManager' in window)) return 'local';
+  if (!SUPA_ON || !currentUser) return 'nologin';
+  return notifPushOk ? 'push' : 'pusherr';
+}
+function notifDiagnostics(){
+  const lines = [
+    'permissão: ' + notifPermState(),
+    'conexão segura (https): ' + (window.isSecureContext ? 'sim' : 'NÃO'),
+    'service worker: ' + (('serviceWorker' in navigator) ? (navigator.serviceWorker.controller ? 'ativo' : 'registrado, ainda sem controle (recarregue o app)') : 'sem suporte'),
+    'suporte a push: ' + (('PushManager' in window) ? 'sim' : 'NÃO'),
+    'app instalado (tela inicial): ' + (notifIsStandalone() ? 'sim' : 'não'),
+    'conta na nuvem: ' + ((SUPA_ON && currentUser) ? 'logada' : 'não logada'),
+    'aparelho inscrito no servidor: ' + (notifPushOk ? 'sim' : 'não'),
+    'chave do push: ' + ((VAPID_PUBLIC_KEY && VAPID_PUBLIC_KEY.indexOf('__') !== 0) ? 'ok' : 'NÃO configurada'),
+  ];
+  if (notifPushErr) lines.push('último erro: ' + notifPushErr);
+  lines.push('navegador: ' + navigator.userAgent.replace(/\s+/g, ' ').slice(0, 110));
+  return lines.join('\n');
+}
 function openNotifModal(){
-  const perm = notifPermState();
   const prefs = notifPrefs();
   const todayIso = notifYmd(new Date());
   const upcoming = notifCollectDue(7);
   const log = notifLog().slice(0, 12);
-  const statusHtml = () => {
-    const p = notifPermState();
-    const ios = notifIsIos() && !notifIsStandalone() ? `<p class="nm-hint">No iPhone/iPad, as notificações só funcionam com o app instalado: toque em Compartilhar e depois em <b>Adicionar à Tela de Início</b>, abra o Norte por lá e ative aqui.</p>` : '';
-    if (p === 'unsupported') return `<div class="nm-status off"><div class="nm-st-ico">${ICONS.bell}</div><div><b>Sem suporte neste navegador</b><div class="nm-st-sub">Os avisos dentro do app continuam funcionando.</div></div></div>${ios}`;
-    if (p === 'granted') return `<div class="nm-status on"><div class="nm-st-ico">${ICONS.bell}</div><div><b>Ativadas neste aparelho</b><div class="nm-st-sub">Chegam na barra de notificações e na tela de bloqueio.</div></div></div>`;
-    if (p === 'denied') return `<div class="nm-status off"><div class="nm-st-ico">${ICONS.bell}</div><div><b>Bloqueadas pelo navegador</b><div class="nm-st-sub">Libere em Configurações do navegador (ou do app instalado) → Notificações → Norte.</div></div></div>${ios}`;
-    return `<div class="nm-status"><div class="nm-st-ico">${ICONS.bell}</div><div style="flex:1;"><b>Ainda não ativadas</b><div class="nm-st-sub">Ative para receber avisos fora do app.</div></div><button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button></div>${ios}`;
+  const statusHtml = (waiting) => {
+    const k = notifPushStatusKind();
+    const ios = notifIsIos() && !notifIsStandalone() ? `<p class="nm-hint">No iPhone/iPad, as notificações só funcionam com o app instalado: toque em Compartilhar e depois em <b>Adicionar à Tela de Início</b>, abra o Norte pelo ícone e ative aqui.</p>` : '';
+    const box = (cls, title, sub, btn) => `<div class="nm-status ${cls}"><div class="nm-st-ico">${ICONS.bell}</div><div style="flex:1;"><b>${title}</b><div class="nm-st-sub">${sub}</div></div>${btn || ''}</div>`;
+    if (waiting) return box('', 'Aguardando você permitir…', 'Olhe o aviso do navegador (pode aparecer lá em cima ou na barra de endereço) e toque em <b>Permitir</b>.') + ios;
+    if (k === 'unsupported') return box('off', 'Sem suporte neste navegador', 'Os avisos dentro do app continuam funcionando.') + ios;
+    if (k === 'denied') return box('off', 'Bloqueadas pelo navegador', 'Toque no cadeado (ao lado do endereço) → Permissões → Notificações → Permitir. Se o app estiver instalado: Configurações do Android → Apps → Norte → Notificações.') + ios;
+    if (k === 'default') return box('', 'Ainda não ativadas', 'Ative para receber avisos fora do app.', '<button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button>') + ios;
+    if (k === 'push') return box('on', 'Ativadas — chegam com o app fechado', 'Você recebe 2 dias antes, 1 dia antes e no dia do vencimento, mesmo sem abrir o Norte.') + '<div style="margin-top:8px;"><button class="btn btn-ghost btn-sm" data-nm="serverTest">Testar com o app fechado</button> <button class="btn btn-ghost btn-sm" data-nm="disable">Desativar neste aparelho</button></div>';
+    if (k === 'nologin') return box('on', 'Ativadas só com o app aberto', 'Entre na sua conta (nuvem) para receber também com o app fechado.');
+    if (k === 'pusherr') return box('on', 'Ativadas, mas o envio com o app fechado falhou', escapeHtml(notifPushErr || 'Tente de novo.'), '<button class="btn btn-ghost btn-sm" data-nm="retry">Tentar de novo</button>');
+    return box('on', 'Ativadas neste aparelho', 'Chegam na barra de notificações enquanto o app estiver aberto ou em segundo plano.');
   };
   const hourOpts = Array.from({ length: 16 }, (_, i) => i + 6).map(h => `<option value="${h}" ${h === prefs.hour ? 'selected' : ''}>${notifPad(h)}:00</option>`).join('');
   const dayLbl = (iso) => iso === todayIso ? 'Hoje' : iso === notifAddDays(todayIso, 1) ? 'Amanhã' : fmtDate(iso).slice(0, 5);
-  const upHtml = upcoming.length ? upcoming.map(it => {
-    const t = notifText(it, 'today');
-    return `<div class="nm-row"><span class="nm-chip ${it.due === todayIso ? 'hot' : it.due === notifAddDays(todayIso, 1) ? 'warm' : ''}">${dayLbl(it.due)}</span><div class="nm-row-main"><div class="nm-row-t">${escapeHtml(it.name)}</div><div class="nm-row-s">${fmtBRL(it.amount)}${it.installment ? ` · ${it.installment.n === it.installment.total ? 'última parcela' : 'parcela ' + it.installment.n + '/' + it.installment.total}` : ''}</div></div></div>`;
-  }).join('') : '<p class="nm-hint" style="margin:0;">Nada vencendo nos próximos 7 dias.</p>';
+  const upHtml = upcoming.length ? upcoming.map(it => `<div class="nm-row"><span class="nm-chip ${it.due === todayIso ? 'hot' : it.due === notifAddDays(todayIso, 1) ? 'warm' : ''}">${dayLbl(it.due)}</span><div class="nm-row-main"><div class="nm-row-t">${escapeHtml(it.name)}</div><div class="nm-row-s">${fmtBRL(it.amount)}${it.installment ? ` · ${it.installment.n === it.installment.total ? 'última parcela' : 'parcela ' + it.installment.n + '/' + it.installment.total}` : ''}</div></div></div>`).join('') : '<p class="nm-hint" style="margin:0;">Nada vencendo nos próximos 7 dias.</p>';
   const logHtml = log.length ? log.map(x => `<div class="nm-row"><span class="nm-dot nm-${x.kind}"></span><div class="nm-row-main"><div class="nm-row-t">${escapeHtml(x.title)}</div><div class="nm-row-s">${escapeHtml(x.body)}</div></div><span class="nm-when">${notifTimeAgo(x.at)}</span></div>`).join('') : '<p class="nm-hint" style="margin:0;">As notificações que chegarem aparecem aqui.</p>';
   const toggle = (id, label, sub, on) => `<label class="nm-toggle"><div><div class="nm-tl">${label}</div><div class="nm-ts">${sub}</div></div><input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="nm-sw"></span></label>`;
   openModal(`<div class="modal-head"><h3>Notificações</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
-      <div id="nmStatus">${statusHtml()}</div>
+      <div id="nmStatus">${statusHtml(false)}</div>
       <h4 class="nm-h">O que avisar</h4>
-      ${toggle('nmDayBefore', 'Um dia antes do vencimento', 'Ex.: "Amanhã vence: Curso · parcela 1/6"', prefs.dayBefore)}
+      ${toggle('nmTwoDays', '2 dias antes do vencimento', 'Ex.: "Em 2 dias vence: Curso · parcela 1/6"', prefs.twoDays)}
+      ${toggle('nmDayBefore', '1 dia antes do vencimento', 'Ex.: "Amanhã vence: Curso · parcela 1/6"', prefs.dayBefore)}
       ${toggle('nmDayOf', 'No dia do vencimento', 'Ex.: "Hoje vence: Aluguel · débito automático"', prefs.dayOf)}
       ${toggle('nmNewTx', 'Quando eu adicionar uma transação', 'Receita ou despesa nova', prefs.newTx)}
       ${toggle('nmSysOpen', 'Também como notificação do sistema com o app aberto', 'Aparece em pop-up mesmo enquanto você usa o Norte', prefs.systemWhileOpen)}
-      <div class="nm-toggle" style="cursor:default;"><div><div class="nm-tl">Horário dos avisos de vencimento</div><div class="nm-ts">Não avisa antes dessa hora</div></div><select id="nmHour" class="nm-select">${hourOpts}</select></div>
+      <div class="nm-toggle" style="cursor:default;"><div><div class="nm-tl">Receber a partir das</div><div class="nm-ts">Não precisa ser exato: chega perto desse horário</div></div><select id="nmHour" class="nm-select">${hourOpts}</select></div>
       <h4 class="nm-h">Próximos vencimentos (7 dias)</h4>
       ${upHtml}
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px;"><h4 class="nm-h" style="margin:0;">Últimas notificações</h4>${log.length ? '<button class="btn btn-ghost btn-sm" data-nm="clear">Limpar</button>' : ''}</div>
       <div style="margin-top:8px;">${logHtml}</div>
-      <p class="nm-hint" style="margin-top:14px;">Com o app totalmente fechado, quem decide quando acordar o Norte é o sistema: no Android (app instalado) costuma funcionar, mas o horário pode variar. Pra receber sempre, abra o app uma vez por dia.</p>
+      <details class="nm-diag"><summary>Diagnóstico (se algo não funcionar)</summary><pre id="nmDiag">${escapeHtml(notifDiagnostics())}</pre></details>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-nm="test">Enviar teste</button><button class="btn btn-primary" data-action="close">Fechar</button></div>`);
   const root = $('modalContent');
+  const refreshStatus = (waiting) => { const st = $('nmStatus'); if (st) st.innerHTML = statusHtml(waiting); const dg = $('nmDiag'); if (dg) dg.textContent = notifDiagnostics(); };
   const saveFromUi = () => {
     notifSavePrefs({
-      dayBefore: root.querySelector('#nmDayBefore').checked, dayOf: root.querySelector('#nmDayOf').checked,
+      twoDays: root.querySelector('#nmTwoDays').checked, dayBefore: root.querySelector('#nmDayBefore').checked, dayOf: root.querySelector('#nmDayOf').checked,
       newTx: root.querySelector('#nmNewTx').checked, systemWhileOpen: root.querySelector('#nmSysOpen').checked,
-      hour: Number(root.querySelector('#nmHour').value) || 8,
+      hour: Number(root.querySelector('#nmHour').value) || 9,
     });
+    notifSyncSchedule(true); // leva as novas preferências pro servidor
   };
   root.querySelectorAll('[data-action="close"]').forEach(el => el.addEventListener('click', closeModal));
   root.querySelectorAll('input[type=checkbox], #nmHour').forEach(el => el.addEventListener('change', saveFromUi));
-  root.addEventListener('click', async (e) => {
+  // um único handler (evita acumular listeners cada vez que a tela é aberta)
+  root.onclick = async (e) => {
     const b = e.target.closest('[data-nm]'); if (!b) return;
-    if (b.dataset.nm === 'enable'){
+    const act = b.dataset.nm;
+    if (act === 'enable' || act === 'retry'){
       try {
-        const r = await Notification.requestPermission();
-        $('nmStatus').innerHTML = statusHtml();
-        if (r === 'granted'){ notifRegisterPeriodic(); notifShowSystem({ title: 'Notificações ativadas', body: 'Tudo certo! Você será avisado antes dos vencimentos.', tag: 'norte-welcome', view: null }); }
-      } catch (err){ showToast('Não consegui pedir a permissão agora.'); }
-    } else if (b.dataset.nm === 'test'){
+        if (!('Notification' in window)){ showToast('Este navegador não suporta notificações.'); return; }
+        let perm = Notification.permission;
+        if (perm === 'default'){
+          refreshStatus(true);
+          const hint = setTimeout(() => showToast('Não apareceu o pedido? Veja o ícone de sino na barra de endereço.', 6000), 3500);
+          perm = await new Promise((resolve) => {
+            let done = false; const fin = (v) => { if (!done){ done = true; resolve(v); } };
+            try { const r = Notification.requestPermission(fin); if (r && r.then) r.then(fin, () => fin(Notification.permission)); }
+            catch (err){ fin(Notification.permission); }
+          });
+          clearTimeout(hint);
+        }
+        if (perm === 'granted'){
+          notifRegisterPeriodic();
+          const ok = await notifPushSubscribe();
+          refreshStatus(false);
+          await notifShowSystem({ title: 'Notificações ativadas', body: ok ? 'Tudo certo! Você será avisado antes dos vencimentos, mesmo com o app fechado.' : 'Ativadas. Para receber com o app fechado, entre na sua conta.', tag: 'norte-welcome', view: null });
+          showToast(ok ? 'Notificações ativadas!' : (notifPushErr || 'Notificações ativadas neste aparelho.'), 4500);
+        } else {
+          refreshStatus(false);
+          showToast(perm === 'denied' ? 'O navegador bloqueou. Veja as instruções no quadro.' : 'A permissão não foi concedida.', 5000);
+        }
+      } catch (err){ refreshStatus(false); showToast('Erro ao pedir a permissão: ' + ((err && err.message) || err), 6000); }
+    } else if (act === 'test'){
       norteNotify({ kind: 'due-tomorrow', title: 'Amanhã vence: Exemplo de conta', body: 'R$ 120,00 · parcela 1/6 · fique atento', tag: 'norte-test-' + Date.now(), view: 'fixedbills', forceSystem: true });
-    } else if (b.dataset.nm === 'clear'){
+      if (Notification.permission !== 'granted') showToast('Teste mostrado no app. Ative as notificações para ver também na barra do celular.', 5000);
+    } else if (act === 'serverTest'){
+      if (!SUPA_ON || !currentUser){ showToast('Entre na sua conta primeiro.'); return; }
+      showToast('Pronto! Feche o app agora — em uns 20 segundos deve chegar uma notificação.', 7000);
+      supa.functions.invoke('send-due-notifications', { body: { action: 'test', delaySeconds: 20 } }).then(({ data, error }) => {
+        if (error) showToast('Falha no servidor de avisos: ' + (error.message || error), 8000);
+        else if (data && data.sent === 0) showToast('O servidor respondeu, mas não achou este aparelho inscrito. Toque em "Tentar de novo".', 8000);
+      });
+    } else if (act === 'disable'){
+      await notifPushUnsubscribe(); refreshStatus(false); showToast('Avisos com o app fechado desativados neste aparelho.');
+    } else if (act === 'clear'){
       try { localStorage.setItem(NOTIF_LOG_KEY, '[]'); } catch (err){}
       notifUpdateBadge(); openNotifModal();
     }
-  });
+  };
   // marca tudo como lido
   const all = notifLog(); all.forEach(x => x.read = true);
   try { localStorage.setItem(NOTIF_LOG_KEY, JSON.stringify(all)); } catch (e){}
@@ -6917,6 +7072,7 @@ $('reportPrintBtn').addEventListener('click', () => window.print());
 function mutate(){
   scheduleSave();
   notifDetectNewTx();
+  notifScheduleSoon();
   renderNav();
   if (currentView === 'dashboard') renderDashboard();
 }

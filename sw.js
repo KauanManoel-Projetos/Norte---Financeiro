@@ -11,7 +11,7 @@
 //
 // Ao publicar uma atualização importante do app, mude o número da versão
 // abaixo (CACHE_NAME) — isso força os aparelhos a baixarem tudo de novo.
-const CACHE_NAME = 'norte-financeiro-v2';
+const CACHE_NAME = 'norte-financeiro-v3';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
@@ -86,22 +86,25 @@ const pad2 = (n) => String(n).padStart(2, '0');
 const ymd = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
 
 async function swCheckDue() {
-  const prefs = Object.assign({ dayBefore: true, dayOf: true, hour: 8 }, (await idbGet('prefs')) || {});
+  // Plano B (sem servidor): quando o Chrome/Android acorda o app, avisa dos
+  // vencimentos que o app deixou gravados no IndexedDB.
+  const prefs = Object.assign({ twoDays: true, dayBefore: true, dayOf: true, hour: 9 }, (await idbGet('prefs')) || {});
   const schedule = (await idbGet('schedule')) || [];
   if (!schedule.length) return;
   const now = new Date();
   if (now.getHours() < prefs.hour) return;
-  const today = ymd(now);
-  const tomorrow = ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+  const at = (n) => ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() + n));
+  const today = at(0), tomorrow = at(1), in2 = at(2);
   const sent = (await idbGet('sent')) || {};
   let changed = false;
   for (const it of schedule) {
-    const when = it.due === today ? 'today' : it.due === tomorrow ? 'tomorrow' : null;
+    const when = it.due === today ? 'today' : it.due === tomorrow ? 'tomorrow' : it.due === in2 ? 'in2' : null;
     if (!when) continue;
-    if ((when === 'today' && !prefs.dayOf) || (when === 'tomorrow' && !prefs.dayBefore)) continue;
+    if ((when === 'today' && !prefs.dayOf) || (when === 'tomorrow' && !prefs.dayBefore) || (when === 'in2' && !prefs.twoDays)) continue;
     const key = it.key + '|' + when;
     if (sent[key]) continue;
-    const t = it[when];
+    const t = (it.texts || {})[when];
+    if (!t) continue;
     await self.registration.showNotification(t.title, {
       body: t.body, tag: key, icon: 'icon-192.png', badge: 'badge-96.png', vibrate: [140, 70, 140], timestamp: Date.now(),
       data: { view: it.view || null, url: './index.html' + (it.view ? '?open=' + it.view : '') },
