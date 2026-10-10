@@ -6647,6 +6647,25 @@ function notifSameKey(sub){
     return a.length === b.length && a.every((v, i) => v === b[i]);
   } catch (e){ return true; }
 }
+// O primeiro registro no serviço de push do navegador (Google/Edge) às vezes falha
+// com "push service error". Limpa qualquer inscrição velha e tenta de novo.
+async function notifSubscribeWithRetry(reg){
+  const opts = { userVisibleOnly: true, applicationServerKey: notifB64ToBytes(VAPID_PUBLIC_KEY) };
+  let lastErr = null;
+  for (let i = 0; i < 3; i++){
+    try {
+      let sub = await reg.pushManager.getSubscription();
+      if (sub && !notifSameKey(sub)){ await sub.unsubscribe(); sub = null; }
+      if (sub) return sub;
+      return await reg.pushManager.subscribe(opts);
+    } catch (e){
+      lastErr = e;
+      try { const old = await reg.pushManager.getSubscription(); if (old) await old.unsubscribe(); } catch (e2){}
+      await new Promise(r => setTimeout(r, 1500 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
 async function notifPushSubscribe(){
   notifPushErr = '';
   if (!('serviceWorker' in navigator) || !('PushManager' in window)){ notifPushErr = 'Este navegador não suporta push.'; return false; }
@@ -6655,9 +6674,7 @@ async function notifPushSubscribe(){
   if (!('Notification' in window) || Notification.permission !== 'granted'){ notifPushErr = 'Permissão de notificação ainda não concedida.'; return false; }
   try {
     const reg = await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-    if (sub && !notifSameKey(sub)){ await sub.unsubscribe(); sub = null; }
-    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: notifB64ToBytes(VAPID_PUBLIC_KEY) });
+    const sub = await notifSubscribeWithRetry(reg);
     const j = sub.toJSON();
     const { error } = await supa.from('push_subscriptions').upsert({
       user_id: currentUser.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
@@ -6669,7 +6686,7 @@ async function notifPushSubscribe(){
     return true;
   } catch (e){
     notifPushOk = false;
-    notifPushErr = (e && (e.message || e.details)) || String(e);
+    notifPushErr = ((e && e.name && e.name !== 'Error') ? e.name + ': ' : '') + ((e && (e.message || e.details)) || String(e));
     return false;
   }
 }
@@ -6756,10 +6773,11 @@ function notifFriendlyErr(){
   const e = notifPushErr || '';
   if (/push_subscriptions|push_schedule/.test(e) && /(does not exist|schema cache|relation|Could not find)/i.test(e)) return 'Falta criar as tabelas no Supabase: rode o arquivo norte_push_setup.sql (passo 1 do guia).';
   if (/row-level security|violates/i.test(e)) return 'O Supabase recusou gravar (política de segurança). Rode de novo o norte_push_setup.sql.';
+  if (/push service error|AbortError/i.test(e)) return 'O serviço de push do navegador (Google/Edge) não respondeu neste aparelho.';
   if (/permission|NotAllowed|denied/i.test(e)) return 'O navegador não permitiu criar a inscrição de push. Confira se as notificações estão ligadas para o app nas configurações do Android.';
   return e || 'Não consegui ativar o envio com o app fechado.';
 }
-let notifAskNote = '';
+let notifAskNote = '', notifServerNote = '';
 const notifIsAndroid = () => /Android/i.test(navigator.userAgent);
 // Pede a permissão. Se o navegador não mostrar o pedido (acontece em alguns Android),
 // tenta pelo pedido de push, que no Chrome/Edge também dispara a permissão.
@@ -6806,6 +6824,8 @@ function notifDiagnostics(){
   ];
   if (notifAskNote) lines.push('último pedido de permissão: ' + notifAskNote);
   if (notifPushErr) lines.push('último erro: ' + notifPushErr);
+  if (notifServerNote) lines.push('teste do servidor: ' + notifServerNote);
+  if (typeof SUPABASE_URL === 'string') lines.push('função (abra no navegador p/ conferir): ' + SUPABASE_URL + '/functions/v1/send-due-notifications');
   lines.push('navegador: ' + navigator.userAgent.replace(/\s+/g, ' ').slice(0, 110));
   return lines.join('\n');
 }
@@ -6825,7 +6845,11 @@ function openNotifModal(){
     if (k === 'default') return box('', 'Ainda não ativadas', 'Ative para receber avisos fora do app.', '<button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button>') + androidHelp + ios;
     if (k === 'push') return box('on', 'Ativadas — chegam com o app fechado', 'Você recebe 2 dias antes, 1 dia antes e no dia do vencimento, mesmo sem abrir o Norte.') + '<div style="margin-top:8px;"><button class="btn btn-ghost btn-sm" data-nm="disable">Desativar neste aparelho</button></div>';
     if (k === 'nologin') return box('on', 'Ativadas só com o app aberto', 'Entre na sua conta (nuvem) para receber também com o app fechado.');
-    if (k === 'pusherr') return box('on', 'Ativadas, mas o envio com o app fechado falhou', escapeHtml(notifFriendlyErr()), '<button class="btn btn-ghost btn-sm" data-nm="retry">Tentar de novo</button>');
+    if (k === 'pusherr'){
+      const svc = /push service error|AbortError/i.test(notifPushErr);
+      const help = svc ? `<div class="nm-help"><b>O que tentar (nesta ordem):</b><ol><li>Confira se o celular está com internet (Wi‑Fi ou dados) e toque em <b>Tentar de novo</b>.</li><li>Configurações do Android → Apps → ${/EdgA/.test(navigator.userAgent) ? '<b>Microsoft Edge</b>' : '<b>Chrome</b>'} → Bateria → <b>Sem restrições</b>, e deixe os dados em segundo plano ligados.</li><li>Atualize o navegador e o <b>Google Play Services</b> na Play Store.</li>${/EdgA/.test(navigator.userAgent) ? '<li>Se continuar: abra o endereço do Norte no <b>Google Chrome</b>, menu ⋮ → <b>Instalar app</b>, e ative as notificações por lá. O Chrome costuma ser mais compatível com o push.</li>' : ''}</ol></div>` : '';
+      return box('on', 'Ativadas, mas o envio com o app fechado falhou', escapeHtml(notifFriendlyErr()), '<button class="btn btn-ghost btn-sm" data-nm="retry">Tentar de novo</button>') + help;
+    }
     return box('on', 'Ativadas neste aparelho', 'Chegam na barra de notificações enquanto o app estiver aberto ou em segundo plano.');
   };
   const hourOpts = Array.from({ length: 16 }, (_, i) => i + 6).map(h => `<option value="${h}" ${h === prefs.hour ? 'selected' : ''}>${notifPad(h)}:00</option>`).join('');
@@ -6893,13 +6917,23 @@ function openNotifModal(){
         if (!ok){ showToast(notifFriendlyErr(), 9000); return; }
       }
       showToast('Pronto! FECHE o app agora. Em uns 20 segundos deve chegar uma notificação.', 9000);
-      supa.functions.invoke('send-due-notifications', { body: { action: 'test', delaySeconds: 20 } }).then(({ data, error }) => {
+      notifServerNote = '';
+      supa.functions.invoke('send-due-notifications', { body: { action: 'test', delaySeconds: 20 } }).then(async ({ data, error }) => {
         if (error){
+          let detail = '';
+          try { if (error.context && typeof error.context.json === 'function'){ const j = await error.context.json(); detail = (j && (j.error || j.message)) || ''; } } catch (e2){}
           const st = error.context && error.context.status;
-          showToast(st === 404 ? 'A função do servidor ainda não foi criada no Supabase (passo 2 do guia).' : 'Falha no servidor de avisos: ' + (error.message || error), 9000);
+          let msg;
+          if (error.name === 'FunctionsFetchError' || /failed to send a request/i.test(error.message || '')) msg = 'Não consegui falar com a função no Supabase. Ela foi criada com o nome send-due-notifications e publicada (Deploy)? Veja o passo 2 do guia.';
+          else if (st === 404) msg = 'A função send-due-notifications ainda não existe no Supabase (passo 2 do guia).';
+          else msg = 'O servidor respondeu com erro: ' + (detail || error.message || st);
+          notifServerNote = msg;
+          showToast(msg, 12000);
+          const dg = $('nmDiag'); if (dg) dg.textContent = notifDiagnostics();
         } else if (data && data.sent === 0){
+          notifServerNote = 'servidor ok, mas sem aparelho inscrito';
           showToast('O servidor respondeu, mas não achou este aparelho inscrito. Toque em "Tentar de novo".', 9000);
-        }
+        } else { notifServerNote = 'servidor respondeu ok (enviado: ' + ((data && data.sent) || 0) + ')'; }
       });
     } else if (act === 'disable'){
       await notifPushUnsubscribe(); refreshStatus(false); showToast('Avisos com o app fechado desativados neste aparelho.');
