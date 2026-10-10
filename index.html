@@ -628,30 +628,7 @@ tr:hover td{background:var(--surface-2);}
 .ce-kpi-note{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 @media(max-width:600px){ .ce-head h3{font-size:22px;} .ce-subs{margin-left:10px;} }
 
-/* Notificações: banner dentro do app */
-#norteBanners{position:fixed; top:calc(10px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%); width:min(94vw, 430px); z-index:140; display:flex; flex-direction:column; gap:10px; pointer-events:none;}
-.nb{--nb:var(--accent); pointer-events:auto; position:relative; overflow:hidden; border-radius:20px; padding:11px 14px 15px 18px; background:var(--bg-elev); border:1px solid var(--border); box-shadow:0 16px 44px rgba(0,0,0,.5); color:var(--text); cursor:pointer; touch-action:pan-y; animation:nb-in .5s cubic-bezier(.2,1.15,.3,1);}
-.nb::before{content:''; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--nb);}
-.nb.out{animation:nb-out .32s ease-in forwards;}
-@keyframes nb-in{0%{opacity:0; transform:translateY(-26px) scale(.96);} 100%{opacity:1; transform:translateY(0) scale(1);}}
-@keyframes nb-out{to{opacity:0; transform:translateY(-22px) scale(.97);}}
-.nb-due-tomorrow{--nb:#F5B942;} .nb-due-today{--nb:#FF6B5E;} .nb-tx-income{--nb:#4ade80;} .nb-tx-expense{--nb:#ff7b7b;}
-.nb-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:11px; color:var(--text-faint); letter-spacing:.04em; text-transform:uppercase; font-weight:600;}
-.nb-app{display:inline-flex; align-items:center; gap:7px;}
-.nb-app i{font-style:normal; font-family:var(--font-display); font-size:12px; width:18px; height:18px; border-radius:5px; background:var(--accent); color:var(--accent-ink); display:inline-flex; align-items:center; justify-content:center; font-weight:700;}
-.nb-main{display:flex; gap:12px; align-items:flex-start;}
-.nb-ico{flex:none; width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--surface-2); color:var(--nb);}
-.nb-ico .icon{width:20px; height:20px;}
-@supports (background:color-mix(in srgb, red 10%, transparent)){ .nb-ico{background:color-mix(in srgb, var(--nb) 18%, transparent);} }
-.nb-txt{min-width:0; flex:1;}
-.nb-title{font-weight:700; font-size:14.5px; line-height:1.3;}
-.nb-body{font-size:13px; color:var(--text-dim); margin-top:2px; line-height:1.4;}
-.nb-actions{display:flex; gap:8px; margin:11px 0 0 50px;}
-.nb-actions button{border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-family:inherit; font-size:12.5px; font-weight:600; padding:6px 14px; border-radius:999px; cursor:pointer;}
-.nb-actions button[data-nb="open"]{background:var(--nb); border-color:var(--nb); color:#1a1408;}
-.nb-bar{position:absolute; left:5px; right:0; bottom:0; height:3px; background:var(--nb); transform-origin:left; animation:nb-bar 8s linear forwards; opacity:.85;}
-@keyframes nb-bar{from{transform:scaleX(1);} to{transform:scaleX(0);}}
-@media (prefers-reduced-motion:reduce){ .nb, .nb-bar{animation-duration:.01s;} }
+/* Notificações: sino e central */
 /* sino da barra superior */
 #notifBtn{position:relative;}
 .notif-dot{position:absolute; top:3px; right:2px; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; line-height:1;}
@@ -687,6 +664,9 @@ tr:hover td{background:var(--surface-2);}
 .nm-diag{margin-top:16px; font-size:12px; color:var(--text-faint);}
 .nm-diag summary{cursor:pointer; padding:6px 0;}
 .nm-diag pre{white-space:pre-wrap; word-break:break-word; font-family:var(--font-mono); font-size:11px; line-height:1.6; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px; margin:6px 0 0;}
+.nm-help{margin-top:8px; padding:12px 14px; border-radius:12px; border:1px solid var(--border-soft); background:var(--surface-2); font-size:12.5px; line-height:1.55; color:var(--text-dim);}
+.nm-help b{color:var(--text);}
+.nm-help ol{margin:8px 0 0; padding-left:18px;}
 
 /* Mascote */
 .pet-card{display:grid; grid-template-columns:180px 1fr; gap:20px; align-items:center; padding:18px 24px; margin-bottom:16px; position:relative; overflow:hidden;}
@@ -1598,7 +1578,6 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
 <!-- ============================= MODAL ============================= -->
 <div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalContent"></div></div>
 <div class="toast" id="toast"></div>
-<div id="norteBanners" aria-live="polite"></div>
 <div class="tour-overlay-part" id="tourOverlayTop" style="display:none;"></div>
 <div class="tour-overlay-part" id="tourOverlayBottom" style="display:none;"></div>
 <div class="tour-overlay-part" id="tourOverlayLeft" style="display:none;"></div>
@@ -6396,9 +6375,8 @@ function openNoteModal(id){
    - Avisos de vencimento: 1 dia antes e no dia (contas fixas, faturas de cartão
      e a pagar/receber), no horário escolhido.
    - Aviso ao adicionar uma transação.
-   - Dois formatos: banner bonito dentro do app (quando ele está aberto na tela)
-     e notificação do sistema (barra de notificações / tela de bloqueio / pop-up)
-     quando o app está em segundo plano.
+   - Sempre como notificação do sistema (barra de notificações / tela de bloqueio /
+     pop-up), nunca como aviso dentro do app.
    Limite do navegador: sem um servidor de push, nada dispara com o app
    totalmente fechado — o que dá é a "sincronização periódica" do Chrome/Android
    (melhor esforço), por isso o app grava a agenda de vencimentos no IndexedDB
@@ -6406,7 +6384,7 @@ function openNoteModal(id){
 const NOTIF_PREFS_KEY = 'norte_notif_prefs_v1';
 const NOTIF_LOG_KEY = 'norte_notif_log_v1';
 const NOTIF_SENT_LS_KEY = 'norte_notif_sent_v1';
-const NOTIF_DEFAULTS = { twoDays: true, dayBefore: true, dayOf: true, newTx: true, systemWhileOpen: false, hour: 9 };
+const NOTIF_DEFAULTS = { twoDays: true, dayBefore: true, dayOf: true, newTx: true, hour: 9 };
 const VAPID_PUBLIC_KEY = 'BHD480a4vFfTnYY7RMB6iUP6-xX5EDcJRaqI67i_iHtynj-rQ3_822troFGNpABibUnQdzGDsiiHqbb10sFZLOA'; // chave PÚBLICA do push (a privada fica só nos "Secrets" do Supabase)
 const notifPad = (n) => String(n).padStart(2, '0');
 const notifYmd = (d) => d.getFullYear() + '-' + notifPad(d.getMonth() + 1) + '-' + notifPad(d.getDate());
@@ -6557,35 +6535,6 @@ function notifText(it, when){
 }
 
 /* ---- Entrega: banner no app + notificação do sistema ---- */
-const NOTIF_KIND_ICON = {
-  'due-tomorrow': () => ICONS.fixedbills, 'due-today': () => ICONS.bell, reminder: () => ICONS.bell, info: () => ICONS.bell,
-  'tx-income': () => '<svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
-  'tx-expense': () => '<svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>',
-};
-function notifShowBanner(n){
-  const box = $('norteBanners'); if (!box) return;
-  while (box.children.length >= 3) box.firstElementChild.remove();
-  const el = document.createElement('div');
-  el.className = 'nb nb-' + (n.kind || 'info');
-  const icon = (NOTIF_KIND_ICON[n.kind] || NOTIF_KIND_ICON.info)();
-  el.innerHTML = `<div class="nb-head"><span class="nb-app"><i>N</i>Norte</span><span class="nb-time">agora</span></div>
-    <div class="nb-main"><div class="nb-ico">${icon}</div><div class="nb-txt"><div class="nb-title">${escapeHtml(n.title)}</div><div class="nb-body">${escapeHtml(n.body || '')}</div></div></div>
-    ${n.view ? '<div class="nb-actions"><button type="button" data-nb="open">Ver</button><button type="button" data-nb="close">Dispensar</button></div>' : ''}
-    <div class="nb-bar"></div>`;
-  box.appendChild(el);
-  let gone = false;
-  const close = () => { if (gone) return; gone = true; el.classList.add('out'); setTimeout(() => el.remove(), 320); };
-  const timer = setTimeout(close, 8000);
-  el.addEventListener('click', (e) => {
-    const act = e.target.closest('[data-nb]');
-    if (act && act.dataset.nb === 'close'){ clearTimeout(timer); close(); return; }
-    if (n.view && (!act || act.dataset.nb === 'open')){ clearTimeout(timer); close(); switchView(n.view); }
-  });
-  let y0 = null;
-  el.addEventListener('touchstart', (e) => { y0 = e.touches[0].clientY; clearTimeout(timer); }, { passive: true });
-  el.addEventListener('touchmove', (e) => { if (y0 === null) return; const dy = Math.min(0, e.touches[0].clientY - y0); el.style.transform = `translateY(${dy}px)`; el.style.opacity = String(1 + dy / 140); }, { passive: true });
-  el.addEventListener('touchend', () => { if (y0 === null) return; const m = /translateY\((-?[\d.]+)px\)/.exec(el.style.transform); y0 = null; if (m && Number(m[1]) < -40) close(); else { el.style.transform = ''; el.style.opacity = ''; setTimeout(close, 4000); } });
-}
 async function notifShowSystem(n){
   if (!('Notification' in window) || Notification.permission !== 'granted') return false;
   const opts = {
@@ -6600,13 +6549,11 @@ async function notifShowSystem(n){
   } catch (e){}
   try { new Notification(n.title, opts); return true; } catch (e){ return false; }
 }
+// Só notificação do sistema (barra de notificações / tela de bloqueio / pop-up).
+// Nada aparece "dentro" do app; o histórico fica guardado no sininho.
 async function norteNotify(n){
   notifLogAdd(n);
-  const prefs = notifPrefs();
-  const visible = document.visibilityState === 'visible';
-  if (visible) notifShowBanner(n);
-  if (!visible || prefs.systemWhileOpen || n.forceSystem) await notifShowSystem(n);
-  if (visible && !n.silent && typeof playReminderSound === 'function') playReminderSound();
+  return notifShowSystem(n);
 }
 
 /* ---- Verificação dos vencimentos ---- */
@@ -6805,6 +6752,38 @@ function notifTimeAgo(ts){
   const d = Math.round(h / 24);
   return d === 1 ? 'ontem' : `há ${d} dias`;
 }
+function notifFriendlyErr(){
+  const e = notifPushErr || '';
+  if (/push_subscriptions|push_schedule/.test(e) && /(does not exist|schema cache|relation|Could not find)/i.test(e)) return 'Falta criar as tabelas no Supabase: rode o arquivo norte_push_setup.sql (passo 1 do guia).';
+  if (/row-level security|violates/i.test(e)) return 'O Supabase recusou gravar (política de segurança). Rode de novo o norte_push_setup.sql.';
+  if (/permission|NotAllowed|denied/i.test(e)) return 'O navegador não permitiu criar a inscrição de push. Confira se as notificações estão ligadas para o app nas configurações do Android.';
+  return e || 'Não consegui ativar o envio com o app fechado.';
+}
+let notifAskNote = '';
+const notifIsAndroid = () => /Android/i.test(navigator.userAgent);
+// Pede a permissão. Se o navegador não mostrar o pedido (acontece em alguns Android),
+// tenta pelo pedido de push, que no Chrome/Edge também dispara a permissão.
+async function notifAskPermission(){
+  const t0 = Date.now();
+  let perm = await new Promise((resolve) => {
+    let done = false; const fin = (v) => { if (!done){ done = true; resolve(v); } };
+    try { const r = Notification.requestPermission(fin); if (r && r.then) r.then(fin, () => fin(Notification.permission)); }
+    catch (err){ fin(Notification.permission); }
+    setTimeout(() => fin(Notification.permission), 45000);
+  });
+  const quick = Date.now() - t0 < 800;
+  if (perm === 'default' && 'serviceWorker' in navigator && 'PushManager' in window && VAPID_PUBLIC_KEY.indexOf('__') !== 0){
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: notifB64ToBytes(VAPID_PUBLIC_KEY) });
+    } catch (err){}
+    perm = Notification.permission;
+  }
+  notifAskNote = perm === 'granted' ? '' : (perm === 'denied'
+    ? 'O navegador respondeu "bloqueado".'
+    : (quick ? 'O Android/navegador não chegou a mostrar o pedido de permissão.' : 'Você fechou o pedido sem permitir.'));
+  return perm;
+}
 function notifPushStatusKind(){
   const p = notifPermState();
   if (p === 'unsupported') return 'unsupported';
@@ -6825,6 +6804,7 @@ function notifDiagnostics(){
     'aparelho inscrito no servidor: ' + (notifPushOk ? 'sim' : 'não'),
     'chave do push: ' + ((VAPID_PUBLIC_KEY && VAPID_PUBLIC_KEY.indexOf('__') !== 0) ? 'ok' : 'NÃO configurada'),
   ];
+  if (notifAskNote) lines.push('último pedido de permissão: ' + notifAskNote);
   if (notifPushErr) lines.push('último erro: ' + notifPushErr);
   lines.push('navegador: ' + navigator.userAgent.replace(/\s+/g, ' ').slice(0, 110));
   return lines.join('\n');
@@ -6840,11 +6820,12 @@ function openNotifModal(){
     const box = (cls, title, sub, btn) => `<div class="nm-status ${cls}"><div class="nm-st-ico">${ICONS.bell}</div><div style="flex:1;"><b>${title}</b><div class="nm-st-sub">${sub}</div></div>${btn || ''}</div>`;
     if (waiting) return box('', 'Aguardando você permitir…', 'Olhe o aviso do navegador (pode aparecer lá em cima ou na barra de endereço) e toque em <b>Permitir</b>.') + ios;
     if (k === 'unsupported') return box('off', 'Sem suporte neste navegador', 'Os avisos dentro do app continuam funcionando.') + ios;
-    if (k === 'denied') return box('off', 'Bloqueadas pelo navegador', 'Toque no cadeado (ao lado do endereço) → Permissões → Notificações → Permitir. Se o app estiver instalado: Configurações do Android → Apps → Norte → Notificações.') + ios;
-    if (k === 'default') return box('', 'Ainda não ativadas', 'Ative para receber avisos fora do app.', '<button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button>') + ios;
-    if (k === 'push') return box('on', 'Ativadas — chegam com o app fechado', 'Você recebe 2 dias antes, 1 dia antes e no dia do vencimento, mesmo sem abrir o Norte.') + '<div style="margin-top:8px;"><button class="btn btn-ghost btn-sm" data-nm="serverTest">Testar com o app fechado</button> <button class="btn btn-ghost btn-sm" data-nm="disable">Desativar neste aparelho</button></div>';
+    if (k === 'denied') return box('off', 'Bloqueadas neste aparelho', 'Abra as Configurações do Android → Apps → Norte (ou Microsoft Edge) → Notificações e permita. No navegador: cadeado ao lado do endereço → Permissões → Notificações.', '<button class="btn btn-ghost btn-sm" data-nm="enable">Tentar de novo</button>') + ios;
+    const androidHelp = notifAskNote ? `<div class="nm-help"><b>${escapeHtml(notifAskNote)}</b>${notifIsAndroid() ? `<ol><li>Abra as <b>Configurações do Android</b> → <b>Apps</b> → <b>Norte</b> (ou <b>Microsoft Edge</b>) → <b>Notificações</b> e deixe ligado / permitido.</li><li>Volte aqui e toque em <b>Ativar</b> de novo.</li></ol>` : ''}</div>` : '';
+    if (k === 'default') return box('', 'Ainda não ativadas', 'Ative para receber avisos fora do app.', '<button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button>') + androidHelp + ios;
+    if (k === 'push') return box('on', 'Ativadas — chegam com o app fechado', 'Você recebe 2 dias antes, 1 dia antes e no dia do vencimento, mesmo sem abrir o Norte.') + '<div style="margin-top:8px;"><button class="btn btn-ghost btn-sm" data-nm="disable">Desativar neste aparelho</button></div>';
     if (k === 'nologin') return box('on', 'Ativadas só com o app aberto', 'Entre na sua conta (nuvem) para receber também com o app fechado.');
-    if (k === 'pusherr') return box('on', 'Ativadas, mas o envio com o app fechado falhou', escapeHtml(notifPushErr || 'Tente de novo.'), '<button class="btn btn-ghost btn-sm" data-nm="retry">Tentar de novo</button>');
+    if (k === 'pusherr') return box('on', 'Ativadas, mas o envio com o app fechado falhou', escapeHtml(notifFriendlyErr()), '<button class="btn btn-ghost btn-sm" data-nm="retry">Tentar de novo</button>');
     return box('on', 'Ativadas neste aparelho', 'Chegam na barra de notificações enquanto o app estiver aberto ou em segundo plano.');
   };
   const hourOpts = Array.from({ length: 16 }, (_, i) => i + 6).map(h => `<option value="${h}" ${h === prefs.hour ? 'selected' : ''}>${notifPad(h)}:00</option>`).join('');
@@ -6860,7 +6841,6 @@ function openNotifModal(){
       ${toggle('nmDayBefore', '1 dia antes do vencimento', 'Ex.: "Amanhã vence: Curso · parcela 1/6"', prefs.dayBefore)}
       ${toggle('nmDayOf', 'No dia do vencimento', 'Ex.: "Hoje vence: Aluguel · débito automático"', prefs.dayOf)}
       ${toggle('nmNewTx', 'Quando eu adicionar uma transação', 'Receita ou despesa nova', prefs.newTx)}
-      ${toggle('nmSysOpen', 'Também como notificação do sistema com o app aberto', 'Aparece em pop-up mesmo enquanto você usa o Norte', prefs.systemWhileOpen)}
       <div class="nm-toggle" style="cursor:default;"><div><div class="nm-tl">Receber a partir das</div><div class="nm-ts">Não precisa ser exato: chega perto desse horário</div></div><select id="nmHour" class="nm-select">${hourOpts}</select></div>
       <h4 class="nm-h">Próximos vencimentos (7 dias)</h4>
       ${upHtml}
@@ -6868,13 +6848,13 @@ function openNotifModal(){
       <div style="margin-top:8px;">${logHtml}</div>
       <details class="nm-diag"><summary>Diagnóstico (se algo não funcionar)</summary><pre id="nmDiag">${escapeHtml(notifDiagnostics())}</pre></details>
     </div>
-    <div class="modal-foot"><button class="btn btn-ghost" data-nm="test">Enviar teste</button><button class="btn btn-primary" data-action="close">Fechar</button></div>`);
+    <div class="modal-foot"><button class="btn btn-ghost" data-nm="test">Enviar teste com app fechado</button><button class="btn btn-primary" data-action="close">Fechar</button></div>`);
   const root = $('modalContent');
   const refreshStatus = (waiting) => { const st = $('nmStatus'); if (st) st.innerHTML = statusHtml(waiting); const dg = $('nmDiag'); if (dg) dg.textContent = notifDiagnostics(); };
   const saveFromUi = () => {
     notifSavePrefs({
       twoDays: root.querySelector('#nmTwoDays').checked, dayBefore: root.querySelector('#nmDayBefore').checked, dayOf: root.querySelector('#nmDayOf').checked,
-      newTx: root.querySelector('#nmNewTx').checked, systemWhileOpen: root.querySelector('#nmSysOpen').checked,
+      newTx: root.querySelector('#nmNewTx').checked,
       hour: Number(root.querySelector('#nmHour').value) || 9,
     });
     notifSyncSchedule(true); // leva as novas preferências pro servidor
@@ -6889,36 +6869,37 @@ function openNotifModal(){
       try {
         if (!('Notification' in window)){ showToast('Este navegador não suporta notificações.'); return; }
         let perm = Notification.permission;
-        if (perm === 'default'){
+        if (perm !== 'granted'){
           refreshStatus(true);
-          const hint = setTimeout(() => showToast('Não apareceu o pedido? Veja o ícone de sino na barra de endereço.', 6000), 3500);
-          perm = await new Promise((resolve) => {
-            let done = false; const fin = (v) => { if (!done){ done = true; resolve(v); } };
-            try { const r = Notification.requestPermission(fin); if (r && r.then) r.then(fin, () => fin(Notification.permission)); }
-            catch (err){ fin(Notification.permission); }
-          });
-          clearTimeout(hint);
+          perm = await notifAskPermission();
         }
         if (perm === 'granted'){
           notifRegisterPeriodic();
           const ok = await notifPushSubscribe();
           refreshStatus(false);
-          await notifShowSystem({ title: 'Notificações ativadas', body: ok ? 'Tudo certo! Você será avisado antes dos vencimentos, mesmo com o app fechado.' : 'Ativadas. Para receber com o app fechado, entre na sua conta.', tag: 'norte-welcome', view: null });
-          showToast(ok ? 'Notificações ativadas!' : (notifPushErr || 'Notificações ativadas neste aparelho.'), 4500);
+          await notifShowSystem({ title: 'Notificações ativadas', body: ok ? 'Tudo certo! Você será avisado antes dos vencimentos, mesmo com o app fechado.' : 'Ativadas neste aparelho.', tag: 'norte-welcome', view: null });
+          showToast(ok ? 'Notificações ativadas!' : notifFriendlyErr(), 6000);
         } else {
           refreshStatus(false);
-          showToast(perm === 'denied' ? 'O navegador bloqueou. Veja as instruções no quadro.' : 'A permissão não foi concedida.', 5000);
+          showToast(notifAskNote || 'A permissão não foi concedida.', 6000);
         }
-      } catch (err){ refreshStatus(false); showToast('Erro ao pedir a permissão: ' + ((err && err.message) || err), 6000); }
+      } catch (err){ refreshStatus(false); showToast('Erro ao pedir a permissão: ' + ((err && err.message) || err), 7000); }
     } else if (act === 'test'){
-      norteNotify({ kind: 'due-tomorrow', title: 'Amanhã vence: Exemplo de conta', body: 'R$ 120,00 · parcela 1/6 · fique atento', tag: 'norte-test-' + Date.now(), view: 'fixedbills', forceSystem: true });
-      if (Notification.permission !== 'granted') showToast('Teste mostrado no app. Ative as notificações para ver também na barra do celular.', 5000);
-    } else if (act === 'serverTest'){
-      if (!SUPA_ON || !currentUser){ showToast('Entre na sua conta primeiro.'); return; }
-      showToast('Pronto! Feche o app agora — em uns 20 segundos deve chegar uma notificação.', 7000);
+      // teste completo: o SERVIDOR manda a notificação depois de 20 s, com o app fechado
+      if (!('Notification' in window) || Notification.permission !== 'granted'){ showToast('Primeiro toque em "Ativar" e permita as notificações.', 5000); return; }
+      if (!SUPA_ON || !currentUser){ showToast('Entre na sua conta (nuvem) para testar com o app fechado.', 6000); return; }
+      if (!notifPushOk){
+        const ok = await notifPushSubscribe(); refreshStatus(false);
+        if (!ok){ showToast(notifFriendlyErr(), 9000); return; }
+      }
+      showToast('Pronto! FECHE o app agora. Em uns 20 segundos deve chegar uma notificação.', 9000);
       supa.functions.invoke('send-due-notifications', { body: { action: 'test', delaySeconds: 20 } }).then(({ data, error }) => {
-        if (error) showToast('Falha no servidor de avisos: ' + (error.message || error), 8000);
-        else if (data && data.sent === 0) showToast('O servidor respondeu, mas não achou este aparelho inscrito. Toque em "Tentar de novo".', 8000);
+        if (error){
+          const st = error.context && error.context.status;
+          showToast(st === 404 ? 'A função do servidor ainda não foi criada no Supabase (passo 2 do guia).' : 'Falha no servidor de avisos: ' + (error.message || error), 9000);
+        } else if (data && data.sent === 0){
+          showToast('O servidor respondeu, mas não achou este aparelho inscrito. Toque em "Tentar de novo".', 9000);
+        }
       });
     } else if (act === 'disable'){
       await notifPushUnsubscribe(); refreshStatus(false); showToast('Avisos com o app fechado desativados neste aparelho.');
