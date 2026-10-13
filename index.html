@@ -6843,7 +6843,7 @@ function openNotifModal(){
     if (k === 'denied') return box('off', 'Bloqueadas neste aparelho', 'Abra as Configurações do Android → Apps → Norte (ou Microsoft Edge) → Notificações e permita. No navegador: cadeado ao lado do endereço → Permissões → Notificações.', '<button class="btn btn-ghost btn-sm" data-nm="enable">Tentar de novo</button>') + ios;
     const androidHelp = notifAskNote ? `<div class="nm-help"><b>${escapeHtml(notifAskNote)}</b>${notifIsAndroid() ? `<ol><li>Abra as <b>Configurações do Android</b> → <b>Apps</b> → <b>Norte</b> (ou <b>Microsoft Edge</b>) → <b>Notificações</b> e deixe ligado / permitido.</li><li>Volte aqui e toque em <b>Ativar</b> de novo.</li></ol>` : ''}</div>` : '';
     if (k === 'default') return box('', 'Ainda não ativadas', 'Ative para receber avisos fora do app.', '<button class="btn btn-primary btn-sm" data-nm="enable">Ativar</button>') + androidHelp + ios;
-    if (k === 'push') return box('on', 'Ativadas — chegam com o app fechado', 'Você recebe 2 dias antes, 1 dia antes e no dia do vencimento, mesmo sem abrir o Norte.') + '<div style="margin-top:8px;"><button class="btn btn-ghost btn-sm" data-nm="disable">Desativar neste aparelho</button></div>';
+    if (k === 'push') return box('on', 'Ativadas — chegam com o app fechado', 'Você recebe 2 dias antes, 1 dia antes e no dia do vencimento, mesmo sem abrir o Norte.') + '<div style="margin-top:8px;"><button class="btn btn-ghost btn-sm" data-nm="disable">Desativar neste aparelho</button> <button class="btn btn-ghost btn-sm" data-nm="others">Remover outros navegadores</button><div style="font-size:12px;opacity:.75;margin-top:6px;">Chegando aviso repetido? Provavelmente o Norte está ativado em mais de um navegador (ex.: Chrome e Edge). Use "Remover outros navegadores" para ficar só com este.</div></div>';
     if (k === 'nologin') return box('on', 'Ativadas só com o app aberto', 'Entre na sua conta (nuvem) para receber também com o app fechado.');
     if (k === 'pusherr'){
       const svc = /push service error|AbortError/i.test(notifPushErr);
@@ -6919,7 +6919,9 @@ function openNotifModal(){
       }
       showToast('Pronto! FECHE o app agora. Em uns 20 segundos deve chegar uma notificação.', 9000);
       notifServerNote = '';
-      supa.functions.invoke('send-due-notifications', { body: { action: 'test', delaySeconds: 20 } }).then(async ({ data, error }) => {
+      let myEp = '';
+      try { const rg = await navigator.serviceWorker.ready; const sb = await rg.pushManager.getSubscription(); if (sb) myEp = sb.endpoint; } catch (e0){}
+      supa.functions.invoke('send-due-notifications', { body: { action: 'test', delaySeconds: 20, endpoint: myEp } }).then(async ({ data, error }) => {
         if (error){
           let detail = '';
           try { if (error.context && typeof error.context.json === 'function'){ const j = await error.context.json(); detail = (j && (j.error || j.message)) || ''; } } catch (e2){}
@@ -6936,6 +6938,15 @@ function openNotifModal(){
           showToast('O servidor respondeu, mas não achou este aparelho inscrito. Toque em "Tentar de novo".', 9000);
         } else { notifServerNote = 'servidor respondeu ok (enviado: ' + ((data && data.sent) || 0) + ')'; }
       });
+    } else if (act === 'others'){
+      try {
+        const rg = await navigator.serviceWorker.ready; const sb = await rg.pushManager.getSubscription();
+        if (!sb || !SUPA_ON || !currentUser){ showToast('Ative os avisos neste navegador primeiro.', 5000); return; }
+        const { data, error } = await supa.from('push_subscriptions').delete().eq('user_id', currentUser.id).neq('endpoint', sb.endpoint).select('endpoint');
+        if (error) throw error;
+        const n = (data || []).length;
+        showToast(n ? ('Removidos ' + n + ' outro(s) navegador(es). Agora o aviso chega só neste.') : 'Não havia outros navegadores inscritos.', 6000);
+      } catch (err){ showToast('Não consegui remover: ' + ((err && err.message) || err), 7000); }
     } else if (act === 'disable'){
       await notifPushUnsubscribe(); refreshStatus(false); showToast('Avisos com o app fechado desativados neste aparelho.');
     } else if (act === 'clear'){
