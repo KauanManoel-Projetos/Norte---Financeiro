@@ -810,6 +810,47 @@ tr:hover td{background:var(--surface-2);}
 @media(max-width:560px){ .pet-card{grid-template-columns:120px 1fr; gap:12px; padding:14px;} .pet-name{font-size:21px;} .pet-invite{grid-template-columns:100px 1fr;} .pet-bubble{font-size:12.5px; padding:8px 11px;} .pet-strip-cell .nm{font-size:10px;} }
 @media(max-width:420px){ .pet-card{grid-template-columns:1fr;} .pet-stage{max-width:150px;} .pet-bubble::before{display:none;} .pet-invite{grid-template-columns:1fr;} }
 
+/* ===== Bichinho: widget pequeno no canto + painel ao tocar ===== */
+.dash-corner{display:flex; align-items:center; gap:10px; flex:0 0 auto;}
+.pet-wrap{position:relative; flex:0 0 auto;}
+.pet-widget{position:relative; z-index:30; width:56px; height:56px;}
+.pet-widget .pet-stage{width:56px; height:56px; max-width:none; margin:0; padding:3px; box-sizing:border-box; border-radius:50%; cursor:pointer;
+  background:radial-gradient(circle at 50% 38%, var(--accent-soft), var(--surface) 78%); border:2px solid var(--accent);
+  box-shadow:0 4px 14px rgba(0,0,0,.28), 0 0 0 4px var(--accent-soft); transition:border-color .5s var(--ease), box-shadow .3s var(--ease), transform .2s var(--ease);}
+.pet-widget .pet-stage:hover{transform:scale(1.06);}
+.pet-widget .pet-stage:active{transform:scale(.96);}
+.pet-widget[data-mood="radiant"] .pet-stage{border-color:#FFD670;}
+.pet-widget[data-mood="joy"] .pet-stage{border-color:#4ADE80;}
+.pet-widget[data-mood="worried"] .pet-stage, .pet-widget[data-mood="grumpy"] .pet-stage{border-color:#FF6B6B;}
+.pet-widget[data-mood="sleepy"] .pet-stage{border-color:#7F96FF;}
+.pet-widget .pet-float{white-space:nowrap; top:-6px;}
+.pet-lvl-badge{position:absolute; right:-7px; bottom:-5px; z-index:2; pointer-events:none; font-size:10px; font-weight:800; line-height:1; padding:3px 6px; border-radius:999px; background:var(--accent); color:var(--accent-ink); border:2px solid var(--bg, var(--surface));}
+.pet-plus{position:absolute; right:-5px; bottom:-3px; z-index:2; pointer-events:none; width:20px; height:20px; border-radius:50%; background:var(--accent); color:var(--accent-ink); font-weight:800; font-size:15px; line-height:19px; text-align:center; animation:pet-plus-pulse 1.8s ease-in-out infinite;}
+@keyframes pet-plus-pulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.18);}}
+.pet-panel{display:none; position:absolute; top:calc(100% + 12px); right:0; z-index:50; width:min(340px, calc(100vw - 32px)); flex-direction:column; gap:12px; padding:16px; border-radius:var(--radius-m);
+  background:var(--surface); border:1px solid var(--border); box-shadow:0 18px 44px rgba(0,0,0,.38); animation:pet-pop .25s var(--ease);}
+.pet-panel::before{content:''; position:absolute; top:-7px; right:22px; width:12px; height:12px; background:var(--surface); border-left:1px solid var(--border); border-top:1px solid var(--border); transform:rotate(45deg);}
+.pet-widget.open .pet-panel{display:flex;}
+.pet-panel-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.pet-panel .pet-name{font-size:22px;}
+.pet-panel .pet-bubble::before{display:none;}
+.pet-panel .pet-next{font-size:12px; color:var(--text-dim); margin-top:7px; line-height:1.45;}
+.pet-panel-actions{display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;}
+.pet-x{flex:0 0 auto;}
+@media(max-width:380px){ .dash-corner{gap:8px;} .pet-widget, .pet-widget .pet-stage{width:50px; height:50px;} }
+@media (prefers-reduced-motion:reduce){ .pet-plus, .pet-panel{animation:none !important;} }
+
+/* ===== Botão Despesas / Receitas do gráfico por categoria ===== */
+.chart-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px 12px; flex-wrap:wrap; margin-bottom:12px;}
+.chart-head h4{margin:0 !important; padding-top:6px;}
+.seg-mini{display:inline-flex; gap:2px; padding:3px; flex:0 0 auto; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:999px;}
+.seg-mini-btn{border:0; background:transparent; color:var(--text-dim); font:inherit; font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; transition:background .2s var(--ease), color .2s var(--ease); -webkit-tap-highlight-color:transparent;}
+.seg-mini-btn:hover{color:var(--text);}
+.seg-mini-btn.active[data-catmode="expense"]{background:var(--negative); color:#fff;}
+.seg-mini-btn.active[data-catmode="income"]{background:var(--positive); color:#fff;}
+[data-theme="dark"] .seg-mini-btn.active[data-catmode="income"]{color:#06220f;}
+.seg-mini-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
 /* Modal */
 .modal-backdrop{position:fixed; inset:0; background:var(--scrim); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; backdrop-filter:blur(6px);}
 .modal-backdrop.show{display:flex;}
@@ -1041,9 +1082,11 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova transação
           </button>
-          <button class="btn btn-ghost btn-sm" id="numbersOnlyToggle">Só números</button>
+          <div class="dash-corner">
+            <button class="btn btn-ghost btn-sm" id="numbersOnlyToggle">Só números</button>
+            <div id="petCard" class="pet-wrap"></div>
+          </div>
         </div>
-        <div id="petCard"></div>
         <div class="grid grid-2">
           <div class="balance-hero">
             <div class="balance-hero-head">
@@ -1116,7 +1159,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         <div id="dashboardCharts">
         <div class="grid grid-2" style="margin-top:6px;">
           <div class="card chart-card"><h4>Fluxo de caixa — últimos 6 meses</h4><div class="chart-wrap"><canvas id="chartCashflow"></canvas></div></div>
-          <div class="card chart-card"><h4>Despesas por categoria (mês atual)</h4><div class="chart-wrap"><canvas id="chartCategory"></canvas><div class="empty-state" id="chartCategoryEmpty" style="display:none; padding:30px 10px;"><svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg><p>Sem despesas neste mês.</p></div></div></div>
+          <div class="card chart-card"><div class="chart-head"><h4 id="chartCategoryTitle">Despesas por categoria (mês atual)</h4><div class="seg-mini" role="group" aria-label="Tipo de categoria"><button type="button" class="seg-mini-btn active" data-catmode="expense" aria-pressed="true">Despesas</button><button type="button" class="seg-mini-btn" data-catmode="income" aria-pressed="false">Receitas</button></div></div><div class="chart-wrap"><canvas id="chartCategory"></canvas><div class="empty-state" id="chartCategoryEmpty" style="display:none; padding:30px 10px;"><svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg><p id="chartCategoryEmptyTxt">Sem despesas neste mês.</p></div></div></div>
         </div>
         <div class="grid" style="margin-top:16px;">
           <div class="card chart-card"><h4>Patrimônio líquido — últimos 6 meses</h4><div class="chart-wrap"><canvas id="chartNetworth"></canvas></div></div>
@@ -2871,27 +2914,7 @@ function renderDashboard(){
       options: baseChartOpts(th, true)
     });
 
-    destroyChart('chartCategory');
-    const catTotals = {};
-    state.transactions.filter(t => t.type === 'expense' && monthKey(t.date) === ym).forEach(t => {
-      catTotals[t.categoryId] = (catTotals[t.categoryId]||0) + Number(t.value);
-    });
-    const catIds = Object.keys(catTotals);
-    if (catIds.length){
-      $('chartCategoryEmpty').style.display = 'none';
-      $('chartCategory').style.display = '';
-      charts.chartCategory = new Chart($('chartCategory'), {
-        type: 'doughnut',
-        data: {
-          labels: catIds.map(id => categoryById(id) ? categoryDisplayName(categoryById(id)) : 'Sem categoria'),
-          datasets: [{ data: catIds.map(id => catTotals[id]), backgroundColor: catIds.map(id => categoryById(id)?.color || '#999'), borderWidth: 0 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { color: th.text, boxWidth: 10, font:{size:11} } } } }
-      });
-    } else {
-      $('chartCategory').style.display = 'none';
-      $('chartCategoryEmpty').style.display = '';
-    }
+    renderCategoryDonut(ym);
 
     destroyChart('chartNetworth');
     if ($('chartNetworth')) {
@@ -3973,6 +3996,64 @@ const PET_REACT_LINES = {
 };
 
 /* ---- Animação: olhar, brincadeiras, efeitos ---- */
+/* ---- Gráfico "por categoria" do dashboard: alterna Despesas / Receitas ---- */
+let catChartMode = 'expense';
+try { if (localStorage.getItem('norte_cat_chart_mode') === 'income') catChartMode = 'income'; } catch (e){}
+function renderCategoryDonut(ym){
+  const cv = $('chartCategory'); if (!cv) return;
+  const isInc = catChartMode === 'income';
+  document.querySelectorAll('[data-catmode]').forEach(b => {
+    const on = b.dataset.catmode === catChartMode;
+    b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const ttl = $('chartCategoryTitle'); if (ttl) ttl.textContent = (isInc ? 'Receitas' : 'Despesas') + ' por categoria (mês atual)';
+  const emp = $('chartCategoryEmptyTxt'); if (emp) emp.textContent = isInc ? 'Sem receitas neste mês.' : 'Sem despesas neste mês.';
+  destroyChart('chartCategory');
+  const th = chartTheme();
+  const catTotals = {};
+  state.transactions.filter(t => t.type === (isInc ? 'income' : 'expense') && monthKey(t.date) === ym).forEach(t => {
+    catTotals[t.categoryId] = (catTotals[t.categoryId] || 0) + Number(t.value);
+  });
+  const catIds = Object.keys(catTotals).sort((x, y) => catTotals[y] - catTotals[x]);
+  if (!catIds.length){ cv.style.display = 'none'; $('chartCategoryEmpty').style.display = ''; return; }
+  $('chartCategoryEmpty').style.display = 'none'; cv.style.display = '';
+  const total = catIds.reduce((sum, id) => sum + catTotals[id], 0);
+  const centerText = {
+    id: 'catCenterText',
+    afterDraw(chart){
+      const meta = chart.getDatasetMeta(0); if (!meta || !meta.data || !meta.data[0]) return;
+      const arc = meta.data[0], ctx = chart.ctx, cx = arc.x, cy = arc.y;
+      const r = arc.innerRadius || 0; if (r < 34) return;
+      const fs = Math.max(11, Math.min(17, Math.round(r * 0.22)));
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = getCss('--text') || th.text; ctx.font = '700 ' + fs + 'px system-ui, sans-serif';
+      ctx.fillText(fmtBRL(total), cx, cy + 6);
+      ctx.globalAlpha = .65; ctx.font = '600 ' + Math.max(10, fs - 5) + 'px system-ui, sans-serif';
+      ctx.fillText(isInc ? 'recebido' : 'gasto', cx, cy - fs * 0.85);
+      ctx.restore();
+    }
+  };
+  charts.chartCategory = new Chart(cv, {
+    type: 'doughnut',
+    data: {
+      labels: catIds.map(id => categoryById(id) ? categoryDisplayName(categoryById(id)) : 'Sem categoria'),
+      datasets: [{ data: catIds.map(id => catTotals[id]), backgroundColor: catIds.map(id => categoryById(id)?.color || '#999'), borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { color: th.text, boxWidth: 10, font: { size: 11 } } },
+        tooltip: { callbacks: { label: (c) => ' ' + c.label + ': ' + fmtBRL(c.parsed) + ' (' + Math.round(c.parsed / total * 100) + '%)' } } } },
+    plugins: [centerText]
+  });
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-catmode]'); if (!b) return;
+  const m = b.dataset.catmode === 'income' ? 'income' : 'expense';
+  if (m === catChartMode) return;
+  catChartMode = m;
+  try { localStorage.setItem('norte_cat_chart_mode', m); } catch (err){}
+  renderCategoryDonut(todayISO().slice(0, 7));
+});
+
 const petRT = { lastPointer: 0, ticking: false, trick: null, react: null, reactTimer: null, known: null, knownState: null };
 const PET_TRICKS = {
   dragon: ['tilt', 'flap', 'puff', 'wiggle'], fox: ['tilt', 'spin', 'wiggle', 'wag'], cat: ['tilt', 'wiggle', 'bow', 'wag'],
@@ -4120,6 +4201,21 @@ function petStageStripHtml(species, level){
     return `<div class="pet-strip-cell ${unlocked ? '' : 'locked'}">${petSvg(species, st, unlocked ? 'happy' : 'neutral', { cls: 'mini' })}<div class="nm">${escapeHtml(sp.stages[st])}</div><div class="lv">${lbl}</div></div>`;
   }).join('')}</div>`;
 }
+function petPanelSet(open, poke){
+  const w = $('petCardBox'), st = $('petStage'); if (!w) return;
+  petRT.panelOpen = !!open;
+  w.classList.toggle('open', !!open);
+  if (st && st.hasAttribute('aria-expanded')) st.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open && poke) petPoke(); // ao abrir, ele já faz uma festinha
+}
+function petBindPanelOutside(){
+  if (petRT.docBound) return; petRT.docBound = true;
+  document.addEventListener('click', (e) => {
+    if (!petRT.panelOpen) return;
+    const w = $('petCardBox'); if (w && !w.contains(e.target)) petPanelSet(false);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && petRT.panelOpen) petPanelSet(false); });
+}
 function renderPetCard(){
   const wrap = $('petCard'); if (!wrap) return;
   if (numbersOnlyMode){ petDetectReaction(); wrap.classList.add('hidden'); return; }
@@ -4129,14 +4225,11 @@ function renderPetCard(){
     petDetectReaction();
     if (wrap.dataset.key !== 'invite'){
       wrap.dataset.key = 'invite'; wrap.dataset.svg = '';
-      wrap.innerHTML = `<div class="card pet-card pet-invite">
-        <div class="pet-stage" id="petStage">${petSvg('dragon', 0, 'happy')}</div>
-        <div class="pet-info">
-          <div class="pet-name">Adote um bichinho</div>
-          <p class="pet-invite-txt">Ele cresce, evolui e fica animado conforme você cuida das suas contas: lança, paga em dia e mantém a saúde financeira boa.</p>
-          <div><button class="btn btn-primary btn-sm" id="petAdoptBtn">Escolher meu bichinho</button></div>
-        </div></div>`;
-      $('petAdoptBtn').addEventListener('click', () => openPetModal(false));
+      wrap.innerHTML = `<div class="pet-widget pet-invite-w" id="petCardBox" data-mood="egg">
+        <div class="pet-stage" id="petStage" title="Adote um bichinho" role="button" tabindex="0" aria-label="Adotar um bichinho">${petSvg('dragon', 0, 'happy')}</div>
+        <span class="pet-plus" aria-hidden="true">+</span></div>`;
+      $('petStage').addEventListener('click', () => openPetModal(false));
+      $('petStage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openPetModal(false); } });
     }
     return;
   }
@@ -4164,18 +4257,24 @@ function renderPetCard(){
 
   if (!mounted){
     wrap.dataset.key = 'pet'; wrap.dataset.svg = '';
-    wrap.innerHTML = `<div class="card pet-card" id="petCardBox">
-      <div class="pet-stage" id="petStage" title="Toque para fazer carinho" role="button" tabindex="0" aria-label="Fazer carinho no bichinho"></div>
-      <div class="pet-info">
-        <div class="pet-top"><div><div class="pet-name" id="petName"></div><div class="pet-sub" id="petSub"></div></div>
-          <button class="btn btn-ghost btn-sm" id="petMenuBtn">Meu bichinho</button></div>
+    wrap.innerHTML = `<div class="pet-widget" id="petCardBox">
+      <div class="pet-stage" id="petStage" title="Toque para ver o bichinho" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-controls="petPanel" aria-label="Abrir o painel do bichinho"></div>
+      <span class="pet-lvl-badge" id="petLvlBadge"></span>
+      <div class="pet-panel" id="petPanel" role="dialog" aria-label="Meu bichinho">
+        <div class="pet-panel-head"><div style="min-width:0;"><div class="pet-name" id="petName"></div><div class="pet-sub" id="petSub"></div></div>
+          <button class="btn btn-icon btn-ghost pet-x" id="petCloseBtn" aria-label="Fechar">✕</button></div>
         <div class="pet-bubble pop" id="petBubble"></div>
         <div class="pet-xp"><div class="pet-xp-top"><span id="petLvl"></span><span id="petXpTxt"></span></div><div class="pet-xp-track"><div class="pet-xp-fill" id="petXpBar"></div></div><div class="pet-next" id="petNext"></div></div>
         <div class="pet-chips"><span class="pet-chip" id="petStreakChip"></span><span class="pet-chip" id="petMoodChip"></span></div>
+        <div class="pet-panel-actions"><button class="btn btn-ghost btn-sm" id="petPokeBtn">Fazer carinho</button><button class="btn btn-ghost btn-sm" id="petMenuBtn">Meu bichinho</button></div>
       </div></div>`;
-    $('petStage').addEventListener('click', petPoke);
-    $('petStage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); petPoke(); } });
-    $('petMenuBtn').addEventListener('click', () => openPetModal(true));
+    petPanelSet(!!petRT.panelOpen);
+    $('petStage').addEventListener('click', () => petPanelSet(!petRT.panelOpen, true));
+    $('petStage').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); petPanelSet(!petRT.panelOpen, true); } });
+    $('petCloseBtn').addEventListener('click', () => { petPanelSet(false); const st = $('petStage'); if (st) st.focus({ preventScroll: true }); });
+    $('petPokeBtn').addEventListener('click', petPoke);
+    $('petMenuBtn').addEventListener('click', () => { petPanelSet(false); openPetModal(true); });
+    petBindPanelOutside();
   }
   const key = `${p.species}|${stage}|${mood}`;
   if (wrap.dataset.svg !== key){
@@ -4192,6 +4291,7 @@ function renderPetCard(){
   $('petName').textContent = p.name || sp.defaultName;
   $('petSub').textContent = sp.stages[stage];
   $('petLvl').textContent = 'Nível ' + level;
+  $('petLvlBadge').textContent = 'Nv ' + level;
   $('petXpTxt').textContent = `${xp - b.from} / ${b.to - b.from} XP`;
   $('petXpBar').style.width = pct + '%';
   $('petXpBar').title = `Total: ${xp} XP`;
