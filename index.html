@@ -316,6 +316,39 @@ body.readonly-mode .fab{display:none !important;}
 .balance-hero .kpi-icon .icon{width:23px; height:23px;}
 .balance-hero-head{display:flex; align-items:center; justify-content:space-between; position:relative;}
 
+/* ===== Saldo total: contas dentro do card ===== */
+.balance-hero .value.neg{color:var(--negative);}
+.hero-accs{--hk-checking:#3D6FD8; --hk-savings:#1E8E5A; --hk-invest:#8A55C9; --hk-wallet:#B27A12; --hk-other:var(--text-dim);
+  position:relative; margin-top:26px; padding-top:18px; border-top:1px solid var(--border-soft); text-align:left;}
+[data-theme="dark"] .hero-accs{--hk-checking:#7FA6FF; --hk-savings:#4ADE9A; --hk-invest:#C39BFF; --hk-wallet:#F0C060;}
+.hero-accs-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);}
+.hero-accs-link{border:0; background:transparent; color:var(--accent); font:inherit; font-size:12px; font-weight:700; letter-spacing:.02em; text-transform:none; cursor:pointer; padding:6px 2px; -webkit-tap-highlight-color:transparent;}
+.hero-accs-link:hover{text-decoration:underline;}
+.hacc-bar{display:flex; gap:3px; height:8px; border-radius:999px; overflow:hidden; margin-bottom:14px; background:var(--surface-2);}
+.hacc-seg{min-width:6px; border-radius:999px; transition:flex-grow .5s var(--ease);}
+.hacc-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px;}
+.hacc{display:flex; align-items:center; gap:12px; width:100%; min-width:0; text-align:left; font:inherit; color:inherit; padding:11px 12px; border-radius:16px; border:1px solid var(--border-soft); background:var(--surface); cursor:pointer;
+  transition:transform .15s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease); -webkit-tap-highlight-color:transparent;}
+.hacc:hover{border-color:var(--accent); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.12);}
+.hacc:active{transform:scale(.985);}
+.hacc.zero{opacity:.6;}
+.hacc-logo{position:relative; overflow:hidden; flex:none; width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; background:var(--accent-soft); color:var(--accent);}
+.hacc-logo .icon{width:21px; height:21px; stroke-width:1.7;}
+.hacc-logo.hacc-k-wallet{background:rgba(212,169,62,.16); color:var(--hk-wallet);}
+.hacc-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px;}
+.hacc-name{display:flex; align-items:flex-start; gap:6px; min-width:0; font-size:14px; font-weight:600; line-height:1.2;}
+.hacc-name b{font-weight:600; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere;}
+.hacc-dot{flex:none; width:8px; height:8px; border-radius:50%; margin-top:4px;}
+.hacc-meta{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-faint); line-height:1;}
+.hacc-pill{display:inline-flex; align-items:center; gap:4px; padding:3px 7px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; line-height:1; color:var(--pc); background:color-mix(in srgb, var(--pc) 14%, transparent);}
+.hacc-pill .icon{width:11px; height:11px; stroke-width:2;}
+.hacc-p-checking{--pc:var(--hk-checking);} .hacc-p-savings{--pc:var(--hk-savings);} .hacc-p-invest{--pc:var(--hk-invest);} .hacc-p-wallet{--pc:var(--hk-wallet);} .hacc-p-other{--pc:var(--hk-other);}
+.hacc-bal{flex:none; font-family:var(--font-mono); font-size:14.5px; font-weight:600; white-space:nowrap;}
+.hacc-bal.neg{color:var(--negative);}
+.hacc-more{justify-content:center; gap:8px; color:var(--accent); font-weight:700; font-size:13px; min-height:66px; background:transparent; border-style:dashed;}
+@media(max-width:600px){ #saldoHero{padding:26px 18px 20px;} .hero-accs{margin-top:22px;} .hacc-list{grid-template-columns:minmax(0,1fr);} }
+@media (prefers-reduced-motion:reduce){ .hacc, .hacc-seg{transition:none;} }
+
 .chart-card{padding:22px;}
 .chart-card h4{font-size:12.5px; margin-bottom:16px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint);}
 .chart-wrap{position:relative; height:230px;}
@@ -1088,7 +1121,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
           </div>
         </div>
         <div class="grid grid-2">
-          <div class="balance-hero">
+          <div class="balance-hero" id="saldoHero">
             <div class="balance-hero-head">
               <div class="label">Saldo total</div>
               <div class="kpi-icon" style="position:relative;">
@@ -1096,6 +1129,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
               </div>
             </div>
             <div class="value num" id="heroBalance">R$ 0,00</div>
+            <div class="hero-accs hidden" id="heroAccs"></div>
           </div>
           <div class="card kpi" style="display:flex; flex-direction:column; justify-content:center;">
             <div class="kpi-head">
@@ -2802,6 +2836,80 @@ function renderOnboarding(){
   root.querySelector('[data-action="onb-categories"]')?.addEventListener('click', () => switchView('accounts'));
   root.querySelector('[data-action="onb-tx"]')?.addEventListener('click', () => { switchView('transactions'); setTimeout(() => openTransactionModal(), 0); });
 }
+/* ---- Saldo total: contas dentro do widget ---- */
+const HERO_ACC_COLORS = ['#D4A93E','#3FB67B','#5B8DEF','#B07CE0','#E5805F','#4FB3B8','#E26D8D','#9AA3B2'];
+const HERO_ACC_KINDS = {
+  checking: { abbr: 'CC',      full: 'Conta corrente',                icon: 'accounts' },
+  savings:  { abbr: 'Poup.',   full: 'Poupança',                      icon: 'budgets'  },
+  invest:   { abbr: 'Invest.', full: 'Investimentos',                 icon: 'trendUp'  },
+  wallet:   { abbr: 'Carteira',full: 'Carteira (dinheiro em espécie)',icon: 'cash'     },
+  other:    { abbr: 'Outro',   full: 'Outro tipo de conta',           icon: 'wallet'   }
+};
+function heroAccKind(type){
+  const t = String(type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (t.includes('cart')) return 'wallet';
+  if (t.includes('poup')) return 'savings';
+  if (t.includes('invest')) return 'invest';
+  if (t.includes('corr')) return 'checking';
+  return 'other';
+}
+let heroBalCur = null, heroBalRaf = 0;
+function heroSetBalance(to){
+  const el = $('heroBalance'); if (!el) return;
+  el.classList.toggle('neg', to < -0.004);
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (heroBalRaf && window.cancelAnimationFrame) cancelAnimationFrame(heroBalRaf);
+  heroBalRaf = 0;
+  if (heroBalCur === null || reduce || !window.requestAnimationFrame || Math.abs(to - heroBalCur) < 0.005){
+    el.textContent = fmtBRL(to); heroBalCur = to; return;
+  }
+  const from = heroBalCur, t0 = performance.now(), dur = 550;
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    heroBalCur = p >= 1 ? to : from + (to - from) * e;
+    el.textContent = fmtBRL(heroBalCur);
+    heroBalRaf = p < 1 ? requestAnimationFrame(step) : 0;
+  };
+  heroBalRaf = requestAnimationFrame(step);
+}
+function renderHeroAccounts(){
+  const box = $('heroAccs'); if (!box) return;
+  const accs = (state.accounts || []);
+  if (!accs.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const rows = accs.map((a, i) => ({ a, i, bal: accountBalance(a.id), kind: heroAccKind(a.type), color: HERO_ACC_COLORS[i % HERO_ACC_COLORS.length] }));
+  const pos = rows.filter(r => r.bal > 0.004);
+  const posTotal = pos.reduce((sum, r) => sum + r.bal, 0);
+  const showShare = pos.length >= 2 && posTotal > 0;
+  const MAX = 6, extra = rows.length > MAX ? rows.length - (MAX - 1) : 0;
+  const shown = extra ? rows.slice(0, MAX - 1) : rows;
+  const pctOf = (r) => { const p = r.bal / posTotal * 100; return p < 1 ? '<1%' : Math.round(p) + '%'; };
+  const bar = showShare ? `<div class="hacc-bar" role="img" aria-label="Proporção do saldo entre as contas">${pos.map(r => `<span class="hacc-seg" style="flex:${r.bal} 1 0;background:${r.color};" title="${escapeHtml(r.a.name)} · ${pctOf(r)}"></span>`).join('')}</div>` : '';
+  const rowHtml = (r) => {
+    const k = HERO_ACC_KINDS[r.kind];
+    const domain = r.kind === 'wallet' ? null : (r.a.bankDomain || matchBankDomain(r.a.name));
+    const zero = Math.abs(r.bal) < 0.005;
+    const share = showShare && r.bal > 0.004 ? `<span title="${pctOf(r)} do saldo total">${pctOf(r)}</span>` : '';
+    return `<button type="button" class="hacc${zero ? ' zero' : ''}" data-hacc="${r.a.id}" title="${escapeHtml(r.a.name)} — ${k.full}" aria-label="${escapeHtml(r.a.name)}, ${k.full}, saldo ${fmtBRL(r.bal)}">
+      <span class="hacc-logo hacc-k-${r.kind}">${ICONS[k.icon]}${bankLogoImg(domain)}</span>
+      <span class="hacc-info">
+        <span class="hacc-name">${showShare && r.bal > 0.004 ? `<i class="hacc-dot" style="background:${r.color}"></i>` : ''}<b>${escapeHtml(r.a.name)}</b></span>
+        <span class="hacc-meta"><span class="hacc-pill hacc-p-${r.kind}">${k.abbr}</span>${share}</span>
+      </span>
+      <span class="hacc-bal num${r.bal < -0.004 ? ' neg' : ''}">${fmtBRL(r.bal)}</span>
+    </button>`;
+  };
+  const more = extra ? `<button type="button" class="hacc hacc-more" data-hacc="__all">+${extra} contas · ver todas</button>` : '';
+  box.innerHTML = `<div class="hero-accs-head"><span>Minhas contas · ${rows.length}</span><button type="button" class="hero-accs-link" data-hacc="__all">Gerenciar ›</button></div>${bar}<div class="hacc-list">${shown.map(rowHtml).join('')}${more}</div>`;
+  box.classList.remove('hidden');
+  if (!box.dataset.bound){
+    box.dataset.bound = '1';
+    box.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-hacc]')) switchView('accounts'); });
+  }
+}
+function renderHeroBalance(){
+  heroSetBalance(totalBalance());
+  renderHeroAccounts();
+}
 function renderDashboard(){
   if (!state.accounts.length){
     renderOnboarding();
@@ -2813,7 +2921,7 @@ function renderDashboard(){
   const months = lastNMonths(6);
   const prevYm = months[months.length-2];
 
-  $('heroBalance').textContent = fmtBRL(totalBalance());
+  renderHeroBalance();
 
   // Projeção de saldo até o fim do mês, considerando contas fixas pendentes
   const pendingBillsList = state.fixedBills.filter(b => !b.finished && isBillStarted(b) && !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
