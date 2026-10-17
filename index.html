@@ -346,7 +346,75 @@ body.readonly-mode .fab{display:none !important;}
 .hacc-bal{flex:none; font-family:var(--font-mono); font-size:14.5px; font-weight:600; white-space:nowrap;}
 .hacc-bal.neg{color:var(--negative);}
 .hacc-more{justify-content:center; gap:8px; color:var(--accent); font-weight:700; font-size:13px; min-height:66px; background:transparent; border-style:dashed;}
-@media(max-width:600px){ #saldoHero{padding:26px 18px 20px;} .hero-accs{margin-top:22px;} .hacc-list{grid-template-columns:minmax(0,1fr);} }
+@media(max-width:600px){ #saldoHero{padding:26px 18px 20px;} .hero-accs{margin-top:20px;} .hacc-list{grid-template-columns:minmax(0,1fr);} }
+
+/* ===== Saldo total: fichinhas compactas + detalhes ===== */
+.hero-accs{margin-top:20px; padding-top:16px;}
+.hero-accs-actions{display:inline-flex; align-items:center; gap:8px;}
+.hchips{display:flex; flex-wrap:wrap; align-items:center; gap:7px;}
+.hchip{display:inline-flex; align-items:center; gap:7px; height:36px; padding:3px 12px 3px 3px; border-radius:999px; border:1px solid var(--border-soft); background:var(--surface-2); color:inherit; font:inherit; cursor:pointer; max-width:100%;
+  transition:border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease); -webkit-tap-highlight-color:transparent;}
+.hchip:hover{border-color:var(--accent);}
+.hchip:active{transform:scale(.97);}
+.hchip.sel{border-color:var(--accent); background:var(--accent-soft);}
+.hchip.zero{opacity:.62;}
+.hchip-logo{position:relative; overflow:hidden; flex:none; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--accent-soft); color:var(--accent);}
+.hchip-logo .icon{width:15px; height:15px; stroke-width:1.9;}
+.hchip-logo .bank-logo{padding:4px; border-radius:50%;}
+.hchip-logo.hacc-k-wallet{background:rgba(212,169,62,.2); color:var(--hk-wallet);}
+.hchip-bal{font-family:var(--font-mono); font-size:12.5px; font-weight:700; white-space:nowrap;}
+.hchip-bal.neg{color:var(--negative);}
+.hchip-more{padding:4px 14px; font-weight:700; color:var(--accent); font-size:13px;}
+.hacc-toggle{margin-left:auto; flex:none; width:34px; height:34px; border-radius:50%; border:1px solid var(--border-soft); background:var(--surface); color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .2s var(--ease), color .2s var(--ease), transform .15s var(--ease); -webkit-tap-highlight-color:transparent;}
+.hacc-toggle:hover{border-color:var(--accent); color:var(--accent);}
+.hacc-toggle:active{transform:scale(.94);}
+.hacc-toggle .icon{width:17px; height:17px; stroke-width:2.2;}
+.hero-accs-head .hacc-toggle{margin-left:0;}
+.hacc-item{min-width:0; display:flex; flex-direction:column;}
+.hacc-item.sel{grid-column:1 / -1;}
+.hacc.sel{border-color:var(--accent);}
+.hdet{margin-top:12px; padding:14px 14px 12px; border-radius:18px; background:var(--surface); border:1px solid var(--border-soft); border-left:4px solid var(--hdc, var(--accent)); text-align:left;}
+.hdet.fresh{animation:hdet-in .28s var(--ease);}
+@keyframes hdet-in{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;}}
+.hdet-head{display:flex; align-items:center; gap:12px;}
+.hdet-title{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;}
+.hdet-title b{font-size:15.5px; font-weight:700; line-height:1.2; overflow-wrap:anywhere;}
+.hdet-tags{display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px;}
+.hdet-type{font-size:12px; color:var(--text-dim); line-height:1.2;}
+.hdet-x{flex:none; width:30px; height:30px; border-radius:50%; border:0; background:var(--surface-2); color:var(--text-dim); font-size:13px; cursor:pointer; align-self:flex-start;}
+.hdet-x:hover{color:var(--text);}
+.hdet-balwrap{margin:12px 0 2px;}
+.hdet-lbl{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+.hdet-bal{font-family:var(--font-mono); font-size:27px; font-weight:700; line-height:1.25;}
+.hdet-bal.neg{color:var(--negative);}
+.hdet-stats{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px;}
+.hdet-stat{background:var(--surface-2); border-radius:12px; padding:9px 11px; display:flex; flex-direction:column; gap:3px; min-width:0;}
+.hdet-stat span{font-size:11px; color:var(--text-faint);}
+.hdet-stat b{font-size:13.5px; font-weight:700; white-space:nowrap;}
+.hdet-stat b.pos{color:var(--positive);} .hdet-stat b.neg{color:var(--negative);}
+.hdet-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+@media (prefers-reduced-motion:reduce){ .hdet.fresh{animation:none;} .hchip, .hacc-toggle{transition:none;} }
+
+/* ===== Nova conta: banco ou carteira física ===== */
+.acc-kind{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.acc-kind-opt{display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:left; padding:12px; border-radius:16px; border:1.5px solid var(--border-soft); background:var(--surface); color:inherit; font:inherit; cursor:pointer; transition:border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease); -webkit-tap-highlight-color:transparent;}
+.acc-kind-opt .icon{width:22px; height:22px; color:var(--accent); margin-bottom:4px;}
+.acc-kind-opt[data-kind="cash"] .icon{color:#B27A12;}
+[data-theme="dark"] .acc-kind-opt[data-kind="cash"] .icon{color:#F0C060;}
+.acc-kind-opt b{font-size:14px; font-weight:700;}
+.acc-kind-opt small{font-size:11.5px; color:var(--text-faint); line-height:1.3;}
+.acc-kind-opt:hover{border-color:var(--accent);}
+.acc-kind-opt.active{border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 3px var(--accent-soft);}
+.acc-prev{width:40px; height:40px; flex:none; position:relative; overflow:hidden; border-radius:13px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center;}
+.acc-prev .icon{width:20px; height:20px;}
+.acc-prev.is-cash{background:rgba(212,169,62,.2); color:#B27A12;}
+[data-theme="dark"] .acc-prev.is-cash{color:#F0C060;}
+.acc-cash-note{display:flex; gap:10px; align-items:flex-start; padding:11px 13px; border-radius:14px; background:rgba(212,169,62,.12); border:1px dashed rgba(212,169,62,.55); font-size:12.5px; line-height:1.45; color:var(--text-dim); margin-bottom:14px;}
+.acc-cash-note .icon{flex:none; width:18px; height:18px; color:#B27A12; margin-top:1px;}
+[data-theme="dark"] .acc-cash-note .icon{color:#F0C060;}
+.account-card .icon-wrap.acc-cash{background:rgba(212,169,62,.18); color:#B27A12;}
+[data-theme="dark"] .account-card .icon-wrap.acc-cash{color:#F0C060;}
+
 @media (prefers-reduced-motion:reduce){ .hacc, .hacc-seg{transition:none;} }
 
 .chart-card{padding:22px;}
@@ -2872,38 +2940,114 @@ function heroSetBalance(to){
   };
   heroBalRaf = requestAnimationFrame(step);
 }
+let heroAccSel = null, heroAccOpen = false, heroDetFresh = false, heroFocusSel = '';
+try { heroAccOpen = localStorage.getItem('norte_hero_accs_open') === '1'; } catch (e){}
+const HERO_CHEV_DOWN = '<svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+const HERO_CHEV_UP = '<svg class="icon" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>';
+// Carteira física = dinheiro em espécie. Conta marcada como física, ou antiga do tipo "Carteira" sem logo de banco.
+function heroAccIsCash(a){
+  if (a.physical) return true;
+  return heroAccKind(a.type) === 'wallet' && !(a.bankDomain || matchBankDomain(a.name));
+}
+function heroAccMonth(id, ym){
+  let inn = 0, out = 0, n = 0;
+  for (const t of state.transactions){
+    if (monthKey(t.date) !== ym) continue;
+    const v = Number(t.value) || 0;
+    if (t.type === 'income' && t.accountId === id){ inn += v; n++; }
+    else if (t.type === 'expense' && t.accountId === id){ out += v; n++; }
+    else if (t.type === 'transfer'){ if (t.accountId === id){ out += v; n++; } if (t.toAccountId === id){ inn += v; n++; } }
+  }
+  return { inn, out, n };
+}
+function heroOpenAccountTx(id){
+  switchView('transactions');
+  const sel = $('txFilterAccount');
+  if (sel){ sel.value = id; txCurrentPage = 1; renderTransactions(); }
+}
 function renderHeroAccounts(){
   const box = $('heroAccs'); if (!box) return;
   const accs = (state.accounts || []);
   if (!accs.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
-  const rows = accs.map((a, i) => ({ a, i, bal: accountBalance(a.id), kind: heroAccKind(a.type), color: HERO_ACC_COLORS[i % HERO_ACC_COLORS.length] }));
+  const ym = todayISO().slice(0, 7);
+  const rows = accs.map((a, i) => {
+    const cash = heroAccIsCash(a), kind = cash ? 'wallet' : heroAccKind(a.type);
+    return { a, i, bal: accountBalance(a.id), kind, cash, color: HERO_ACC_COLORS[i % HERO_ACC_COLORS.length], domain: cash ? null : (a.bankDomain || matchBankDomain(a.name)) };
+  });
+  if (heroAccSel && !rows.some(r => r.a.id === heroAccSel)) heroAccSel = null;
   const pos = rows.filter(r => r.bal > 0.004);
   const posTotal = pos.reduce((sum, r) => sum + r.bal, 0);
   const showShare = pos.length >= 2 && posTotal > 0;
-  const MAX = 6, extra = rows.length > MAX ? rows.length - (MAX - 1) : 0;
-  const shown = extra ? rows.slice(0, MAX - 1) : rows;
   const pctOf = (r) => { const p = r.bal / posTotal * 100; return p < 1 ? '<1%' : Math.round(p) + '%'; };
-  const bar = showShare ? `<div class="hacc-bar" role="img" aria-label="Proporção do saldo entre as contas">${pos.map(r => `<span class="hacc-seg" style="flex:${r.bal} 1 0;background:${r.color};" title="${escapeHtml(r.a.name)} · ${pctOf(r)}"></span>`).join('')}</div>` : '';
-  const rowHtml = (r) => {
-    const k = HERO_ACC_KINDS[r.kind];
-    const domain = r.kind === 'wallet' ? null : (r.a.bankDomain || matchBankDomain(r.a.name));
-    const zero = Math.abs(r.bal) < 0.005;
-    const share = showShare && r.bal > 0.004 ? `<span title="${pctOf(r)} do saldo total">${pctOf(r)}</span>` : '';
-    return `<button type="button" class="hacc${zero ? ' zero' : ''}" data-hacc="${r.a.id}" title="${escapeHtml(r.a.name)} — ${k.full}" aria-label="${escapeHtml(r.a.name)}, ${k.full}, saldo ${fmtBRL(r.bal)}">
-      <span class="hacc-logo hacc-k-${r.kind}">${ICONS[k.icon]}${bankLogoImg(domain)}</span>
-      <span class="hacc-info">
-        <span class="hacc-name">${showShare && r.bal > 0.004 ? `<i class="hacc-dot" style="background:${r.color}"></i>` : ''}<b>${escapeHtml(r.a.name)}</b></span>
-        <span class="hacc-meta"><span class="hacc-pill hacc-p-${r.kind}">${k.abbr}</span>${share}</span>
-      </span>
-      <span class="hacc-bal num${r.bal < -0.004 ? ' neg' : ''}">${fmtBRL(r.bal)}</span>
-    </button>`;
+  const iconKey = (r) => r.cash ? 'cash' : (r.kind === 'wallet' ? 'wallet' : HERO_ACC_KINDS[r.kind].icon);
+  const logo = (r, cls) => `<span class="${cls} hacc-k-${r.kind}">${ICONS[iconKey(r)]}${bankLogoImg(r.domain)}</span>`;
+  const typeFull = (r) => r.cash ? 'Carteira física (dinheiro)' : HERO_ACC_KINDS[r.kind].full;
+  const neg = (r) => r.bal < -0.004;
+
+  const detail = (r) => {
+    const m = heroAccMonth(r.a.id, ym), k = HERO_ACC_KINDS[r.kind];
+    const share = showShare && r.bal > 0.004 ? `<div class="hdet-stat"><span>% do saldo total</span><b class="num">${pctOf(r)}</b></div>` : '';
+    return `<div class="hdet${heroDetFresh ? ' fresh' : ''}" style="--hdc:${r.cash ? '#D4A93E' : r.color}">
+      <div class="hdet-head">${logo(r, 'hacc-logo')}
+        <div class="hdet-title"><b>${escapeHtml(r.a.name)}</b><span class="hdet-tags"><span class="hacc-pill hacc-p-${r.kind}">${k.abbr}</span><span class="hdet-type">${typeFull(r)}</span></span></div>
+        <button type="button" class="hdet-x" data-hdet-close aria-label="Fechar detalhes">✕</button></div>
+      <div class="hdet-balwrap"><span class="hdet-lbl">${r.cash ? 'Dinheiro em mãos' : 'Saldo na conta'}</span><div class="hdet-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</div></div>
+      <div class="hdet-stats">
+        <div class="hdet-stat"><span>Entradas no mês</span><b class="num pos">+${fmtBRL(m.inn)}</b></div>
+        <div class="hdet-stat"><span>Saídas no mês</span><b class="num neg">−${fmtBRL(m.out)}</b></div>
+        <div class="hdet-stat"><span>Lançamentos no mês</span><b class="num">${m.n}</b></div>${share}
+      </div>
+      <div class="hdet-actions"><button type="button" class="btn btn-ghost btn-sm" data-hdet-tx>Ver lançamentos</button><button type="button" class="btn btn-ghost btn-sm" data-hdet-edit>Editar conta</button></div>
+    </div>`;
   };
-  const more = extra ? `<button type="button" class="hacc hacc-more" data-hacc="__all">+${extra} contas · ver todas</button>` : '';
-  box.innerHTML = `<div class="hero-accs-head"><span>Minhas contas · ${rows.length}</span><button type="button" class="hero-accs-link" data-hacc="__all">Gerenciar ›</button></div>${bar}<div class="hacc-list">${shown.map(rowHtml).join('')}${more}</div>`;
+
+  let html;
+  if (!heroAccOpen){
+    // ----- modo compacto: fichinhas (logo + saldo)
+    const MAXC = 10, extra = rows.length > MAXC ? rows.length - (MAXC - 1) : 0;
+    const shown = extra ? rows.slice(0, MAXC - 1) : rows;
+    const chip = (r) => `<button type="button" class="hchip${r.a.id === heroAccSel ? ' sel' : ''}${Math.abs(r.bal) < 0.005 ? ' zero' : ''}" data-hacc-sel="${r.a.id}" aria-expanded="${r.a.id === heroAccSel}" title="${escapeHtml(r.a.name)} — ${typeFull(r)}" aria-label="${escapeHtml(r.a.name)}, saldo ${fmtBRL(r.bal)}">${logo(r, 'hchip-logo')}<span class="hchip-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</span></button>`;
+    const more = extra ? `<button type="button" class="hchip hchip-more" data-hacc-toggle title="Ver todas as contas">+${extra}</button>` : '';
+    const sel = rows.find(r => r.a.id === heroAccSel);
+    html = `<div class="hchips">${shown.map(chip).join('')}${more}<button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="false" aria-label="Mostrar todas as contas" title="Ver todas as contas">${HERO_CHEV_DOWN}</button></div>${sel ? detail(sel) : ''}`;
+  } else {
+    // ----- modo aberto: lista completa
+    const bar = showShare ? `<div class="hacc-bar" role="img" aria-label="Proporção do saldo entre as contas">${pos.map(r => `<span class="hacc-seg" style="flex:${r.bal} 1 0;background:${r.color};" title="${escapeHtml(r.a.name)} · ${pctOf(r)}"></span>`).join('')}</div>` : '';
+    const item = (r) => {
+      const k = HERO_ACC_KINDS[r.kind], zero = Math.abs(r.bal) < 0.005, isSel = r.a.id === heroAccSel;
+      const share = showShare && r.bal > 0.004 ? `<span title="${pctOf(r)} do saldo total">${pctOf(r)}</span>` : '';
+      return `<div class="hacc-item${isSel ? ' sel' : ''}"><button type="button" class="hacc${zero ? ' zero' : ''}${isSel ? ' sel' : ''}" data-hacc-sel="${r.a.id}" aria-expanded="${isSel}" title="${escapeHtml(r.a.name)} — ${typeFull(r)}" aria-label="${escapeHtml(r.a.name)}, ${typeFull(r)}, saldo ${fmtBRL(r.bal)}">
+        ${logo(r, 'hacc-logo')}
+        <span class="hacc-info"><span class="hacc-name">${showShare && r.bal > 0.004 ? `<i class="hacc-dot" style="background:${r.color}"></i>` : ''}<b>${escapeHtml(r.a.name)}</b></span><span class="hacc-meta"><span class="hacc-pill hacc-p-${r.kind}">${k.abbr}</span>${share}</span></span>
+        <span class="hacc-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</span></button>${isSel ? detail(r) : ''}</div>`;
+    };
+    html = `<div class="hero-accs-head"><span>Minhas contas · ${rows.length}</span><span class="hero-accs-actions"><button type="button" class="hero-accs-link" data-hacc-go>Gerenciar ›</button><button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="true" aria-label="Recolher lista de contas" title="Recolher">${HERO_CHEV_UP}</button></span></div>${bar}<div class="hacc-list">${rows.map(item).join('')}</div>`;
+  }
+  box.innerHTML = html;
   box.classList.remove('hidden');
+  heroDetFresh = false;
+  if (heroFocusSel){
+    const el = box.querySelector(heroFocusSel); heroFocusSel = '';
+    if (el && el.focus) try { el.focus({ preventScroll: true }); } catch (e){}
+  }
   if (!box.dataset.bound){
     box.dataset.bound = '1';
-    box.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-hacc]')) switchView('accounts'); });
+    box.addEventListener('click', (e) => {
+      const t = e.target.closest && e.target.closest('[data-hacc-sel],[data-hacc-toggle],[data-hacc-go],[data-hdet-close],[data-hdet-tx],[data-hdet-edit]');
+      if (!t) return;
+      if (t.hasAttribute('data-hacc-toggle')){
+        heroAccOpen = !heroAccOpen;
+        try { localStorage.setItem('norte_hero_accs_open', heroAccOpen ? '1' : '0'); } catch (err){}
+        heroFocusSel = '[data-hacc-toggle]'; renderHeroAccounts();
+      } else if (t.hasAttribute('data-hacc-sel')){
+        const id = t.getAttribute('data-hacc-sel');
+        heroAccSel = heroAccSel === id ? null : id; heroDetFresh = !!heroAccSel;
+        heroFocusSel = '[data-hacc-sel="' + id + '"]'; renderHeroAccounts();
+      } else if (t.hasAttribute('data-hacc-go')){ switchView('accounts'); }
+      else if (t.hasAttribute('data-hdet-close')){ const id = heroAccSel; heroAccSel = null; heroFocusSel = '[data-hacc-sel="' + id + '"]'; renderHeroAccounts(); }
+      else if (t.hasAttribute('data-hdet-tx')){ if (heroAccSel) heroOpenAccountTx(heroAccSel); }
+      else if (t.hasAttribute('data-hdet-edit')){ if (heroAccSel) openAccountModal(heroAccSel); }
+    });
   }
 }
 function renderHeroBalance(){
@@ -5947,10 +6091,10 @@ function renderAccountsAndCategories(){
       const reserved = envelopeReservedTotal(a.id);
       return `<div class="card account-card" draggable="true" data-id="${a.id}">
       <span class="drag-handle" title="Arraste para reordenar" aria-label="Arraste para reordenar">⠿</span>
-      <div class="icon-wrap">${ICONS.wallet}${bankLogoImg(a.bankDomain)}</div>
+      <div class="icon-wrap${heroAccIsCash(a) ? ' acc-cash' : ''}">${heroAccIsCash(a) ? ICONS.cash : ICONS.wallet + bankLogoImg(a.bankDomain || matchBankDomain(a.name))}</div>
       <div class="info">
         <div class="name">${escapeHtml(a.name)} ${withBal.length>1 && a.bal===maxBal ? '<span class="rank-pill rank-top">Maior saldo</span>' : ''}${withBal.length>1 && a.bal===minBal && minBal!==maxBal ? '<span class="rank-pill rank-low">Menor saldo</span>' : ''}</div>
-        <div class="type">${escapeHtml(a.type)}${reserved>0 ? ` · ${fmtBRL(reserved)} em cofrinhos` : ''}</div>
+        <div class="type">${a.physical ? 'Carteira física' : escapeHtml(a.type)}${reserved>0 ? ` · ${fmtBRL(reserved)} em cofrinhos` : ''}</div>
       </div>
       <div class="acc-actions">
         <div class="bal num ${a.bal<0?'neg':''}">${fmtBRL(a.bal)}</div>
@@ -7809,45 +7953,83 @@ $('addTransferBtn').addEventListener('click', () => {
 function openAccountModal(id){
   const editing = id ? state.accounts.find(a => a.id === id) : null;
   const initialDomain = editing ? (editing.bankDomain || matchBankDomain(editing.name)) : null;
-  const html = `<div class="modal-head"><h3>${editing?'Editar conta':'Nova conta'}</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+  let mode = editing && heroAccIsCash(editing) ? 'cash' : 'bank';
+  let autoName = false;
+  const bankTypes = ['Corrente', 'Poupança', 'Investimentos', 'Outro'];
+  if (editing && editing.type === 'Carteira' && mode === 'bank') bankTypes.splice(1, 0, 'Carteira');
+  const html = `<div class="modal-head"><h3>${editing ? 'Editar conta' : 'Nova conta'}</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
-      <div class="field">
-        <label>Nome</label>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <div class="icon-wrap" id="fBankLogoPreview" style="width:40px; height:40px; flex:none; position:relative; overflow:hidden; border-radius:13px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center;">${ICONS.wallet}${bankLogoImg(initialDomain)}</div>
-          <input type="text" id="fName" style="flex:1;" value="${editing?escapeHtml(editing.name):''}" placeholder="Ex: Mercado Pago, Nubank, Itaú, Santander...">
+      <div class="field"><label>O que você quer adicionar?</label>
+        <div class="acc-kind" role="radiogroup" aria-label="Tipo de conta">
+          <button type="button" class="acc-kind-opt" data-kind="bank" role="radio">${ICONS.accounts}<b>Banco ou fintech</b><small>Nubank, Inter, Mercado Pago…</small></button>
+          <button type="button" class="acc-kind-opt" data-kind="cash" role="radio">${ICONS.cash}<b>Carteira física</b><small>Dinheiro em espécie</small></button>
         </div>
-        <div class="horizon-hint" id="fBankLogoHint">${initialDomain ? 'Logo reconhecida automaticamente.' : 'Reconhecemos a logo de bancos e fintechs comuns automaticamente.'}</div>
       </div>
-      <div class="field"><label>Tipo</label><select id="fType">
-        ${['Corrente','Carteira','Poupança','Investimentos','Outro'].map(t => `<option ${editing&&editing.type===t?'selected':''}>${t}</option>`).join('')}
+      <div class="field">
+        <label id="fNameLabel">Nome</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div class="acc-prev" id="fBankLogoPreview"></div>
+          <input type="text" id="fName" style="flex:1;" value="${editing ? escapeHtml(editing.name) : ''}">
+        </div>
+        <div class="horizon-hint" id="fBankLogoHint"></div>
+      </div>
+      <div class="acc-cash-note" id="fCashNote">${ICONS.cash}<span>É o dinheiro vivo que você tem em mãos. Dá para lançar receitas, despesas e transferências nela como em qualquer conta — e ela aparece no Saldo total com o ícone de carteira.</span></div>
+      <div class="field" id="fTypeField"><label>Tipo</label><select id="fType">
+        ${bankTypes.map(t => `<option ${editing && editing.type === t ? 'selected' : ''}>${t}</option>`).join('')}
       </select></div>
-      <div class="field"><label>Saldo inicial (R$)</label><input type="number" step="0.01" class="num-input" id="fInitBal" value="${editing?editing.initialBalance:'0'}"></div>
+      <div class="field"><label id="fBalLabel">Saldo inicial (R$)</label><input type="number" step="0.01" class="num-input" id="fInitBal" value="${editing ? editing.initialBalance : '0'}"></div>
       ${editing ? '<p style="font-size:12px;color:var(--text-faint);">O saldo inicial é somado ao histórico de transações para calcular o saldo atual.</p>' : ''}
     </div>
-    <div class="modal-foot"><button class="btn btn-ghost" data-action="cancel">Cancelar</button><button class="btn btn-primary" data-action="save">${editing?'Salvar':'Adicionar'}</button></div>`;
+    <div class="modal-foot"><button class="btn btn-ghost" data-action="cancel">Cancelar</button><button class="btn btn-primary" data-action="save">${editing ? 'Salvar' : 'Adicionar'}</button></div>`;
   openModal(html);
   const root = $('modalContent');
-  let debounceTimer = null;
-  root.querySelector('#fName').addEventListener('input', (e) => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      const preview = root.querySelector('#fBankLogoPreview');
-      if (!preview) return; // o modal já foi fechado antes do timer disparar
-      const domain = matchBankDomain(e.target.value);
+  const nameEl = root.querySelector('#fName');
+  const hintBank = 'Reconhecemos a logo de bancos e fintechs comuns automaticamente.';
+  const paintPreview = () => {
+    const preview = root.querySelector('#fBankLogoPreview'); if (!preview) return; // o modal já foi fechado
+    const hint = root.querySelector('#fBankLogoHint');
+    if (mode === 'cash'){
+      preview.classList.add('is-cash'); preview.innerHTML = ICONS.cash;
+      hint.textContent = 'Carteira física: sem logo de banco, só o ícone de dinheiro.';
+    } else {
+      preview.classList.remove('is-cash');
+      const domain = matchBankDomain(nameEl.value);
       preview.innerHTML = ICONS.wallet + bankLogoImg(domain);
-      root.querySelector('#fBankLogoHint').textContent = domain ? 'Logo reconhecida automaticamente.' : 'Reconhecemos a logo de bancos e fintechs comuns automaticamente.';
-    }, 250);
+      hint.textContent = domain ? 'Logo reconhecida automaticamente.' : hintBank;
+    }
+  };
+  const setMode = (m) => {
+    mode = m;
+    root.querySelectorAll('.acc-kind-opt').forEach(o => { const on = o.dataset.kind === m; o.classList.toggle('active', on); o.setAttribute('aria-checked', on ? 'true' : 'false'); });
+    root.querySelector('#fTypeField').style.display = m === 'cash' ? 'none' : '';
+    root.querySelector('#fCashNote').style.display = m === 'cash' ? '' : 'none';
+    root.querySelector('#fNameLabel').textContent = m === 'cash' ? 'Nome da carteira' : 'Nome';
+    root.querySelector('#fBalLabel').textContent = m === 'cash' ? 'Quanto você tem em mãos hoje (R$)' : 'Saldo inicial (R$)';
+    nameEl.placeholder = m === 'cash' ? 'Ex: Carteira, Cofre, Dinheiro de casa...' : 'Ex: Mercado Pago, Nubank, Itaú, Santander...';
+    if (m === 'cash' && !nameEl.value.trim()){ nameEl.value = 'Carteira'; autoName = true; }
+    if (m === 'bank' && autoName && nameEl.value === 'Carteira'){ nameEl.value = ''; }
+    if (m === 'bank') autoName = false;
+    paintPreview();
+  };
+  setMode(mode);
+  let debounceTimer = null;
+  nameEl.addEventListener('input', () => {
+    autoName = false;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(paintPreview, 250);
   });
+  root.querySelectorAll('.acc-kind-opt').forEach(o => o.addEventListener('click', () => setMode(o.dataset.kind)));
   root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="cancel"]').addEventListener('click', closeModal);
   root.querySelector('[data-action="save"]').addEventListener('click', () => {
-    const name = root.querySelector('#fName').value.trim();
-    if (!name){ showToast('Informe um nome para a conta.'); return; }
-    const payload = { name, type: root.querySelector('#fType').value, initialBalance: Number(root.querySelector('#fInitBal').value)||0, bankDomain: matchBankDomain(name) };
+    const name = nameEl.value.trim();
+    if (!name){ showToast(mode === 'cash' ? 'Dê um nome para a carteira.' : 'Informe um nome para a conta.'); return; }
+    const payload = mode === 'cash'
+      ? { name, type: 'Carteira', physical: true, bankDomain: null, initialBalance: Number(root.querySelector('#fInitBal').value) || 0 }
+      : { name, type: root.querySelector('#fType').value, physical: false, bankDomain: matchBankDomain(name), initialBalance: Number(root.querySelector('#fInitBal').value) || 0 };
     if (editing) Object.assign(editing, payload);
     else state.accounts.push({ id: uid(), ...payload });
-    mutate(); closeModal(); renderAccountsAndCategories(); showToast(editing?'Conta atualizada.':'Conta adicionada.');
+    mutate(); closeModal(); renderAccountsAndCategories(); showToast(editing ? 'Conta atualizada.' : (mode === 'cash' ? 'Carteira adicionada.' : 'Conta adicionada.'));
   });
 }
 
