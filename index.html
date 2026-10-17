@@ -340,7 +340,7 @@ body.readonly-mode .fab{display:none !important;}
 .hacc-name b{font-weight:600; min-width:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere;}
 .hacc-dot{flex:none; width:8px; height:8px; border-radius:50%; margin-top:4px;}
 .hacc-meta{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-faint); line-height:1;}
-.hacc-pill{display:inline-flex; align-items:center; gap:4px; padding:3px 7px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; line-height:1; color:var(--pc); background:color-mix(in srgb, var(--pc) 14%, transparent);}
+.hacc-pill{display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.01em; text-transform:none; line-height:1.15; white-space:nowrap; color:var(--pc); background:color-mix(in srgb, var(--pc) 14%, transparent);}
 .hacc-pill .icon{width:11px; height:11px; stroke-width:2;}
 .hacc-p-checking{--pc:var(--hk-checking);} .hacc-p-savings{--pc:var(--hk-savings);} .hacc-p-invest{--pc:var(--hk-invest);} .hacc-p-wallet{--pc:var(--hk-wallet);} .hacc-p-other{--pc:var(--hk-other);}
 .hacc-bal{flex:none; font-family:var(--font-mono); font-size:14.5px; font-weight:600; white-space:nowrap;}
@@ -1937,6 +1937,7 @@ const ICONS = {
   catexplorer: '<svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
   fixedbills: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><circle cx="16" cy="16" r="6"/><path d="M16 13.5V16l1.6 1.2"/></svg>',
   budgets: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h.01"/></svg>',
+  piggyCoin: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 8c-1.5 0-2.8 1.2-3 1.8-3.5-1.5-11-.3-11 4.7 0 1.8 0 2.8 2 4.2V22h4v-2h3v2h4v-3.6c1-.5 1.7-1 2-1.9h2v-4h-2c0-1-.5-1.5-1-2V8z"/><path d="M2 11.5v1c0 1.1.9 2 2 2h1"/><path d="M16 13.2h.01"/><circle cx="11" cy="3.4" r="2.1" fill="currentColor"/></svg>',
   goals: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
   accounts: '<svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>',
   reports: '<svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
@@ -2907,11 +2908,11 @@ function renderOnboarding(){
 /* ---- Saldo total: contas dentro do widget ---- */
 const HERO_ACC_COLORS = ['#D4A93E','#3FB67B','#5B8DEF','#B07CE0','#E5805F','#4FB3B8','#E26D8D','#9AA3B2'];
 const HERO_ACC_KINDS = {
-  checking: { abbr: 'CC',      full: 'Conta corrente',                icon: 'accounts' },
-  savings:  { abbr: 'Poup.',   full: 'Poupança',                      icon: 'budgets'  },
-  invest:   { abbr: 'Invest.', full: 'Investimentos',                 icon: 'trendUp'  },
-  wallet:   { abbr: 'Carteira',full: 'Carteira (dinheiro em espécie)',icon: 'cash'     },
-  other:    { abbr: 'Outro',   full: 'Outro tipo de conta',           icon: 'wallet'   }
+  checking: { abbr: 'Corrente',      full: 'Conta corrente',                icon: 'accounts' },
+  savings:  { abbr: 'Poupança',      full: 'Poupança',                      icon: 'budgets'  },
+  invest:   { abbr: 'Investimentos', full: 'Investimentos',                 icon: 'trendUp'  },
+  wallet:   { abbr: 'Carteira',      full: 'Carteira (dinheiro em espécie)',icon: 'cash'     },
+  other:    { abbr: 'Outro',         full: 'Outro tipo de conta',           icon: 'wallet'   }
 };
 function heroAccKind(type){
   const t = String(type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -2949,6 +2950,8 @@ function heroAccIsCash(a){
   if (a.physical) return true;
   return heroAccKind(a.type) === 'wallet' && !(a.bankDomain || matchBankDomain(a.name));
 }
+// Nome completo da categoria (sem abreviar)
+function heroAccLabel(r){ return r.cash ? 'Carteira física' : HERO_ACC_KINDS[r.kind].abbr; }
 function heroAccMonth(id, ym){
   let inn = 0, out = 0, n = 0;
   for (const t of state.transactions){
@@ -2985,11 +2988,11 @@ function renderHeroAccounts(){
   const neg = (r) => r.bal < -0.004;
 
   const detail = (r) => {
-    const m = heroAccMonth(r.a.id, ym), k = HERO_ACC_KINDS[r.kind];
+    const m = heroAccMonth(r.a.id, ym);
     const share = showShare && r.bal > 0.004 ? `<div class="hdet-stat"><span>% do saldo total</span><b class="num">${pctOf(r)}</b></div>` : '';
     return `<div class="hdet${heroDetFresh ? ' fresh' : ''}" style="--hdc:${r.cash ? '#D4A93E' : r.color}">
       <div class="hdet-head">${logo(r, 'hacc-logo')}
-        <div class="hdet-title"><b>${escapeHtml(r.a.name)}</b><span class="hdet-tags"><span class="hacc-pill hacc-p-${r.kind}">${k.abbr}</span><span class="hdet-type">${typeFull(r)}</span></span></div>
+        <div class="hdet-title"><b>${escapeHtml(r.a.name)}</b><span class="hdet-tags"><span class="hacc-pill hacc-p-${r.kind}">${heroAccLabel(r)}</span>${r.cash ? '<span class="hdet-type">Dinheiro em espécie</span>' : ''}</span></div>
         <button type="button" class="hdet-x" data-hdet-close aria-label="Fechar detalhes">✕</button></div>
       <div class="hdet-balwrap"><span class="hdet-lbl">${r.cash ? 'Dinheiro em mãos' : 'Saldo na conta'}</span><div class="hdet-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</div></div>
       <div class="hdet-stats">
@@ -3014,11 +3017,11 @@ function renderHeroAccounts(){
     // ----- modo aberto: lista completa
     const bar = showShare ? `<div class="hacc-bar" role="img" aria-label="Proporção do saldo entre as contas">${pos.map(r => `<span class="hacc-seg" style="flex:${r.bal} 1 0;background:${r.color};" title="${escapeHtml(r.a.name)} · ${pctOf(r)}"></span>`).join('')}</div>` : '';
     const item = (r) => {
-      const k = HERO_ACC_KINDS[r.kind], zero = Math.abs(r.bal) < 0.005, isSel = r.a.id === heroAccSel;
+      const zero = Math.abs(r.bal) < 0.005, isSel = r.a.id === heroAccSel;
       const share = showShare && r.bal > 0.004 ? `<span title="${pctOf(r)} do saldo total">${pctOf(r)}</span>` : '';
       return `<div class="hacc-item${isSel ? ' sel' : ''}"><button type="button" class="hacc${zero ? ' zero' : ''}${isSel ? ' sel' : ''}" data-hacc-sel="${r.a.id}" aria-expanded="${isSel}" title="${escapeHtml(r.a.name)} — ${typeFull(r)}" aria-label="${escapeHtml(r.a.name)}, ${typeFull(r)}, saldo ${fmtBRL(r.bal)}">
         ${logo(r, 'hacc-logo')}
-        <span class="hacc-info"><span class="hacc-name">${showShare && r.bal > 0.004 ? `<i class="hacc-dot" style="background:${r.color}"></i>` : ''}<b>${escapeHtml(r.a.name)}</b></span><span class="hacc-meta"><span class="hacc-pill hacc-p-${r.kind}">${k.abbr}</span>${share}</span></span>
+        <span class="hacc-info"><span class="hacc-name">${showShare && r.bal > 0.004 ? `<i class="hacc-dot" style="background:${r.color}"></i>` : ''}<b>${escapeHtml(r.a.name)}</b></span><span class="hacc-meta"><span class="hacc-pill hacc-p-${r.kind}">${heroAccLabel(r)}</span>${share}</span></span>
         <span class="hacc-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</span></button>${isSel ? detail(r) : ''}</div>`;
     };
     html = `<div class="hero-accs-head"><span>Minhas contas · ${rows.length}</span><span class="hero-accs-actions"><button type="button" class="hero-accs-link" data-hacc-go>Gerenciar ›</button><button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="true" aria-label="Recolher lista de contas" title="Recolher">${HERO_CHEV_UP}</button></span></div>${bar}<div class="hacc-list">${rows.map(item).join('')}</div>`;
@@ -6098,7 +6101,7 @@ function renderAccountsAndCategories(){
       </div>
       <div class="acc-actions">
         <div class="bal num ${a.bal<0?'neg':''}">${fmtBRL(a.bal)}</div>
-        <button class="btn btn-icon btn-sm btn-ghost" data-action="envelopes" data-id="${a.id}" title="Cofrinhos" aria-label="Cofrinhos desta conta">${ICONS.wallet.replace('icon"','icon" style="width:16px;height:16px;"')}</button>
+        <button class="btn btn-icon btn-sm btn-ghost" data-action="envelopes" data-id="${a.id}" title="Cofrinhos" aria-label="Cofrinhos desta conta">${ICONS.piggyCoin.replace('icon"','icon" style="width:17px;height:17px;"')}</button>
         <button class="btn btn-icon btn-sm btn-ghost" data-action="edit" data-id="${a.id}" aria-label="Editar conta">${ICONS.edit}</button>
         <button class="btn btn-icon btn-sm btn-ghost" data-action="del" data-id="${a.id}" aria-label="Excluir conta">${ICONS.trash}</button>
       </div>
@@ -6149,7 +6152,7 @@ function renderEnvelopesModalBody(accountId){
 function openEnvelopesModal(accountId){
   const acc = accountById(accountId);
   if (!acc) return;
-  const html = `<div class="modal-head"><h3>Cofrinhos de "${escapeHtml(acc.name)}"</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+  const html = `<div class="modal-head"><h3 style="display:flex; align-items:center; gap:10px;">${ICONS.piggyCoin.replace('icon"','icon" style="width:22px;height:22px;color:var(--accent);flex:none;"')}<span>Cofrinhos de "${escapeHtml(acc.name)}"</span></h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
       <p style="color:var(--text-dim); font-size:13px; margin:0 0 10px;">Separe mentalmente parte do saldo desta conta pra um destino específico (reserva, viagem, imposto...) sem precisar abrir outra conta. Não move dinheiro de verdade — só desconta do "disponível" mostrado aqui.</p>
       <div style="font-size:13px; margin-bottom:14px;" id="envelopesSummary"></div>
