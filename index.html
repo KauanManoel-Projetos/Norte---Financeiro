@@ -415,6 +415,60 @@ body.readonly-mode .fab{display:none !important;}
 .account-card .icon-wrap.acc-cash{background:rgba(212,169,62,.18); color:#B27A12;}
 [data-theme="dark"] .account-card .icon-wrap.acc-cash{color:#F0C060;}
 
+/* ===== Lançar por frase ===== */
+.qe-title{display:flex; align-items:center; gap:10px;}
+.qe-title .icon{width:20px; height:20px; color:var(--accent); flex:none;}
+@media(max-width:860px){ #modalBackdrop.qe-mode{align-items:flex-start; padding-top:max(10px, env(safe-area-inset-top));} }
+.modal-body.qe{display:flex; flex-direction:column; gap:14px;}
+.qe-inputrow{display:flex; align-items:flex-end; gap:8px;}
+.qe-inputrow textarea{flex:1; min-width:0; resize:none; font:inherit; font-size:16px; line-height:1.4; padding:12px 14px; border-radius:16px; border:1.5px solid var(--border); background:var(--surface); color:var(--text);}
+.qe-inputrow textarea:focus{border-color:var(--accent); outline:none; box-shadow:0 0 0 3px var(--accent-soft);}
+.qe-mic, .qe-send{flex:none; width:46px; height:46px; border-radius:50%; border:1.5px solid var(--border-soft); background:var(--surface); color:var(--accent); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s var(--ease), background .2s var(--ease); -webkit-tap-highlight-color:transparent;}
+.qe-mic .icon, .qe-send .icon{width:20px; height:20px; stroke-width:2.2;}
+.qe-mic:active, .qe-send:active{transform:scale(.93);}
+.qe-send{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.qe-send:disabled{opacity:.35; cursor:default;}
+.qe-mic.on{background:var(--negative); color:#fff; border-color:var(--negative); animation:qe-pulse 1.2s ease-in-out infinite;}
+@keyframes qe-pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,79,91,.5);} 50%{box-shadow:0 0 0 10px rgba(201,79,91,0);}}
+.qe-chips-label{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:2px 0 8px;}
+.qe-chiprow{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+.qe-chip{border:1px solid var(--border-soft); background:var(--surface-2); color:var(--text-dim); font:inherit; font-size:13px; padding:7px 12px; border-radius:999px; cursor:pointer; text-align:left; max-width:100%; -webkit-tap-highlight-color:transparent;}
+.qe-chip:hover{border-color:var(--accent); color:var(--text);}
+.qe-chip-freq{background:var(--accent-soft); color:var(--text); border-color:transparent;}
+.qe-card{display:flex; flex-direction:column; gap:12px;}
+.qe-tips{padding:14px 16px; border-radius:16px; background:var(--surface-2); border:1px dashed var(--border); font-size:13px; line-height:1.55; color:var(--text-dim);}
+.qe-tips b{color:var(--text);}
+.qe-tipline{font-size:12.5px; line-height:1.5; color:var(--text-faint);}
+.qe-type{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:14px;}
+.qe-type button{border:0; background:transparent; color:var(--text-dim); font:inherit; font-size:13px; font-weight:700; padding:9px 6px; border-radius:10px; cursor:pointer; transition:background .2s var(--ease), color .2s var(--ease);}
+.qe-type button.active{color:#fff;}
+.qe-type button.active.expense{background:var(--negative);}
+.qe-type button.active.income{background:var(--positive);}
+.qe-type button.active.transfer{background:var(--accent); color:var(--accent-ink);}
+[data-theme="dark"] .qe-type button.active.income{color:#06220f;}
+.qe-valuewrap{display:flex; align-items:center; gap:8px; padding:4px 14px; border-radius:16px; border:1.5px solid var(--border); background:var(--surface);}
+.qe-valuewrap:focus-within{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+.qe-valuewrap.warn{border-color:#E0A030; box-shadow:0 0 0 3px rgba(224,160,48,.18);}
+.qe-cur{font-weight:700; color:var(--text-faint); font-size:18px;}
+.qe-valuewrap input{flex:1; min-width:0; border:0; background:transparent; font-family:var(--font-mono); font-size:30px; font-weight:700; color:var(--text); padding:6px 0; outline:none;}
+.qe-field label{display:block; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-faint); margin-bottom:5px;}
+.qe-field input, .qe-field select{width:100%; box-sizing:border-box; font:inherit; font-size:14.5px; padding:10px 12px; border-radius:12px; border:1.5px solid var(--border-soft); background:var(--surface); color:var(--text);}
+.qe-field input:focus, .qe-field select:focus{border-color:var(--accent); outline:none;}
+.qe-field.warn input, .qe-field.warn select{border-color:#E0A030; box-shadow:0 0 0 3px rgba(224,160,48,.18);}
+.qe-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;}
+.qe-hints{font-size:12px; color:var(--text-faint); display:flex; flex-direction:column; gap:3px;}
+.qe-hints .w{color:#C98512; font-weight:600;}
+.qe-foot{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.qe-keep{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim); margin-right:auto; cursor:pointer;}
+.fab-mini{width:46px; height:46px; right:29px; bottom:94px; background:var(--surface); color:var(--accent); border:1.5px solid var(--accent); box-shadow:0 8px 20px -6px rgba(0,0,0,.35);}
+.fab-mini:hover{background:var(--accent-soft); color:var(--accent);}
+.fab-mini .icon{width:20px; height:20px; stroke-width:2.2;}
+.dash-actions{display:flex; align-items:center; gap:8px; min-width:0;}
+@media(max-width:860px){ .qe-desk{display:none !important;} }
+body.readonly-mode .qe-desk{display:none !important;}
+@media (prefers-reduced-motion:reduce){ .qe-mic.on{animation:none;} }
+
+
 @media (prefers-reduced-motion:reduce){ .hacc, .hacc-seg{transition:none;} }
 
 .chart-card{padding:22px;}
@@ -1177,12 +1231,18 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         <button class="fab" id="dashboardFab" aria-label="Nova transação" title="Nova transação">
           <svg class="icon icon-lg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
+        <button class="fab fab-mini" id="dashboardQuickFab" aria-label="Lançar por frase" title="Lançar por frase">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </button>
         <div id="dashboardMain">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;">
+          <div class="dash-actions">
           <button class="btn btn-primary btn-sm" id="dashboardAddTxBtn">
             <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova transação
           </button>
+          <button class="btn btn-ghost btn-sm qe-desk" id="dashboardQuickBtn" title="Lançar por frase (atalho: Q)"><svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Por frase</button>
+          </div>
           <div class="dash-corner">
             <button class="btn btn-ghost btn-sm" id="numbersOnlyToggle">Só números</button>
             <div id="petCard" class="pet-wrap"></div>
@@ -7946,6 +8006,703 @@ function openTransactionModal(id, prefill){
   });
 }
 
+/* ========== LANÇAR POR FRASE — analisador (roda 100% no aparelho, sem internet) ========== */
+const QE_UNITS = {zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,catorze:14,quatorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19};
+const QE_TENS = {vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90};
+const QE_HUND = {cem:100,cento:100,duzentos:200,duzentas:200,trezentos:300,trezentas:300,quatrocentos:400,quatrocentas:400,quinhentos:500,quinhentas:500,seiscentos:600,seiscentas:600,setecentos:700,setecentas:700,oitocentos:800,oitocentas:800,novecentos:900,novecentas:900};
+const QE_STOP = new Set(['gastei','paguei','comprei','recebi','ganhei','transferi','passei','guardei','investi','apliquei','saquei','depositei','aportei','recebido','recebida','pago','paga','de','do','da','dos','das','no','na','nos','nas','em','com','pra','pro','para','por','pelo','pela','pelos','pelas','o','a','os','as','um','uma','uns','umas','meu','minha','meus','minhas','que','foi','e','ao','aos','hoje','ontem','anteontem','amanha','agora','reais','real','conto','contos','pila','pilas','pix','cartao','credito','debito','dinheiro','conta','vezes','parcelas','dia','me','mim','la','ai','r$','x','ted','doc','boleto','especie','cash']);
+const QE_GENERIC = new Set(['banco','conta','de','do','da','dos','das','e','cartao','carteira','fisica','digital','pagamentos','financeira','bank','card','credito','debito']);
+const QE_COMMON_SINGLE = new Set(['mercado','pago','caixa','casa','loja','super','pix','carro','moto','cartao','conta','banco','dinheiro','carteira','cofre','reserva','poupanca','investimentos']);
+const QE_ALIAS = { nu:'nubank', roxinho:'nubank', mp:'mercado pago', mercadopago:'mercado pago', bb:'banco do brasil', cef:'caixa', pic:'picpay' };
+const QE_DAYS = { domingo:0, segunda:1, terca:2, quarta:3, quinta:4, sexta:5, sabado:6 };
+const QE_KEYWORDS = {
+  expense: [
+    { re: /aliment|comida|restaur|refeic|mercado|supermerc/, words: ['mercado','supermercado','super','padaria','restaurante','lanche','lanchonete','ifood','pizza','pizzaria','hamburguer','almoco','jantar','cafe','cafeteria','acougue','hortifruti','feira','sorvete','doce','comida','marmita','delivery','rappi','churrasco','acai','salgado','bolo','sushi','refrigerante','agua mineral'] },
+    { re: /transp|carro|veicul|mobil|combust|auto/, words: ['uber','99','taxi','onibus','metro','trem','gasolina','combustivel','etanol','diesel','posto','estacionamento','pedagio','passagem','bilhete','mecanico','oficina','ipva','lavagem','lava jato','moto','sem parar','rodoviaria'] },
+    { re: /saud|farm|medic|bem.?estar/, words: ['farmacia','remedio','remedios','medico','consulta','dentista','exame','exames','hospital','plano de saude','psicologo','terapia','academia','vacina','oculos','fisioterapia'] },
+    { re: /morad|casa|habita|lar\b|contas? fixas?/, words: ['aluguel','condominio','luz','energia','agua','gas','internet','iptu','reforma','faxina','diarista','telefone','celular','recarga','wifi','tv a cabo','seguro residencial','moveis','eletrodomestico'] },
+    { re: /lazer|diver|entret|stream|viag|passeio/, words: ['cinema','netflix','spotify','prime video','amazon prime','disney','hbo','max','youtube premium','show','ingresso','ingressos','viagem','hotel','pousada','bar','balada','jogo','jogos','steam','playstation','xbox','streaming','passeio','parque','teatro','festa'] },
+    { re: /educ|estud|curso|escola|faculd/, words: ['curso','faculdade','escola','livro','livros','mensalidade','material escolar','apostila','udemy','alura','idioma','ingles'] },
+    { re: /compr|vest|roupa|shopping|pessoal/, words: ['roupa','roupas','tenis','sapato','sapatos','camisa','calca','shopping','shein','amazon','mercado livre','shopee','magalu','presente','cosmetico','perfume','maquiagem','salao','cabelo','barbeiro','corte'] },
+    { re: /pet|animal/, words: ['racao','veterinario','pet','petshop','banho e tosa'] },
+    { re: /assin|servi|taxa|tarif|imposto/, words: ['assinatura','taxa','tarifa','anuidade','imposto','multa','juros','iof','das','mei'] }
+  ],
+  income: [
+    { re: /salar|ordenad|trabalh|renda/, words: ['salario','holerite','contracheque','pagamento da empresa','13o','decimo terceiro','ferias','adiantamento','vale'] },
+    { re: /freela|extra|servi/, words: ['freela','freelance','job','projeto','servico','bico','consultoria'] },
+    { re: /rendim|invest|dividend|juros/, words: ['rendimento','rendimentos','dividendo','dividendos','juros','cdb','tesouro','fii','acoes','poupanca'] },
+    { re: /venda|vend/, words: ['venda','vendi','vendas','olx','mercado livre'] },
+    { re: /reembols|estorn|devol|cashback/, words: ['reembolso','estorno','devolucao','cashback'] }
+  ]
+};
+
+function qeFold(str){
+  let out = '';
+  for (let i = 0; i < str.length; i++){
+    const f = str[i].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    out += f.length ? f[0] : str[i];
+  }
+  return out;
+}
+function qeEsc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function qeIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function qeAddDays(d, n){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() + n); return x; }
+function qeNum(s){
+  s = String(s);
+  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+  if (/^\d+,\d+$/.test(s)) return parseFloat(s.replace(',', '.'));
+  return parseFloat(s);
+}
+// "trinta e cinco", "mil e quinhentos", "dez e meio" → { value, start, end } (posições na string já normalizada)
+function qeWordsValue(n){
+  const toks = []; const re = /[a-z]+/g; let m;
+  while ((m = re.exec(n))) toks.push({ w: m[0], s: m.index, e: m.index + m[0].length });
+  const isNum = (w) => (w in QE_UNITS) || (w in QE_TENS) || (w in QE_HUND) || w === 'mil';
+  let best = null;
+  for (let i = 0; i < toks.length; i++){
+    if (!isNum(toks[i].w)) continue;
+    let j = i, last = i;
+    while (j + 1 < toks.length){
+      const nx = toks[j + 1].w;
+      if (isNum(nx)){ j++; last = j; }
+      else if (nx === 'e' && j + 2 < toks.length && (isNum(toks[j + 2].w) || toks[j + 2].w === 'meio' || toks[j + 2].w === 'meia')){ j += 1; }
+      else if ((nx === 'meio' || nx === 'meia') && toks[j].w !== 'mil'){ j++; last = j; }
+      else break;
+      if (nx === 'e') continue;
+    }
+    let total = 0, cur = 0, big = false;
+    for (let k = i; k <= last; k++){
+      const w = toks[k].w;
+      if (w in QE_UNITS) cur += QE_UNITS[w];
+      else if (w in QE_TENS){ cur += QE_TENS[w]; big = true; }
+      else if (w in QE_HUND){ cur += QE_HUND[w]; big = true; }
+      else if (w === 'mil'){ total += (cur || 1) * 1000; cur = 0; big = true; }
+      else if (w === 'meio' || w === 'meia') cur += 0.5;
+    }
+    const value = total + cur;
+    const after = n.slice(toks[last].e, toks[last].e + 12);
+    const hasCur = /^\s*(reais|real|conto|contos|pila|pilas|paus)\b/.test(after);
+    if (value > 0 && (big || hasCur)){
+      const end = hasCur ? toks[last].e + after.match(/^\s*[a-z]+/)[0].length : toks[last].e;
+      best = { value, start: toks[i].s, end };
+    }
+    i = last;
+  }
+  return best;
+}
+
+function qeAccKeys(name){
+  const full = qeFold(name).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const keys = new Set();
+  if (full) keys.add(full);
+  const joined = full.replace(/ /g, '');
+  if (joined && joined !== full) keys.add(joined);
+  const words = full.split(' ').filter(w => w && !QE_GENERIC.has(w));
+  if (words.length === 1 && words[0].length >= 3 && !QE_COMMON_SINGLE.has(words[0])) keys.add(words[0]);
+  if (words.length >= 2) keys.add(words.map(w => w[0]).join(''));
+  for (const [k, v] of Object.entries(QE_ALIAS)) if (full.includes(v)) keys.add(k);
+  return [...keys].filter(k => k.length >= 2);
+}
+// acha menções a contas/cartões numa string normalizada (mascarada) — devolve [{item,start,end}] sem sobreposição
+function qeFindMentions(masked, items){
+  const found = [];
+  for (const it of items){
+    let best = null;
+    for (const key of qeAccKeys(it.name)){
+      const re = new RegExp('(^|[^a-z0-9])(' + qeEsc(key) + ')(?![a-z0-9])');
+      const m = re.exec(masked);
+      if (m){
+        const start = m.index + m[1].length, end = start + key.length;
+        if (!best || (end - start) > (best.end - best.start)) best = { item: it, start, end };
+      }
+    }
+    if (best) found.push(best);
+  }
+  found.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  const res = [];
+  for (const f of found){ if (!res.some(r => f.start < r.end && f.end > r.start)) res.push(f); }
+  return res;
+}
+
+function quickParse(raw, ctx){
+  ctx = ctx || {};
+  const today = ctx.today || new Date();
+  const accounts = ctx.accounts || [], cards = ctx.cards || [], cats = ctx.categories || [], txs = ctx.transactions || [];
+  const out = { text: '', type: 'expense', value: null, date: qeIso(today), description: '', categoryId: null, accountId: null, toAccountId: null,
+    paymentMethod: 'pix', cardId: null, installments: 1,
+    flags: { valueFound: false, typeExplicit: false, accountExplicit: false, dateExplicit: false, methodExplicit: false, cardNeeded: false, toNeeded: false, catSource: null, accountSource: null } };
+  const text = String(raw || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+  out.text = text;
+  if (!text) return out;
+  const n = qeFold(text);
+  const used = new Array(n.length).fill(false);
+  const mark = (s, e) => { for (let i = s; i < e && i < used.length; i++) used[i] = true; };
+  const masked = () => { let r = ''; for (let i = 0; i < n.length; i++) r += used[i] ? ' ' : n[i]; return r; };
+
+  // ---- parcelas
+  let inst = 1, perInst = null, m;
+  if ((m = /(\d{1,2})\s*x\s*de\s*(?:r\$\s*)?(\d+(?:[.,]\d+)*)/.exec(n))){ inst = +m[1]; perInst = qeNum(m[2]); mark(m.index, m.index + m[0].length); }
+  else {
+    for (const r of [/\b(?:parcelad[oa]s?\s+)?em\s+(\d{1,2})\s*(?:x|vezes|parcelas)\b/, /\b(\d{1,2})\s*(?:x|vezes|parcelas)\b/, /\bparcelad[oa]s?\s+em\s+(\d{1,2})\b/]){
+      if ((m = r.exec(masked()))){ inst = +m[1]; mark(m.index, m.index + m[0].length); break; }
+    }
+  }
+  if (!(inst >= 1 && inst <= 48)) inst = 1;
+
+  // ---- data
+  let d = null, mm;
+  if ((mm = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/.exec(masked()))){
+    const dd = +mm[1], mo = +mm[2]; let yy = mm[3] ? +mm[3] : today.getFullYear(); if (yy < 100) yy += 2000;
+    if (dd >= 1 && dd <= 31 && mo >= 1 && mo <= 12){
+      d = new Date(yy, mo - 1, dd);
+      if (!mm[3] && d.getTime() - today.getTime() > 31 * 86400000) d = new Date(yy - 1, mo - 1, dd);
+      mark(mm.index, mm.index + mm[0].length);
+    }
+  }
+  if (!d && (mm = /\bdia\s+(\d{1,2})\b/.exec(masked()))){
+    const dd = +mm[1];
+    if (dd >= 1 && dd <= 31){
+      d = new Date(today.getFullYear(), today.getMonth(), dd);
+      if (dd > today.getDate()) d = new Date(today.getFullYear(), today.getMonth() - 1, dd);
+      mark(mm.index, mm.index + mm[0].length);
+    }
+  }
+  if (!d){
+    const words = [[/\banteontem\b/, -2], [/\bontem\b/, -1], [/\bamanha\b/, 1], [/\bhoje\b/, 0]];
+    for (const [r, delta] of words){
+      if ((mm = r.exec(masked()))){ d = qeAddDays(today, delta); mark(mm.index, mm.index + mm[0].length); break; }
+    }
+  }
+  if (!d && (mm = /\b(?:(?:na|no|nessa|nesta|ultima|ultimo)\s+)?(segunda|terca|quarta|quinta|sexta|sabado|domingo)(?:-feira)?\b/.exec(masked()))){
+    const diff = (today.getDay() - QE_DAYS[mm[1]] + 7) % 7;
+    d = qeAddDays(today, -diff); mark(mm.index, mm.index + mm[0].length);
+  }
+  if (d){ out.date = qeIso(d); out.flags.dateExplicit = true; }
+
+  // ---- valor
+  const reNum = /(r\$\s*)?(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)(?:\s*(mil|k)\b)?(\s*(?:reais|real|conto|contos|pila|pilas|paus)\b)?/g;
+  const cands = []; const mn = masked(); let rm;
+  while ((rm = reNum.exec(mn))){
+    const after = mn[rm.index + rm[0].length] || '';
+    if (after === '%' || after === ':' || (after === 'h' && /^h\d|^h\b/.test(mn.slice(rm.index + rm[0].length, rm.index + rm[0].length + 3)))) continue;
+    let val = qeNum(rm[2]); if (rm[3]) val *= 1000;
+    if (!(val > 0)) continue;
+    cands.push({ s: rm.index, e: rm.index + rm[0].length, val, cur: !!(rm[1] || rm[4]), dec: /[.,]\d{1,2}$/.test(rm[2]) && !/^\d{1,3}(\.\d{3})+$/.test(rm[2]) });
+  }
+  let pick = null;
+  if (cands.length){
+    const byCur = cands.filter(c => c.cur), byDec = cands.filter(c => c.dec);
+    pick = byCur.length ? byCur[byCur.length - 1] : (byDec.length ? byDec[byDec.length - 1] : cands[cands.length - 1]);
+    out.value = Math.round(pick.val * 100) / 100; mark(pick.s, pick.e);
+  } else {
+    const wv = qeWordsValue(masked());
+    if (wv){ out.value = Math.round(wv.value * 100) / 100; mark(wv.start, wv.end); }
+    else if (perInst){ out.value = Math.round(perInst * inst * 100) / 100; }
+  }
+  if (cands.length && perInst && !pick) out.value = Math.round(perInst * inst * 100) / 100;
+  out.flags.valueFound = out.value != null;
+  out.installments = inst;
+
+  // ---- forma de pagamento
+  let method = null;
+  for (const [key, re] of [['debit', /\b(?:cartao\s+(?:de\s+)?debito|debito)\b/], ['credit', /\b(?:cartao\s+(?:de\s+)?credito|credito|cartao)\b/], ['pix', /\bpix\b/], ['cash', /\b(?:dinheiro|especie|cash|em maos)\b/], ['boleto', /\bboleto\b/], ['transfer', /\b(?:ted|doc)\b/]]){
+    if ((mm = re.exec(masked()))){ method = key; mark(mm.index, mm.index + mm[0].length); break; }
+  }
+  if (method === 'credit' && inst > 1) out.installments = inst;
+
+  // ---- cartões e contas
+  const creditCards = cards.filter(c => c.kind === 'credit'), debitCards = cards.filter(c => c.kind === 'debit');
+  let cardMention = null;
+  if (method === 'credit' || method === 'debit'){
+    const pool = method === 'credit' ? creditCards : debitCards;
+    const cm = qeFindMentions(masked(), pool);
+    if (cm.length){ cardMention = cm[0]; mark(cm[0].start, cm[0].end); }
+  }
+  let accMentions = qeFindMentions(masked(), accounts);
+  const cashAcc = accounts.find(a => a.physical) || accounts.find(a => /carteira/i.test(a.type || '') && !a.bankDomain);
+  const typeAcc = (re) => accounts.find(a => re.test(qeFold(a.type || '')));
+  const extra = [
+    [/\b(?:carteira|dinheiro|especie|em maos)\b/, cashAcc],
+    [/\bpoupanca\b/, typeAcc(/poup/)],
+    [/\b(?:investimentos?|tesouro|cdb)\b/, typeAcc(/invest/)]
+  ];
+  for (const [re, acc] of extra){
+    if (!acc || accMentions.some(a => a.item.id === acc.id)) continue;
+    const em = re.exec(masked());
+    if (em && !accMentions.some(a => em.index < a.end && em.index + em[0].length > a.start)) accMentions.push({ item: acc, start: em.index, end: em.index + em[0].length, via: 'tipo' });
+  }
+  accMentions.sort((a, b) => a.start - b.start);
+  accMentions.forEach(a => mark(a.start, a.end));
+
+  // ---- tipo
+  const mk = masked();
+  const first = (re) => { const x = re.exec(mk); return x ? x.index : Infinity; };
+  const pInc = first(/\b(?:recebi|recebido|recebida|recebimento|recebeu|ganhei|entrou|entrada|caiu|depositaram|me\s+(?:pagou|pagaram|enviou|enviaram|mandou|mandaram|devolveu|devolveram|transferiu|transferiram)|salario|freela|freelance|rendimentos?|dividendos?|vendi|venda|reembolso|estorno|cashback|comissao|bonus|decimo\s+terceiro|13o|ferias|receita)\b/);
+  const pExp = first(/\b(?:gastei|paguei|pagamento|pago|comprei|compra|despesa|debitou|saiu|gasto|gastos|pagar|assinatura|fatura)\b/);
+  const pTrf = first(/\b(?:transferi|transferencia|transferir|passei|movi|guardei|aportei|apliquei|investi|resgatei|saquei|saque|sacar|depositei)\b/);
+  const nextToPara = accMentions.length >= 2 && /\b(?:para|pra|pro)\b|->|→/.test(mk.slice(accMentions[0].end, accMentions[1].start));
+  let type = 'expense', explicit = true;
+  if (ctx.forceType){ type = ctx.forceType; }
+  else {
+    const minP = Math.min(pInc, pExp, pTrf);
+    if (minP === Infinity){
+      if (nextToPara){ type = 'transfer'; }
+      else if (/\bpix\b/.test(qeFold(text)) && /\b(?:do|da)\s+[a-z]/.test(mk) && method === 'pix'){ type = 'income'; explicit = false; }
+      else { type = 'expense'; explicit = false; }
+    } else if (minP === pTrf) type = 'transfer';
+    else if (minP === pInc) type = 'income';
+    else type = 'expense';
+    if (type !== 'transfer' && nextToPara && minP === Infinity) type = 'transfer';
+  }
+  out.type = type; out.flags.typeExplicit = ctx.forceType ? true : explicit;
+  const verbs = { trfSave: /\b(?:guardei|aportei|apliquei|investi)\b/.test(mk), withdraw: /\b(?:saquei|saque|sacar|resgatei)\b/.test(mk), deposit: /\bdepositei\b/.test(mk) };
+
+  // ---- método final + contas por papel
+  if (type === 'transfer'){
+    out.paymentMethod = 'transfer';
+    let from = null, to = null;
+    if (accMentions.length >= 2){
+      const preOf = (mn) => (/([a-z]+)\s*$/.exec(mk.slice(0, mn.start).replace(/(?:\s+(?:o|a|os|as|um|uma|meu|minha|conta|cartao|banco|na|no))+\s*$/, '')) || [])[1] || '';
+      const p1 = preOf(accMentions[0]), p2 = preOf(accMentions[1]);
+      const swap = ['para', 'pra', 'pro', 'ao'].includes(p1) && ['de', 'do', 'da'].includes(p2);
+      from = swap ? accMentions[1].item : accMentions[0].item; to = swap ? accMentions[0].item : accMentions[1].item;
+    } else if (accMentions.length === 1){
+      const before = mk.slice(0, accMentions[0].start).trimEnd();
+      const asFrom = /\b(?:de|do|da)$/.test(before) && !verbs.trfSave;
+      if (verbs.withdraw){ from = accMentions[0].item; to = cashAcc && cashAcc.id !== from.id ? cashAcc : null; }
+      else if (verbs.deposit && cashAcc && cashAcc.id !== accMentions[0].item.id){ from = cashAcc; to = accMentions[0].item; }
+      else if (asFrom){ from = accMentions[0].item; }
+      else { to = accMentions[0].item; }
+    } else if (verbs.withdraw && cashAcc){ to = cashAcc; }
+    if (!from){
+      const lastTx = qeLastTx(txs, null);
+      const cand = (lastTx && accounts.find(a => a.id === lastTx.accountId && (!to || a.id !== to.id))) || accounts.find(a => !to || a.id !== to.id) || null;
+      from = cand; out.flags.accountSource = 'padrao';
+    } else out.flags.accountExplicit = true;
+    out.accountId = from ? from.id : null; out.toAccountId = to ? to.id : null;
+    out.flags.toNeeded = !to || (from && to.id === from.id);
+  } else {
+    out.paymentMethod = method || 'pix';
+    out.flags.methodExplicit = !!method;
+    if (type === 'income' && (out.paymentMethod === 'credit' || out.paymentMethod === 'debit')) out.paymentMethod = 'pix';
+    if (accMentions.length){ out.accountId = accMentions[0].item.id; out.flags.accountExplicit = true; out.flags.accountSource = 'frase'; }
+  }
+
+  // ---- descrição (o que sobrou da frase)
+  const left = [];
+  { let cur = ''; for (let i = 0; i < text.length; i++){ if (!used[i]) cur += text[i]; else { if (cur) left.push(cur); cur = ''; } } if (cur) left.push(cur); }
+  let words = left.join(' ').split(/[\s,;:!?()]+/).map(w => w.replace(/^[.\-–—]+|[.\-–—]+$/g, '')).filter(Boolean);
+  const stripEdge = (arr) => { let a = 0, b = arr.length; while (a < b && QE_STOP.has(qeFold(arr[a]))) a++; while (b > a && QE_STOP.has(qeFold(arr[b - 1]))) b--; return arr.slice(a, b); };
+  const preps = new Set(['de','do','da','dos','das','pro','pra','para','ao','a']);
+  let descWords = stripEdge(words);
+  // se sobrou só "do João": mantém o nome para Pix
+  let nameAfter = null;
+  { const w2 = words.filter(w => !QE_STOP.has(qeFold(w)) || preps.has(qeFold(w))); const pi = w2.findIndex(w => preps.has(qeFold(w))); if (pi >= 0 && pi < w2.length - 1){ nameAfter = { prep: qeFold(w2[pi]), name: w2.slice(pi + 1).filter(w => !QE_STOP.has(qeFold(w))).join(' ') }; } }
+  let desc = descWords.join(' ');
+  if (out.paymentMethod === 'pix' && type !== 'transfer' && /\bpix\b/.test(n) && nameAfter && nameAfter.name && (!desc || desc === nameAfter.name || desc.toLowerCase().startsWith(nameAfter.name.toLowerCase()))){
+    desc = (type === 'income' ? 'Pix de ' : 'Pix para ') + nameAfter.name.replace(/(^|\s)(\p{L})/gu, (m0, sp, ch) => sp + ch.toUpperCase());
+  }
+  desc = desc.replace(/\s+/g, ' ').trim();
+  if (desc) desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+
+  // ---- cartão
+  if (type !== 'transfer' && (out.paymentMethod === 'credit' || out.paymentMethod === 'debit')){
+    const pool = out.paymentMethod === 'credit' ? creditCards : debitCards;
+    if (cardMention) out.cardId = cardMention.item.id;
+    else if (pool.length === 1) out.cardId = pool[0].id;
+    else if (out.paymentMethod === 'credit'){ out.flags.cardNeeded = true; }
+  }
+
+  // ---- histórico: conta/forma de pagamento padrão + categoria
+  const sigWords = qeFold(desc).split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !QE_STOP.has(w));
+  const hist = qeHistory(txs, sigWords, type === 'transfer' ? null : type, today);
+  if (type !== 'transfer'){
+    if (!out.accountId && out.paymentMethod !== 'credit'){
+      let acc = null;
+      if (out.paymentMethod === 'cash' && cashAcc) acc = cashAcc;
+      if (!acc && hist.best && accounts.some(a => a.id === hist.best.accountId)) acc = accounts.find(a => a.id === hist.best.accountId);
+      if (!acc){ const lt = qeLastTx(txs, type); acc = (lt && accounts.find(a => a.id === lt.accountId)) || accounts[0] || null; }
+      if (acc){ out.accountId = acc.id; out.flags.accountSource = hist.best && acc.id === hist.best.accountId ? 'historico' : 'padrao'; }
+    }
+    if (!method && hist.best && hist.best.paymentMethod && hist.score >= 1 && type === 'expense'){
+      out.paymentMethod = hist.best.paymentMethod;
+      if (out.paymentMethod === 'credit'){ out.cardId = hist.best.cardId || null; if (!out.cardId && creditCards.length === 1) out.cardId = creditCards[0].id; if (!out.cardId) out.flags.cardNeeded = true; }
+      if (out.paymentMethod === 'debit') out.cardId = hist.best.cardId || null;
+    } else if (!method && cashAcc && out.accountId === cashAcc.id) out.paymentMethod = 'cash';
+    if (out.paymentMethod === 'credit') out.accountId = null;
+
+    // categoria
+    const typeCats = cats.filter(c => c.type === type);
+    const resid = masked(); // já sem valor/data/forma/conta
+    // 1) nome da categoria dito na frase (subcategoria vence)
+    let named = null;
+    for (const c of typeCats){
+      const key = qeFold(c.name).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (key.length < 3) continue;
+      const re = new RegExp('(^|[^a-z0-9])' + qeEsc(key) + '(?![a-z0-9])');
+      const x = re.exec(resid);
+      if (x){ const score = key.length + (c.parentId ? 5 : 0); if (!named || score > named.score) named = { c, score, start: x.index + x[1].length, end: x.index + x[1].length + key.length }; }
+    }
+    if (named){ out.categoryId = named.c.id; out.flags.catSource = 'frase'; mark(named.start, named.end);
+      // recalcula descrição sem o nome da categoria dita
+      const lf = []; { let cur = ''; for (let i = 0; i < text.length; i++){ if (!used[i]) cur += text[i]; else { if (cur) lf.push(cur); cur = ''; } } if (cur) lf.push(cur); }
+      let w3 = stripEdge(lf.join(' ').split(/[\s,;:!?()]+/).map(w => w.replace(/^[.\-–—]+|[.\-–—]+$/g, '')).filter(Boolean));
+      const d2 = w3.join(' ').trim(); if (d2 !== desc && !desc.startsWith('Pix')) desc = d2 ? d2.charAt(0).toUpperCase() + d2.slice(1) : '';
+    }
+    // 2) histórico do próprio usuário
+    if (!out.categoryId && hist.catId && typeCats.some(c => c.id === hist.catId) && hist.score >= 1){ out.categoryId = hist.catId; out.flags.catSource = 'historico'; }
+    // 3) palavras-chave comuns
+    if (!out.categoryId){
+      const hay = ' ' + qeFold(text).replace(/[^a-z0-9]+/g, ' ') + ' ';
+      for (const grp of QE_KEYWORDS[type] || []){
+        const hit = grp.words.filter(w => hay.includes(' ' + w + ' ') || hay.includes(' ' + w + 's ') || hay.includes(' ' + w + 'es '));
+        if (!hit.length) continue;
+        const cand = typeCats.filter(c => grp.re.test(qeFold(c.name)));
+        const related = cand.find(c => c.parentId && hit.some(w => qeFold(c.name).includes(w) || w.includes(qeFold(c.name))));
+        const pick2 = related || cand.find(c => !c.parentId) || cand[0];
+        if (pick2){ out.categoryId = pick2.id; out.flags.catSource = 'palavra'; break; }
+      }
+    }
+    // 4) categoria padrão
+    if (!out.categoryId){
+      const fb = typeCats.find(c => !c.parentId && /outr/.test(qeFold(c.name))) || null;
+      if (fb){ out.categoryId = fb.id; out.flags.catSource = 'padrao'; }
+    }
+    if (!desc){
+      if (type === 'income' && out.paymentMethod === 'pix') desc = 'Pix recebido';
+      else { const cc = cats.find(c => c.id === out.categoryId); desc = cc ? cc.name : ''; }
+    }
+  } else if (!desc) desc = 'Transferência entre contas';
+  out.description = desc;
+  return out;
+}
+function qeLastTx(txs, type){
+  let best = null;
+  for (const t of txs){ if (type && t.type !== type) continue; if (!t.accountId && !t.cardId) continue; if (!best || String(t.date) >= String(best.date)) best = t; }
+  return best;
+}
+function qeHistory(txs, sigWords, type, today){
+  const res = { catId: null, score: 0, best: null };
+  if (!sigWords.length || !type) return res;
+  const byCat = {}; let bestScore = 0; const now = today.getTime();
+  for (const t of txs){
+    if (t.type !== type || !t.description) continue;
+    const tw = qeFold(t.description).split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+    const overlap = sigWords.filter(w => tw.includes(w)).length;
+    if (!overlap) continue;
+    const age = Math.max(0, (now - new Date(t.date + 'T12:00:00').getTime()) / 86400000);
+    const sc = overlap * (1 / (1 + age / 60));
+    if (t.categoryId) byCat[t.categoryId] = (byCat[t.categoryId] || 0) + sc;
+    if (sc > bestScore){ bestScore = sc; res.best = t; }
+  }
+  const ids = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]);
+  if (ids.length){ res.catId = ids[0]; res.score = Math.max(1, byCat[ids[0]]); }
+  return res;
+}
+
+/* ========== LANÇAR POR FRASE — tela ========== */
+const QE_ICONS = {
+  bolt: '<svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  mic: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+  check: '<svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+};
+const QE = { over: {}, keep: false, rec: null, listening: false, vv: null, cur: null, timer: 0 };
+try { QE.keep = localStorage.getItem('norte_qe_keep') === '1'; } catch (e){}
+
+function qeCtx(extra){
+  return Object.assign({ accounts: state.accounts || [], cards: state.creditCards || [], categories: state.categories || [], transactions: state.transactions || [], today: new Date() }, extra || {});
+}
+function qeFmt(v){ return v == null ? '' : Number(v).toFixed(2).replace('.', ','); }
+function qeTitle(s){ return String(s || '').replace(/(^|\s)(\p{L})/gu, (m, sp, ch) => sp + ch.toUpperCase()); }
+
+// junta o que o analisador entendeu com o que a pessoa corrigiu na mão e arruma dependências
+function qeResolve(){
+  const ta = $('qeText');
+  const forced = QE.over.type || null;
+  const p = quickParse(ta ? ta.value : '', qeCtx(forced ? { forceType: forced } : {}));
+  const f = Object.assign({}, p);
+  for (const k of Object.keys(QE.over)) f[k] = QE.over[k];
+  f.parsed = p;
+  const cards = state.creditCards || [];
+  if (f.type === 'transfer'){
+    f.paymentMethod = 'transfer'; f.cardId = null;
+    if (!f.accountId) f.accountId = (state.accounts[0] || {}).id || null;
+  } else {
+    if (f.type === 'income' && (f.paymentMethod === 'credit' || f.paymentMethod === 'debit')) f.paymentMethod = 'pix';
+    if (f.paymentMethod === 'credit'){
+      f.accountId = null;
+      if (!f.cardId){ const cr = cards.filter(c => c.kind === 'credit'); if (cr.length === 1) f.cardId = cr[0].id; }
+      f.cardNeeded = !f.cardId;
+    } else {
+      f.cardNeeded = false;
+      if (f.paymentMethod !== 'debit') f.cardId = null;
+      if (!f.accountId){ const lt = qeLastTx(state.transactions, f.type); f.accountId = p.accountId || (lt && state.accounts.some(a => a.id === lt.accountId) ? lt.accountId : null) || (state.accounts[0] || {}).id || null; }
+    }
+    f.toAccountId = null;
+  }
+  if (f.type !== 'expense') f.installments = 1;
+  return f;
+}
+
+function qeFrequent(){
+  const cut = Date.now() - 120 * 86400000, map = {};
+  for (const t of state.transactions){
+    if (!t.description || (t.type !== 'expense' && t.type !== 'income')) continue;
+    if (new Date(t.date + 'T12:00:00').getTime() < cut) continue;
+    const k = qeFold(t.description).trim(); if (!k) continue;
+    const e = map[k] || (map[k] = { n: 0, last: '', label: t.description });
+    e.n++; if (String(t.date) >= e.last){ e.last = String(t.date); e.label = t.description; }
+  }
+  return Object.values(map).filter(e => e.n >= 2).sort((a, b) => b.n - a.n || (b.last > a.last ? 1 : -1)).slice(0, 5).map(e => e.label);
+}
+
+function openQuickEntry(prefill){
+  if (typeof readOnlyMode !== 'undefined' && readOnlyMode){ showToast('Modo leitura ativado — desative para lançar.'); return; }
+  if (!state || !state.accounts || !state.accounts.length){ openTransactionModal(); return; }
+  QE.over = {}; QE.cur = null;
+  const a1 = state.accounts[0].name, a2 = state.accounts[1] ? state.accounts[1].name : null;
+  const hasCredit = (state.creditCards || []).some(c => c.kind === 'credit');
+  const examples = [`mercado 85,90 ${a1}`, 'recebi pix 200 do João', 'uber 23 ontem'];
+  if (hasCredit) examples.push('tênis 300 no crédito em 3x');
+  else if (a2) examples.push(`transferi 100 do ${a1} para ${a2}`);
+  const freq = qeFrequent();
+  const speech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  openModal(`<div class="modal-head"><h3 class="qe-title">${QE_ICONS.bolt}<span>Lançar por frase</span></h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
+    <div class="modal-body qe">
+      <div class="qe-inputrow">
+        <textarea id="qeText" rows="2" enterkeyhint="send" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="Fale ou escreva… ex: mercado 85,90"></textarea>
+        ${speech ? `<button type="button" class="qe-mic" id="qeMic" aria-label="Falar" title="Falar">${QE_ICONS.mic}</button>` : ''}
+        <button type="button" class="qe-send" id="qeSend" aria-label="Adicionar" title="Adicionar" disabled>${QE_ICONS.check}</button>
+      </div>
+      <div class="qe-chips" id="qeChips">
+        ${freq.length ? `<div class="qe-chips-label">Seus lançamentos frequentes</div><div class="qe-chiprow">${freq.map(f => `<button type="button" class="qe-chip qe-chip-freq" data-fill="${escapeHtml(f)} ">${escapeHtml(f)}</button>`).join('')}</div>` : ''}
+        <div class="qe-chips-label">Exemplos — toque para testar</div>
+        <div class="qe-chiprow">${examples.map(x => `<button type="button" class="qe-chip" data-fill="${escapeHtml(x)}">${escapeHtml(x)}</button>`).join('')}</div>
+      </div>
+      <div class="qe-card" id="qeCard"></div>
+    </div>
+    <div class="modal-foot qe-foot">
+      <label class="qe-keep"><input type="checkbox" id="qeKeep" ${QE.keep ? 'checked' : ''}><span>Continuar lançando</span></label>
+      <button class="btn btn-ghost btn-sm" id="qeMore" disabled>Mais detalhes</button>
+      <button class="btn btn-primary" id="qeAdd" disabled>Adicionar</button>
+    </div>`);
+  const bd = $('modalBackdrop'); bd.classList.add('qe-mode');
+  qeFit(); QE.vv = qeFit;
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', QE.vv);
+  const root = $('modalContent'), ta = $('qeText');
+  root.querySelector('[data-action="close"]').addEventListener('click', closeModal);
+  ta.addEventListener('input', () => { clearTimeout(QE.timer); QE.timer = setTimeout(qeRender, 90); });
+  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); qeSubmit(); } });
+  ta.addEventListener('beforeinput', (e) => { if (e.inputType === 'insertLineBreak'){ e.preventDefault(); qeSubmit(); } });
+  root.querySelector('#qeChips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-fill]'); if (!b) return;
+    ta.value = b.getAttribute('data-fill'); QE.over = {}; ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (er){}
+    qeRender();
+  });
+  root.querySelector('#qeKeep').addEventListener('change', (e) => { QE.keep = e.target.checked; try { localStorage.setItem('norte_qe_keep', QE.keep ? '1' : '0'); } catch (er){} });
+  root.querySelector('#qeAdd').addEventListener('click', qeSubmit);
+  root.querySelector('#qeSend').addEventListener('click', qeSubmit);
+  root.querySelector('#qeMore').addEventListener('click', qeMore);
+  const mic = root.querySelector('#qeMic'); if (mic) mic.addEventListener('click', qeToggleMic);
+  qeWireCard(root.querySelector('#qeCard'));
+  qeRender();
+  if (prefill){ ta.value = prefill; qeRender(); }
+  setTimeout(() => { const t = $('qeText'); if (t){ t.focus(); try { t.setSelectionRange(t.value.length, t.value.length); } catch (er){} } }, 80);
+}
+
+function qeFit(){
+  const m = document.querySelector('#modalBackdrop .modal'); if (!m) return;
+  const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  m.style.maxHeight = Math.max(260, h - 22) + 'px';
+}
+function qeTeardown(){
+  const bd = $('modalBackdrop'); if (bd) bd.classList.remove('qe-mode');
+  const m = document.querySelector('#modalBackdrop .modal'); if (m) m.style.maxHeight = '';
+  if (QE.vv && window.visualViewport) window.visualViewport.removeEventListener('resize', QE.vv);
+  QE.vv = null; clearTimeout(QE.timer);
+  if (QE.rec){ try { QE.rec.abort(); } catch (e){} QE.rec = null; }
+  QE.listening = false;
+}
+
+function qeRender(){
+  const card = $('qeCard'); if (!card) return;
+  const ta = $('qeText');
+  const empty = !ta.value.trim();
+  const chips = $('qeChips'); if (chips) chips.classList.toggle('hidden', !empty);
+  if (empty){
+    QE.over = {}; QE.cur = null;
+    card.innerHTML = `<div class="qe-tipline">Escreva ou fale como no WhatsApp: o app entende valor, receita ou despesa, conta, categoria, data e parcelas. Dica: toque no 🎤 do teclado para ditar.</div>`;
+    qeButtons(false); return;
+  }
+  const f = qeResolve(); QE.cur = f;
+  const accs = state.accounts, cards = state.creditCards || [];
+  const isT = f.type === 'transfer', isCredit = f.paymentMethod === 'credit', isDebit = f.paymentMethod === 'debit';
+  const methods = f.type === 'income' ? PAYMENT_METHODS.filter(p => !['credit', 'debit'].includes(p.key)) : PAYMENT_METHODS.filter(p => p.key !== 'transfer');
+  const optAcc = (excl) => accs.filter(a => a.id !== excl).map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  const fl = f.parsed.flags;
+  const warnVal = !(f.value > 0), warnCat = !isT && !f.categoryId, warnCard = isCredit && !f.cardId, warnTo = isT && (!f.toAccountId || f.toAccountId === f.accountId);
+  const hints = [];
+  if (!isT){
+    if (f.categoryId && !QE.over.categoryId){
+      const map = { historico: 'Categoria pelo seu histórico', palavra: 'Categoria sugerida pela palavra-chave', padrao: '⚠ Não reconheci a categoria — confira' };
+      if (map[fl.catSource]) hints.push(map[fl.catSource]);
+    }
+    if (!isCredit && !QE.over.accountId && !fl.accountExplicit){ hints.push(fl.accountSource === 'historico' ? 'Conta pelo seu histórico' : 'Conta assumida (a que você mais usa) — confira'); }
+  }
+  if (!fl.typeExplicit && !QE.over.type && f.type === 'income') hints.push('⚠ Assumi que é uma receita — troque acima se não for');
+  card.innerHTML = `
+    <div class="qe-type" role="group" aria-label="Tipo">
+      ${[['expense', 'Despesa'], ['income', 'Receita'], ['transfer', 'Transferência']].map(([k, l]) => `<button type="button" data-qe-type="${k}" class="${f.type === k ? 'active ' + k : ''}">${l}</button>`).join('')}
+    </div>
+    <div class="qe-valuewrap${warnVal ? ' warn' : ''}"><span class="qe-cur">R$</span><input id="qeValue" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" value="${qeFmt(f.value)}" aria-label="Valor"></div>
+    <div class="qe-field"><label for="qeDesc">Descrição</label><input id="qeDesc" type="text" autocomplete="off" value="${escapeHtml(f.description || '')}"></div>
+    ${isT ? '' : `<div class="qe-field${warnCat ? ' warn' : ''}"><label for="qeCat">Categoria</label><select id="qeCat">${f.categoryId ? '' : '<option value="">Escolha a categoria…</option>'}${categoryOptionsGrouped(f.type)}</select></div>`}
+    <div class="qe-grid">
+      ${isCredit ? '' : `<div class="qe-field"><label for="qeAcc">${isT ? 'De (origem)' : 'Conta'}</label><select id="qeAcc">${optAcc()}</select></div>`}
+      ${isT ? `<div class="qe-field${warnTo ? ' warn' : ''}"><label for="qeTo">Para (destino)</label><select id="qeTo">${f.toAccountId ? '' : '<option value="">Escolha a conta…</option>'}${optAcc(f.accountId)}</select></div>` : ''}
+      ${isT ? '' : `<div class="qe-field"><label for="qePay">Pagamento</label><select id="qePay">${methods.map(m => `<option value="${m.key}">${({ credit: 'Crédito', debit: 'Débito', pix: 'Pix', cash: 'Dinheiro', boleto: 'Boleto', transfer: 'Transferência' })[m.key] || m.label}</option>`).join('')}</select></div>`}
+      ${(isCredit || isDebit) && !isT ? `<div class="qe-field${warnCard ? ' warn' : ''}"><label for="qeCard2">${isCredit ? 'Cartão de crédito' : 'Cartão de débito'}</label><select id="qeCard2">${isCredit ? (f.cardId ? '' : '<option value="">Escolha o cartão…</option>') : '<option value="">Nenhum</option>'}${cards.filter(c => c.kind === (isCredit ? 'credit' : 'debit')).map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></div>` : ''}
+      ${f.type === 'expense' ? `<div class="qe-field"><label for="qeInst">Parcelas</label><input id="qeInst" type="number" min="1" max="48" inputmode="numeric" value="${f.installments || 1}"></div>` : ''}
+      <div class="qe-field"><label for="qeDate">Data</label><input id="qeDate" type="date" value="${f.date}"></div>
+    </div>
+    ${hints.length ? `<div class="qe-hints">${hints.map(h => `<div class="${h.startsWith('⚠') ? 'w' : ''}">${escapeHtml(h)}</div>`).join('')}</div>` : ''}`;
+  const set = (id, v) => { const el = $(id); if (el && v != null) el.value = v; };
+  set('qeCat', f.categoryId || ''); set('qeAcc', f.accountId || ''); set('qeTo', f.toAccountId || ''); set('qePay', f.paymentMethod); set('qeCard2', f.cardId || '');
+  qeButtons(true);
+}
+function qeButtons(on){ ['qeAdd', 'qeSend', 'qeMore'].forEach(id => { const b = $(id); if (b) b.disabled = !on; }); }
+
+function qeWireCard(card){
+  card.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-qe-type]'); if (!b) return;
+    const t = b.getAttribute('data-qe-type');
+    QE.over.type = t;
+    if (t === 'transfer'){ delete QE.over.categoryId; delete QE.over.paymentMethod; delete QE.over.cardId; }
+    else { delete QE.over.toAccountId; if (QE.over.categoryId){ const c = categoryById(QE.over.categoryId); if (!c || c.type !== t) delete QE.over.categoryId; } if (t === 'income' && (QE.over.paymentMethod === 'credit' || QE.over.paymentMethod === 'debit')) delete QE.over.paymentMethod; }
+    qeRender();
+  });
+  card.addEventListener('input', (e) => {
+    const id = e.target.id;
+    if (id === 'qeValue'){ const raw = e.target.value.replace(/[^\d.,]/g, ''); const v = qeNum(raw.replace(/^[.,]+/, '')); QE.over.value = v > 0 ? Math.round(v * 100) / 100 : null; $('qeValue').parentNode.classList.toggle('warn', !(QE.over.value > 0)); }
+    else if (id === 'qeDesc'){ QE.over.description = e.target.value; }
+    else if (id === 'qeInst'){ QE.over.installments = Math.max(1, Math.min(48, parseInt(e.target.value, 10) || 1)); }
+  });
+  card.addEventListener('change', (e) => {
+    const id = e.target.id, v = e.target.value;
+    if (id === 'qeValue'){ if (QE.over.value > 0) e.target.value = qeFmt(QE.over.value); }
+    else if (id === 'qeCat'){ QE.over.categoryId = v || null; qeRender(); }
+    else if (id === 'qeAcc'){ QE.over.accountId = v; if (QE.cur && QE.cur.type === 'transfer' && QE.over.toAccountId === v) delete QE.over.toAccountId; qeRender(); }
+    else if (id === 'qeTo'){ QE.over.toAccountId = v || null; qeRender(); }
+    else if (id === 'qePay'){ QE.over.paymentMethod = v; delete QE.over.cardId; qeRender(); }
+    else if (id === 'qeCard2'){ QE.over.cardId = v || null; qeRender(); }
+    else if (id === 'qeDate'){ if (v) QE.over.date = v; }
+  });
+}
+
+function qeValidate(f){
+  if (!(f.value > 0)) return { msg: 'Não achei o valor. Digite, por exemplo: mercado 85,90', focus: 'qeValue' };
+  if (f.type === 'transfer'){
+    if (!f.toAccountId || f.toAccountId === f.accountId) return { msg: 'Escolha a conta de destino da transferência.', focus: 'qeTo' };
+  } else {
+    if (!f.categoryId) return { msg: 'Escolha a categoria.', focus: 'qeCat' };
+    if (f.paymentMethod === 'credit' && !f.cardId) return { msg: 'Escolha o cartão de crédito usado.', focus: 'qeCard2' };
+    if (f.paymentMethod !== 'credit' && !f.accountId) return { msg: 'Escolha a conta.', focus: 'qeAcc' };
+  }
+  if (!f.date) return { msg: 'Confira a data.', focus: 'qeDate' };
+  return null;
+}
+
+function qeSubmit(){
+  if (!$('qeText')) return; // janela já fechada (evita lançar duas vezes)
+  if (!QE.cur){ const t = $('qeText'); if (t) t.focus(); return; }
+  const f = QE.cur, bad = qeValidate(f);
+  if (bad){ showToast(bad.msg, 3200); const el = $(bad.focus); if (el) el.focus(); return; }
+  const base = { type: f.type, date: f.date, value: f.value, accountId: f.paymentMethod === 'credit' ? null : f.accountId, paymentMethod: f.type === 'transfer' ? 'transfer' : f.paymentMethod,
+    cardId: (f.paymentMethod === 'credit' || f.paymentMethod === 'debit') ? (f.cardId || null) : null,
+    description: (f.description || '').trim(), notes: '', tagId: null, receiptData: null, reaction: null, splitWith: null, splitAmount: null, splitSettled: false };
+  let n = 1;
+  if (f.type === 'transfer'){
+    base.toAccountId = f.toAccountId; base.description = base.description || 'Transferência entre contas';
+  } else {
+    base.categoryId = f.categoryId; base.recurring = false;
+    if (!base.description){ const c = categoryById(f.categoryId); base.description = c ? c.name : ''; }
+  }
+  if (f.type === 'expense') n = Math.max(1, Math.min(48, Number(f.installments) || 1));
+  let anomaly = null;
+  if (n > 1){
+    const gid = uid(), per = Math.round((f.value / n) * 100) / 100;
+    const [y0, m0, d0] = f.date.split('-').map(Number);
+    for (let i = 0; i < n; i++){
+      const d = new Date(y0, m0 - 1 + i, d0);
+      const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      state.transactions.push(Object.assign({}, base, { id: uid(), date: iso, value: per, installmentGroupId: gid, installmentIndex: i + 1, installmentTotal: n }));
+    }
+  } else {
+    if (f.type === 'expense') anomaly = checkExpenseAnomaly(base.categoryId, f.value);
+    state.transactions.push(Object.assign({}, base, { id: uid() }));
+  }
+  mutate();
+  const summary = (f.type === 'income' ? 'Receita' : f.type === 'transfer' ? 'Transferência' : 'Despesa') + ' de ' + fmtBRL(f.value) + (n > 1 ? ` em ${n}x` : '') + ' adicionada.';
+  if (QE.keep){
+    const t = $('qeText'); t.value = ''; QE.over = {}; qeRender(); t.focus(); renderCurrentView();
+  } else { closeModal(); renderCurrentView(); }
+  if (anomaly) showToast(`Adicionado — esse gasto está ${Math.round(anomaly.ratio * 10) / 10}x acima da sua média nessa categoria (${fmtBRL(anomaly.avg)}). Vale conferir se está certo.`, 4200);
+  else showToast(summary, 2600);
+}
+
+function qeMore(){
+  const f = QE.cur; if (!f) return;
+  const prefill = { type: f.type, date: f.date, value: f.value > 0 ? f.value : '', description: f.description || '', categoryId: f.categoryId || null, accountId: f.accountId || null, toAccountId: f.toAccountId || null, paymentMethod: f.paymentMethod, cardId: f.cardId || null };
+  closeModal();
+  openTransactionModal(null, prefill);
+  const fi = $('fInstallments'); if (fi && f.installments > 1) fi.value = f.installments;
+}
+
+function qeToggleMic(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;
+  const mic = $('qeMic'), ta = $('qeText');
+  if (QE.listening && QE.rec){ try { QE.rec.stop(); } catch (e){} return; }
+  const rec = new SR(); QE.rec = rec;
+  rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  const baseText = ta.value ? ta.value.trim() + ' ' : '';
+  rec.onstart = () => { QE.listening = true; if (mic) mic.classList.add('on'); };
+  rec.onresult = (ev) => {
+    let txt = ''; for (let i = 0; i < ev.results.length; i++) txt += ev.results[i][0].transcript;
+    ta.value = baseText + txt; qeRender();
+  };
+  rec.onerror = (ev) => {
+    const msg = { 'not-allowed': 'Libere o microfone para o Norte nas permissões do navegador.', 'service-not-allowed': 'Libere o microfone para o Norte nas permissões do navegador.', 'no-speech': 'Não ouvi nada. Tente de novo.', 'audio-capture': 'Não encontrei um microfone.', 'network': 'Sem internet para reconhecer a voz. Digite a frase.' }[ev.error];
+    if (msg) showToast(msg, 3600);
+  };
+  rec.onend = () => { QE.listening = false; QE.rec = null; if (mic) mic.classList.remove('on'); const t = $('qeText'); if (t) t.focus(); };
+  try { rec.start(); } catch (e){ QE.listening = false; }
+}
+
+/* ---- ligações: botões, atalho de teclado, atalho do ícone do app ---- */
+const _qeOpenModal = openModal; openModal = function(html){ qeTeardown(); return _qeOpenModal(html); };
+const _qeCloseModal = closeModal; closeModal = function(){ qeTeardown(); return _qeCloseModal.apply(this, arguments); };
+$('dashboardQuickBtn').addEventListener('click', () => openQuickEntry());
+$('dashboardQuickFab').addEventListener('click', () => openQuickEntry());
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'q' && e.key !== 'Q') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (typeof tourState !== 'undefined' && tourState.active) return;
+  if ($('modalBackdrop').classList.contains('show')) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+  e.preventDefault(); openQuickEntry();
+});
+(function qeAutoOpen(){
+  if (!/[?&]quick=1\b/.test(location.search)) return;
+  try { history.replaceState(null, '', location.pathname + location.hash); } catch (e){}
+  let tries = 0;
+  const t = setInterval(() => {
+    tries++;
+    if (typeof state !== 'undefined' && state && state.accounts && document.getElementById('dashboardMain') && !document.getElementById('modalBackdrop').classList.contains('show')){ clearInterval(t); setTimeout(() => openQuickEntry(), 250); }
+    else if (tries > 100) clearInterval(t);
+  }, 400);
+})();
+
 /* ---- Transfer shortcut (accounts view) ---- */
 $('addTransferBtn').addEventListener('click', () => {
   openTransactionModal();
@@ -8731,6 +9488,7 @@ function openShortcutsModal(){
   openModal(`<div class="modal-head"><h3>Atalhos de teclado</h3><button class="btn btn-icon btn-ghost" data-action="close" aria-label="Fechar">✕</button></div>
     <div class="modal-body">
       <div class="list-row"><div class="desc">N</div><div class="meta">Nova transação</div></div>
+      <div class="list-row"><div class="desc">Q</div><div class="meta">Lançar por frase (falar ou digitar)</div></div>
       <div class="list-row"><div class="desc">L</div><div class="meta">Nova nota / lembrete</div></div>
       <div class="list-row"><div class="desc">Esc</div><div class="meta">Fechar a janela aberta</div></div>
       <div class="list-row"><div class="desc">?</div><div class="meta">Mostrar esta lista de atalhos</div></div>
