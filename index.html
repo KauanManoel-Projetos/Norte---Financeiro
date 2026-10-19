@@ -393,6 +393,36 @@ body.readonly-mode .fab{display:none !important;}
 .hdet-stat b{font-size:13.5px; font-weight:700; white-space:nowrap;}
 .hdet-stat b.pos{color:var(--positive);} .hdet-stat b.neg{color:var(--negative);}
 .hdet-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+
+/* ===== Saldo: disponível / cofrinhos / olhinho ===== */
+.hero-label{display:flex; align-items:center; gap:6px;}
+.hero-eye{width:32px; height:32px; margin:-4px 0; border-radius:50%; border:0; background:transparent; color:var(--text-dim); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:color .2s var(--ease), background .2s var(--ease); -webkit-tap-highlight-color:transparent;}
+.hero-eye:hover{color:var(--accent); background:var(--accent-soft);}
+.hero-eye[aria-pressed="true"]{color:var(--accent);}
+.hero-eye .icon{width:19px; height:19px; stroke-width:2;}
+.hero-sub{margin-top:4px; font-size:12.5px; color:var(--text-faint); line-height:1.4;}
+.hero-sub:empty{display:none;}
+.hero-sublink{border:0; background:transparent; color:var(--accent); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; padding:4px 6px; border-radius:8px;}
+.hero-sublink:hover{background:var(--accent-soft);}
+.hero-seg{display:inline-flex; gap:3px; padding:4px; margin-top:16px; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:999px; position:relative;}
+.hero-seg button{border:0; background:transparent; color:var(--text-dim); font:inherit; font-size:13px; font-weight:700; padding:8px 16px; border-radius:999px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:background .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease); -webkit-tap-highlight-color:transparent;}
+.hero-seg button .icon{width:15px; height:15px; stroke-width:2;}
+.hero-seg button.active{background:var(--accent); color:var(--accent-ink); box-shadow:0 3px 10px -2px rgba(0,0,0,.28);}
+.hero-seg-n{font-style:normal; font-size:11px; font-weight:800; line-height:1; padding:3px 6px; border-radius:999px; background:rgba(0,0,0,.14);}
+.hero-seg button:not(.active) .hero-seg-n{background:var(--accent-soft); color:var(--accent);}
+.hero-accs.swap{animation:hero-swap .28s var(--ease);}
+@keyframes hero-swap{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+.hchip-cof{height:48px; padding-right:15px;}
+.hchip-cof .hchip-logo{width:32px; height:32px;}
+.hchip-txt{display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0; line-height:1.1; text-align:left;}
+.hchip-name{font-size:11.5px; font-weight:600; color:var(--text-dim); max-width:155px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.hero-empty{display:flex; align-items:center; gap:12px; padding:14px; border-radius:16px; border:1px dashed var(--border); background:var(--surface-2); text-align:left; flex-wrap:wrap;}
+.hero-empty > .icon{width:26px; height:26px; color:var(--accent); flex:none;}
+.hero-empty div{flex:1; min-width:160px; display:flex; flex-direction:column; gap:3px;}
+.hero-empty b{font-size:14px;}
+.hero-empty span{font-size:12.5px; color:var(--text-dim); line-height:1.4;}
+@media (prefers-reduced-motion:reduce){ .hero-accs.swap{animation:none;} }
+
 @media (prefers-reduced-motion:reduce){ .hdet.fresh{animation:none;} .hchip, .hacc-toggle{transition:none;} }
 
 /* ===== Nova conta: banco ou carteira física ===== */
@@ -1005,6 +1035,7 @@ tr:hover td{background:var(--surface-2);}
 .seg-mini-btn.active[data-catmode="income"]{background:var(--positive); color:#fff;}
 [data-theme="dark"] .seg-mini-btn.active[data-catmode="income"]{color:#06220f;}
 .seg-mini-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.proj-seg .seg-mini-btn.active{background:var(--accent); color:var(--accent-ink);}
 
 /* Modal */
 .modal-backdrop{position:fixed; inset:0; background:var(--scrim); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; backdrop-filter:blur(6px);}
@@ -1251,12 +1282,14 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
         <div class="grid grid-2">
           <div class="balance-hero" id="saldoHero">
             <div class="balance-hero-head">
-              <div class="label">Saldo total</div>
-              <div class="kpi-icon" style="position:relative;">
+              <div class="label hero-label"><span id="heroLabel">Saldo disponível</span><button type="button" class="hero-eye" id="heroEye" data-hero-eye aria-pressed="false" aria-label="Ocultar saldos" title="Ocultar saldos"></button></div>
+              <div class="kpi-icon" id="heroIcon" style="position:relative;">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
               </div>
             </div>
             <div class="value num" id="heroBalance">R$ 0,00</div>
+            <div class="hero-sub" id="heroSub"></div>
+            <div class="hero-seg" id="heroSeg" role="tablist" aria-label="Tipo de saldo"></div>
             <div class="hero-accs hidden" id="heroAccs"></div>
           </div>
           <div class="card kpi" style="display:flex; flex-direction:column; justify-content:center;">
@@ -1268,6 +1301,7 @@ body.readonly-mode #fCatNewBtn, body.readonly-mode #fCatNewAddBtn
             </div>
             <div class="value num" id="projectedBalance">R$ 0,00</div>
             <div class="delta" id="projectedBalanceNote" style="color:var(--text-faint); font-weight:500;"></div>
+            <div class="seg-mini proj-seg" id="projBaseSeg" role="group" aria-label="Base da projeção" style="margin-top:12px; align-self:flex-start;"><button type="button" class="seg-mini-btn" data-projbase="avail" aria-pressed="true">Dia a dia</button><button type="button" class="seg-mini-btn" data-projbase="total" aria-pressed="false">Com cofrinhos</button></div>
           </div>
         </div>
         <div class="card" style="margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; width:100%; box-sizing:border-box;">
@@ -1827,7 +1861,8 @@ const $ = (id) => document.getElementById(id);
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2));
 const fmtBRL = (v) => (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmtDate = (iso) => { if(!iso) return ''; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
-const todayISO = () => new Date().toISOString().slice(0,10);
+function localISO(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+const todayISO = () => localISO(new Date());
 const monthKey = (isoDate) => isoDate.slice(0,7); // YYYY-MM
 const CAT_PALETTE = ['#D2AC47','#5FB699','#E07C6B','#7C9CD9','#B58CD9','#5FA8A0','#D98E73','#9AA0AC','#6EA6C9','#C97AA0',
   '#C9954B','#4F9E8C','#B0724A','#8593C9','#A6789A','#6F9C6E','#C77B7B','#7FA6A0','#B8A05E','#8B7FB0'];
@@ -2897,27 +2932,65 @@ function destroyChart(id){ if (charts[id]){ charts[id].destroy(); delete charts[
 // médio (receita - despesa) dos últimos 3 meses com movimentação, repetido
 // pelo número de meses escolhido. É uma estimativa simples de "se seu ritmo
 // atual continuar", não uma previsão garantida.
+/* ---- Base das projeções: só o dia a dia, ou dia a dia + cofrinhos ---- */
+let projBase = 'avail';
+try { projBase = localStorage.getItem('norte_proj_base') === 'total' ? 'total' : 'avail'; } catch (e){}
+function projectionHasCofrinhos(){
+  return (state.envelopes || []).some(e => Number(e.amount) > 0 && state.accounts.some(a => a.id === e.accountId));
+}
+function projectionBase(){
+  return projBase === 'total' ? totalBalance() : state.accounts.reduce((sum, a) => sum + accountAvailableBalance(a.id), 0);
+}
+function projBaseNote(){
+  return projectionHasCofrinhos() ? ' Saldo de partida: ' + (projBase === 'total' ? 'dia a dia + cofrinhos.' : 'só o dia a dia (sem cofrinhos).') : '';
+}
+function renderProjBaseSeg(){
+  const seg = $('projBaseSeg'); if (!seg) return;
+  seg.style.display = projectionHasCofrinhos() ? '' : 'none';
+  seg.querySelectorAll('[data-projbase]').forEach(b => { const on = b.dataset.projbase === projBase; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+}
+// Projeção de saldo até o fim do mês, considerando contas fixas pendentes
+function renderShortProjection(){
+  const pendingBillsList = state.fixedBills.filter(b => !b.finished && isBillStarted(b) && !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
+  const pendingImpact = pendingBillsList.reduce((s,b) => s + (b.type === 'income' ? Number(b.value) : -Number(b.value)), 0);
+  const projected = projectionBase() + pendingImpact;
+  $('projectedBalance').textContent = fmtBRL(projected);
+  $('projectedBalance').className = 'value num ' + (projected >= 0 ? '' : 'neg');
+  $('projectedBalanceNote').textContent = (pendingBillsList.length
+    ? `Considerando ${pendingBillsList.length} conta(s) fixa(s) ainda não lançada(s) este mês.`
+    : 'Todas as contas fixas do mês já foram lançadas.');
+  renderProjBaseSeg();
+}
+$('projBaseSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-projbase]'); if (!b) return;
+  const v = b.dataset.projbase === 'total' ? 'total' : 'avail';
+  if (v === projBase) return;
+  projBase = v;
+  try { localStorage.setItem('norte_proj_base', v); } catch (err){}
+  renderShortProjection(); renderLongProjection(longProjectionMonths);
+});
 function renderLongProjection(monthsAhead){
   const recentMonths = lastNMonths(3).filter(m => monthIncomeExpense(m).count > 0);
   const horizonDate = new Date(); horizonDate.setMonth(horizonDate.getMonth() + monthsAhead);
-  const horizonStr = horizonDate.toISOString().slice(0,10);
+  const horizonStr = localISO(horizonDate);
   const dueItems = pendingPayables().filter(p => p.dueDate && p.dueDate <= horizonStr);
   const payablesImpact = dueItems.reduce((s,p) => s + (p.kind === 'receive' ? Number(p.value) : -Number(p.value)), 0);
   if (!recentMonths.length){
-    const projected = totalBalance() + payablesImpact;
+    const projected = projectionBase() + payablesImpact;
     $('longProjectionValue').textContent = fmtBRL(projected);
     $('longProjectionValue').className = 'value num ' + (projected >= 0 ? '' : 'neg');
     $('longProjectionNote').textContent = dueItems.length
       ? `Ainda sem histórico de meses suficiente — saldo atual + ${dueItems.length} item(ns) a pagar/receber previstos até lá.`
       : 'Ainda sem histórico suficiente pra projetar — mostrando o saldo atual.';
+    $('longProjectionNote').textContent += projBaseNote();
     return;
   }
   const avgNet = recentMonths.reduce((s,m) => { const r = monthIncomeExpense(m); return s + (r.income - r.expense); }, 0) / recentMonths.length;
-  const projected = totalBalance() + (avgNet * monthsAhead) + payablesImpact;
+  const projected = projectionBase() + (avgNet * monthsAhead) + payablesImpact;
   $('longProjectionValue').textContent = fmtBRL(projected);
   $('longProjectionValue').className = 'value num ' + (projected >= 0 ? '' : 'neg');
   $('longProjectionNote').textContent = `Baseado no resultado médio dos últimos ${recentMonths.length} mês(es) com movimentação (${fmtBRL(avgNet)}/mês)` +
-    (dueItems.length ? ` + ${dueItems.length} item(ns) a pagar/receber previstos até lá.` : '.');
+    (dueItems.length ? ` + ${dueItems.length} item(ns) a pagar/receber previstos até lá.` : '.') + projBaseNote();
 }
 $('longProjectionToggle').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-months]');
@@ -2965,7 +3038,7 @@ function renderOnboarding(){
   root.querySelector('[data-action="onb-categories"]')?.addEventListener('click', () => switchView('accounts'));
   root.querySelector('[data-action="onb-tx"]')?.addEventListener('click', () => { switchView('transactions'); setTimeout(() => openTransactionModal(), 0); });
 }
-/* ---- Saldo total: contas dentro do widget ---- */
+/* ---- Saldo total: disponível, cofrinhos, contas e olhinho ---- */
 const HERO_ACC_COLORS = ['#D4A93E','#3FB67B','#5B8DEF','#B07CE0','#E5805F','#4FB3B8','#E26D8D','#9AA3B2'];
 const HERO_ACC_KINDS = {
   checking: { abbr: 'Corrente',      full: 'Conta corrente',                icon: 'accounts' },
@@ -2982,29 +3055,6 @@ function heroAccKind(type){
   if (t.includes('corr')) return 'checking';
   return 'other';
 }
-let heroBalCur = null, heroBalRaf = 0;
-function heroSetBalance(to){
-  const el = $('heroBalance'); if (!el) return;
-  el.classList.toggle('neg', to < -0.004);
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (heroBalRaf && window.cancelAnimationFrame) cancelAnimationFrame(heroBalRaf);
-  heroBalRaf = 0;
-  if (heroBalCur === null || reduce || !window.requestAnimationFrame || Math.abs(to - heroBalCur) < 0.005){
-    el.textContent = fmtBRL(to); heroBalCur = to; return;
-  }
-  const from = heroBalCur, t0 = performance.now(), dur = 550;
-  const step = (now) => {
-    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-    heroBalCur = p >= 1 ? to : from + (to - from) * e;
-    el.textContent = fmtBRL(heroBalCur);
-    heroBalRaf = p < 1 ? requestAnimationFrame(step) : 0;
-  };
-  heroBalRaf = requestAnimationFrame(step);
-}
-let heroAccSel = null, heroAccOpen = false, heroDetFresh = false, heroFocusSel = '';
-try { heroAccOpen = localStorage.getItem('norte_hero_accs_open') === '1'; } catch (e){}
-const HERO_CHEV_DOWN = '<svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
-const HERO_CHEV_UP = '<svg class="icon" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>';
 // Carteira física = dinheiro em espécie. Conta marcada como física, ou antiga do tipo "Carteira" sem logo de banco.
 function heroAccIsCash(a){
   if (a.physical) return true;
@@ -3028,66 +3078,138 @@ function heroOpenAccountTx(id){
   const sel = $('txFilterAccount');
   if (sel){ sel.value = id; txCurrentPage = 1; renderTransactions(); }
 }
+
+let heroView = 'avail', heroHide = false, heroBalCur = null, heroBalRaf = 0;
+let heroAccSel = null, heroCofSel = null, heroAccOpen = false, heroDetFresh = false, heroFocusSel = '', heroSwap = false;
+try {
+  heroAccOpen = localStorage.getItem('norte_hero_accs_open') === '1';
+  heroView = localStorage.getItem('norte_hero_view') === 'cofres' ? 'cofres' : 'avail';
+  heroHide = localStorage.getItem('norte_hide_balance') === '1';
+} catch (e){}
+const HERO_MASK = 'R$ ••••';
+const HERO_CHEV_DOWN = '<svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+const HERO_CHEV_UP = '<svg class="icon" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>';
+const HERO_EYE_ON = '<svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const HERO_EYE_OFF = '<svg class="icon" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+const HERO_WALLET_SVG = '<svg class="icon" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>';
+function heroMoney(v){ return heroHide ? HERO_MASK : fmtBRL(v); }
+function heroSigned(sign, v){ return sign + (heroHide ? HERO_MASK : fmtBRL(v)); }
+
+function heroSetBalance(to){
+  const el = $('heroBalance'); if (!el) return;
+  el.classList.toggle('neg', !heroHide && to < -0.004);
+  if (heroBalRaf && window.cancelAnimationFrame) cancelAnimationFrame(heroBalRaf);
+  heroBalRaf = 0;
+  if (heroHide){ el.textContent = HERO_MASK + '•••'; heroBalCur = to; return; }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (heroBalCur === null || reduce || !window.requestAnimationFrame || Math.abs(to - heroBalCur) < 0.005){
+    el.textContent = fmtBRL(to); heroBalCur = to; return;
+  }
+  const from = heroBalCur, t0 = performance.now(), dur = 550;
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    heroBalCur = p >= 1 ? to : from + (to - from) * e;
+    el.textContent = fmtBRL(heroBalCur);
+    heroBalRaf = p < 1 ? requestAnimationFrame(step) : 0;
+  };
+  heroBalRaf = requestAnimationFrame(step);
+}
+
+// Tudo que o widget precisa: contas (com "disponível" = saldo − cofrinhos) e cofrinhos
+function heroData(){
+  const ym = todayISO().slice(0, 7);
+  const accs = (state.accounts || []).map((a, i) => {
+    const cash = heroAccIsCash(a), kind = cash ? 'wallet' : heroAccKind(a.type);
+    const bal = accountBalance(a.id), reserved = envelopeReservedTotal(a.id);
+    return { a, i, bal, reserved, avail: bal - reserved, kind, cash, color: HERO_ACC_COLORS[i % HERO_ACC_COLORS.length], domain: cash ? null : (a.bankDomain || matchBankDomain(a.name)) };
+  });
+  const cofs = (state.envelopes || []).map(e => ({ env: e, acc: accs.find(r => r.a.id === e.accountId) })).filter(c => c.acc);
+  return { ym, accs, cofs, availTotal: accs.reduce((s, r) => s + r.avail, 0), cofTotal: cofs.reduce((s, c) => s + (Number(c.env.amount) || 0), 0) };
+}
+
 function renderHeroAccounts(){
   const box = $('heroAccs'); if (!box) return;
-  const accs = (state.accounts || []);
-  if (!accs.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
-  const ym = todayISO().slice(0, 7);
-  const rows = accs.map((a, i) => {
-    const cash = heroAccIsCash(a), kind = cash ? 'wallet' : heroAccKind(a.type);
-    return { a, i, bal: accountBalance(a.id), kind, cash, color: HERO_ACC_COLORS[i % HERO_ACC_COLORS.length], domain: cash ? null : (a.bankDomain || matchBankDomain(a.name)) };
-  });
-  if (heroAccSel && !rows.some(r => r.a.id === heroAccSel)) heroAccSel = null;
-  const pos = rows.filter(r => r.bal > 0.004);
-  const posTotal = pos.reduce((sum, r) => sum + r.bal, 0);
+  const D = heroData();
+  if (!D.accs.length){ box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const cof = heroView === 'cofres';
+  const items = cof
+    ? D.cofs.map(c => ({ id: c.env.id, row: c.acc, name: c.env.name, value: Number(c.env.amount) || 0, color: c.env.color || c.acc.color, env: c.env }))
+    : D.accs.map(r => ({ id: r.a.id, row: r, name: r.a.name, value: r.avail, color: r.color }));
+  let selId = cof ? heroCofSel : heroAccSel;
+  if (selId && !items.some(it => it.id === selId)){ selId = null; if (cof) heroCofSel = null; else heroAccSel = null; }
+  const pos = items.filter(it => it.value > 0.004);
+  const posTotal = pos.reduce((s, it) => s + it.value, 0);
   const showShare = pos.length >= 2 && posTotal > 0;
-  const pctOf = (r) => { const p = r.bal / posTotal * 100; return p < 1 ? '<1%' : Math.round(p) + '%'; };
+  const pctOf = (it) => { const p = it.value / posTotal * 100; return p < 1 ? '<1%' : Math.round(p) + '%'; };
   const iconKey = (r) => r.cash ? 'cash' : (r.kind === 'wallet' ? 'wallet' : HERO_ACC_KINDS[r.kind].icon);
-  const logo = (r, cls) => `<span class="${cls} hacc-k-${r.kind}">${ICONS[iconKey(r)]}${bankLogoImg(r.domain)}</span>`;
-  const typeFull = (r) => r.cash ? 'Carteira física (dinheiro)' : HERO_ACC_KINDS[r.kind].full;
-  const neg = (r) => r.bal < -0.004;
+  const logo = (r, cls) => `<span class="${cls} hacc-k-${r.kind}">${iconKey(r) === 'wallet' ? HERO_WALLET_SVG : ICONS[iconKey(r)]}${bankLogoImg(r.domain)}</span>`;
+  const neg = (it) => it.value < -0.004;
+  const zero = (it) => Math.abs(it.value) < 0.005;
+  const stat = (label, val, cls) => `<div class="hdet-stat"><span>${label}</span><b class="num${cls ? ' ' + cls : ''}">${val}</b></div>`;
 
-  const detail = (r) => {
-    const m = heroAccMonth(r.a.id, ym);
-    const share = showShare && r.bal > 0.004 ? `<div class="hdet-stat"><span>% do saldo total</span><b class="num">${pctOf(r)}</b></div>` : '';
-    return `<div class="hdet${heroDetFresh ? ' fresh' : ''}" style="--hdc:${r.cash ? '#D4A93E' : r.color}">
+  const detail = (it) => {
+    const r = it.row, fresh = heroDetFresh ? ' fresh' : '';
+    if (cof){
+      const nCof = D.cofs.filter(c => c.acc.a.id === r.a.id).length;
+      const stats = [stat('Conta', escapeHtml(r.a.name)), stat('Disponível na conta', heroMoney(r.avail), r.avail < -0.004 ? 'neg' : '')];
+      if (showShare && it.value > 0.004) stats.push(stat('% dos cofrinhos', pctOf(it)));
+      stats.push(stat('Cofrinhos nessa conta', String(nCof)));
+      return `<div class="hdet${fresh}" style="--hdc:${it.color}">
+        <div class="hdet-head">${logo(r, 'hacc-logo')}
+          <div class="hdet-title"><b>${escapeHtml(it.name)}</b><span class="hdet-tags"><span class="hacc-pill hacc-p-${r.kind}">${escapeHtml(r.a.name)}</span><span class="hdet-type">Cofrinho</span></span></div>
+          <button type="button" class="hdet-x" data-hdet-close aria-label="Fechar detalhes">✕</button></div>
+        <div class="hdet-balwrap"><span class="hdet-lbl">Guardado neste cofrinho</span><div class="hdet-bal num">${heroMoney(it.value)}</div></div>
+        <div class="hdet-stats">${stats.join('')}</div>
+        <div class="hdet-actions"><button type="button" class="btn btn-ghost btn-sm" data-hdet-envs>Gerenciar cofrinhos</button></div>
+      </div>`;
+    }
+    const m = heroAccMonth(r.a.id, D.ym);
+    const stats = [];
+    if (r.reserved > 0.004){ stats.push(stat('Saldo da conta', heroMoney(r.bal), r.bal < -0.004 ? 'neg' : ''), stat('Em cofrinhos', heroMoney(r.reserved))); }
+    stats.push(stat('Entradas no mês', heroSigned('+', m.inn), 'pos'), stat('Saídas no mês', heroSigned('−', m.out), 'neg'), stat('Lançamentos no mês', String(m.n)));
+    if (showShare && it.value > 0.004) stats.push(stat('% do disponível', pctOf(it)));
+    return `<div class="hdet${fresh}" style="--hdc:${r.cash ? '#D4A93E' : r.color}">
       <div class="hdet-head">${logo(r, 'hacc-logo')}
         <div class="hdet-title"><b>${escapeHtml(r.a.name)}</b><span class="hdet-tags"><span class="hacc-pill hacc-p-${r.kind}">${heroAccLabel(r)}</span>${r.cash ? '<span class="hdet-type">Dinheiro em espécie</span>' : ''}</span></div>
         <button type="button" class="hdet-x" data-hdet-close aria-label="Fechar detalhes">✕</button></div>
-      <div class="hdet-balwrap"><span class="hdet-lbl">${r.cash ? 'Dinheiro em mãos' : 'Saldo na conta'}</span><div class="hdet-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</div></div>
-      <div class="hdet-stats">
-        <div class="hdet-stat"><span>Entradas no mês</span><b class="num pos">+${fmtBRL(m.inn)}</b></div>
-        <div class="hdet-stat"><span>Saídas no mês</span><b class="num neg">−${fmtBRL(m.out)}</b></div>
-        <div class="hdet-stat"><span>Lançamentos no mês</span><b class="num">${m.n}</b></div>${share}
-      </div>
-      <div class="hdet-actions"><button type="button" class="btn btn-ghost btn-sm" data-hdet-tx>Ver lançamentos</button><button type="button" class="btn btn-ghost btn-sm" data-hdet-edit>Editar conta</button></div>
+      <div class="hdet-balwrap"><span class="hdet-lbl">${r.cash ? 'Dinheiro em mãos' : 'Disponível no dia a dia'}</span><div class="hdet-bal num${neg(it) ? ' neg' : ''}">${heroMoney(it.value)}</div></div>
+      <div class="hdet-stats">${stats.join('')}</div>
+      <div class="hdet-actions"><button type="button" class="btn btn-ghost btn-sm" data-hdet-tx>Ver lançamentos</button><button type="button" class="btn btn-ghost btn-sm" data-hdet-envs>Cofrinhos</button><button type="button" class="btn btn-ghost btn-sm" data-hdet-edit>Editar conta</button></div>
     </div>`;
   };
 
+  const emptyCof = `<div class="hero-empty">${ICONS.piggyCoin}<div><b>Nenhum cofrinho ainda</b><span>Separe dinheiro de uma conta (reserva, viagem, imposto…) sem tirar do banco.</span></div><button type="button" class="btn btn-ghost btn-sm" data-hero-newcof>Criar cofrinho</button></div>`;
+  const aria = (it, extra) => heroHide ? `${escapeHtml(it.name)}, saldo oculto` : `${escapeHtml(it.name)}, ${extra}saldo ${fmtBRL(it.value)}`;
   let html;
   if (!heroAccOpen){
-    // ----- modo compacto: fichinhas (logo + saldo)
-    const MAXC = 10, extra = rows.length > MAXC ? rows.length - (MAXC - 1) : 0;
-    const shown = extra ? rows.slice(0, MAXC - 1) : rows;
-    const chip = (r) => `<button type="button" class="hchip${r.a.id === heroAccSel ? ' sel' : ''}${Math.abs(r.bal) < 0.005 ? ' zero' : ''}" data-hacc-sel="${r.a.id}" aria-expanded="${r.a.id === heroAccSel}" title="${escapeHtml(r.a.name)} — ${typeFull(r)}" aria-label="${escapeHtml(r.a.name)}, saldo ${fmtBRL(r.bal)}">${logo(r, 'hchip-logo')}<span class="hchip-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</span></button>`;
-    const more = extra ? `<button type="button" class="hchip hchip-more" data-hacc-toggle title="Ver todas as contas">+${extra}</button>` : '';
-    const sel = rows.find(r => r.a.id === heroAccSel);
-    html = `<div class="hchips">${shown.map(chip).join('')}${more}<button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="false" aria-label="Mostrar todas as contas" title="Ver todas as contas">${HERO_CHEV_DOWN}</button></div>${sel ? detail(sel) : ''}`;
+    // ----- modo compacto: fichinhas
+    const MAXC = 10, extra = items.length > MAXC ? items.length - (MAXC - 1) : 0;
+    const shown = extra ? items.slice(0, MAXC - 1) : items;
+    const chip = (it) => cof
+      ? `<button type="button" class="hchip hchip-cof${it.id === selId ? ' sel' : ''}${zero(it) ? ' zero' : ''}" data-hacc-sel="${it.id}" aria-expanded="${it.id === selId}" title="${escapeHtml(it.name)} — ${escapeHtml(it.row.a.name)}" aria-label="${aria(it, 'cofrinho da conta ' + escapeHtml(it.row.a.name) + ', ')}">${logo(it.row, 'hchip-logo')}<span class="hchip-txt"><span class="hchip-name">${escapeHtml(it.name)}</span><span class="hchip-bal num">${heroMoney(it.value)}</span></span></button>`
+      : `<button type="button" class="hchip${it.id === selId ? ' sel' : ''}${zero(it) ? ' zero' : ''}" data-hacc-sel="${it.id}" aria-expanded="${it.id === selId}" title="${escapeHtml(it.name)} — ${heroAccLabel(it.row)}" aria-label="${aria(it, '')}">${logo(it.row, 'hchip-logo')}<span class="hchip-bal num${neg(it) ? ' neg' : ''}">${heroMoney(it.value)}</span></button>`;
+    const more = extra ? `<button type="button" class="hchip hchip-more" data-hacc-toggle title="Ver todos">+${extra}</button>` : '';
+    const sel = items.find(it => it.id === selId);
+    html = (cof && !items.length)
+      ? emptyCof
+      : `<div class="hchips">${shown.map(chip).join('')}${more}<button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="false" aria-label="Mostrar a lista completa" title="Ver a lista completa">${HERO_CHEV_DOWN}</button></div>${sel ? detail(sel) : ''}`;
   } else {
     // ----- modo aberto: lista completa
-    const bar = showShare ? `<div class="hacc-bar" role="img" aria-label="Proporção do saldo entre as contas">${pos.map(r => `<span class="hacc-seg" style="flex:${r.bal} 1 0;background:${r.color};" title="${escapeHtml(r.a.name)} · ${pctOf(r)}"></span>`).join('')}</div>` : '';
-    const item = (r) => {
-      const zero = Math.abs(r.bal) < 0.005, isSel = r.a.id === heroAccSel;
-      const share = showShare && r.bal > 0.004 ? `<span title="${pctOf(r)} do saldo total">${pctOf(r)}</span>` : '';
-      return `<div class="hacc-item${isSel ? ' sel' : ''}"><button type="button" class="hacc${zero ? ' zero' : ''}${isSel ? ' sel' : ''}" data-hacc-sel="${r.a.id}" aria-expanded="${isSel}" title="${escapeHtml(r.a.name)} — ${typeFull(r)}" aria-label="${escapeHtml(r.a.name)}, ${typeFull(r)}, saldo ${fmtBRL(r.bal)}">
-        ${logo(r, 'hacc-logo')}
-        <span class="hacc-info"><span class="hacc-name">${showShare && r.bal > 0.004 ? `<i class="hacc-dot" style="background:${r.color}"></i>` : ''}<b>${escapeHtml(r.a.name)}</b></span><span class="hacc-meta"><span class="hacc-pill hacc-p-${r.kind}">${heroAccLabel(r)}</span>${share}</span></span>
-        <span class="hacc-bal num${neg(r) ? ' neg' : ''}">${fmtBRL(r.bal)}</span></button>${isSel ? detail(r) : ''}</div>`;
+    const bar = showShare ? `<div class="hacc-bar" role="img" aria-label="Proporção entre ${cof ? 'os cofrinhos' : 'as contas'}">${pos.map(it => `<span class="hacc-seg" style="flex:${it.value} 1 0;background:${it.color};" title="${escapeHtml(it.name)} · ${pctOf(it)}"></span>`).join('')}</div>` : '';
+    const item = (it) => {
+      const isSel = it.id === selId;
+      const share = showShare && it.value > 0.004 ? `<span title="${pctOf(it)} ${cof ? 'dos cofrinhos' : 'do disponível'}">${pctOf(it)}</span>` : '';
+      const pill = cof ? `<span class="hacc-pill hacc-p-${it.row.kind}">${escapeHtml(it.row.a.name)}</span>` : `<span class="hacc-pill hacc-p-${it.row.kind}">${heroAccLabel(it.row)}</span>`;
+      return `<div class="hacc-item${isSel ? ' sel' : ''}"><button type="button" class="hacc${zero(it) ? ' zero' : ''}${isSel ? ' sel' : ''}" data-hacc-sel="${it.id}" aria-expanded="${isSel}" title="${escapeHtml(it.name)}" aria-label="${aria(it, '')}">
+        ${logo(it.row, 'hacc-logo')}
+        <span class="hacc-info"><span class="hacc-name">${showShare && it.value > 0.004 ? `<i class="hacc-dot" style="background:${it.color}"></i>` : ''}<b>${escapeHtml(it.name)}</b></span><span class="hacc-meta">${pill}${share}</span></span>
+        <span class="hacc-bal num${neg(it) ? ' neg' : ''}">${heroMoney(it.value)}</span></button>${isSel ? detail(it) : ''}</div>`;
     };
-    html = `<div class="hero-accs-head"><span>Minhas contas · ${rows.length}</span><span class="hero-accs-actions"><button type="button" class="hero-accs-link" data-hacc-go>Gerenciar ›</button><button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="true" aria-label="Recolher lista de contas" title="Recolher">${HERO_CHEV_UP}</button></span></div>${bar}<div class="hacc-list">${rows.map(item).join('')}</div>`;
+    html = `<div class="hero-accs-head"><span>${cof ? 'Meus cofrinhos' : 'Minhas contas'} · ${items.length}</span><span class="hero-accs-actions"><button type="button" class="hero-accs-link" data-hacc-go>Gerenciar ›</button><button type="button" class="hacc-toggle" data-hacc-toggle aria-expanded="true" aria-label="Recolher a lista" title="Recolher">${HERO_CHEV_UP}</button></span></div>${bar}${(cof && !items.length) ? emptyCof : `<div class="hacc-list">${items.map(item).join('')}</div>`}`;
   }
   box.innerHTML = html;
   box.classList.remove('hidden');
+  if (heroSwap){ box.classList.remove('swap'); void box.offsetWidth; box.classList.add('swap'); heroSwap = false; }
   heroDetFresh = false;
   if (heroFocusSel){
     const el = box.querySelector(heroFocusSel); heroFocusSel = '';
@@ -3096,27 +3218,92 @@ function renderHeroAccounts(){
   if (!box.dataset.bound){
     box.dataset.bound = '1';
     box.addEventListener('click', (e) => {
-      const t = e.target.closest && e.target.closest('[data-hacc-sel],[data-hacc-toggle],[data-hacc-go],[data-hdet-close],[data-hdet-tx],[data-hdet-edit]');
+      const t = e.target.closest && e.target.closest('[data-hacc-sel],[data-hacc-toggle],[data-hacc-go],[data-hdet-close],[data-hdet-tx],[data-hdet-edit],[data-hdet-envs],[data-hero-newcof]');
       if (!t) return;
+      const cofNow = heroView === 'cofres';
+      const curSel = () => cofNow ? heroCofSel : heroAccSel;
+      const setSel = (v) => { if (cofNow) heroCofSel = v; else heroAccSel = v; };
+      const accOfSel = () => {
+        if (!curSel()) return null;
+        if (!cofNow) return curSel();
+        const env = (state.envelopes || []).find(x => x.id === curSel()); return env ? env.accountId : null;
+      };
       if (t.hasAttribute('data-hacc-toggle')){
         heroAccOpen = !heroAccOpen;
         try { localStorage.setItem('norte_hero_accs_open', heroAccOpen ? '1' : '0'); } catch (err){}
         heroFocusSel = '[data-hacc-toggle]'; renderHeroAccounts();
       } else if (t.hasAttribute('data-hacc-sel')){
         const id = t.getAttribute('data-hacc-sel');
-        heroAccSel = heroAccSel === id ? null : id; heroDetFresh = !!heroAccSel;
+        setSel(curSel() === id ? null : id); heroDetFresh = !!curSel();
         heroFocusSel = '[data-hacc-sel="' + id + '"]'; renderHeroAccounts();
       } else if (t.hasAttribute('data-hacc-go')){ switchView('accounts'); }
-      else if (t.hasAttribute('data-hdet-close')){ const id = heroAccSel; heroAccSel = null; heroFocusSel = '[data-hacc-sel="' + id + '"]'; renderHeroAccounts(); }
-      else if (t.hasAttribute('data-hdet-tx')){ if (heroAccSel) heroOpenAccountTx(heroAccSel); }
-      else if (t.hasAttribute('data-hdet-edit')){ if (heroAccSel) openAccountModal(heroAccSel); }
+      else if (t.hasAttribute('data-hdet-close')){ const id = curSel(); setSel(null); heroFocusSel = '[data-hacc-sel="' + id + '"]'; renderHeroAccounts(); }
+      else if (t.hasAttribute('data-hdet-tx')){ const id = accOfSel(); if (id) heroOpenAccountTx(id); }
+      else if (t.hasAttribute('data-hdet-edit')){ const id = accOfSel(); if (id) openAccountModal(id); }
+      else if (t.hasAttribute('data-hdet-envs')){ const id = accOfSel(); if (id) openEnvelopesModal(id); }
+      else if (t.hasAttribute('data-hero-newcof')){
+        const real = state.accounts.filter(a => !heroAccIsCash(a));
+        if (real.length === 1) openEnvelopesModal(real[0].id);
+        else { switchView('accounts'); showToast('Toque no porquinho de uma conta para criar um cofrinho.', 4200); }
+      }
     });
   }
 }
+
 function renderHeroBalance(){
-  heroSetBalance(totalBalance());
+  const D = heroData(), cof = heroView === 'cofres';
+  const lab = $('heroLabel'); if (lab) lab.textContent = cof ? 'Guardado nos cofrinhos' : 'Saldo disponível';
+  const ico = $('heroIcon'); if (ico) ico.innerHTML = cof ? ICONS.piggyCoin : HERO_WALLET_SVG;
+  heroSetBalance(cof ? D.cofTotal : D.availTotal);
+  const sub = $('heroSub');
+  if (sub){
+    if (!cof && D.cofTotal > 0.004) sub.innerHTML = `<button type="button" class="hero-sublink" data-hero-view="cofres">+ ${heroMoney(D.cofTotal)} guardados em cofrinhos ›</button>`;
+    else if (cof && D.cofs.length) sub.textContent = 'Separado do dinheiro do dia a dia';
+    else sub.textContent = '';
+  }
+  const seg = $('heroSeg');
+  if (seg){
+    if (!seg.dataset.init){
+      seg.dataset.init = '1';
+      seg.innerHTML = `<button type="button" role="tab" data-hero-view="avail">${HERO_WALLET_SVG}<span>Disponível</span></button><button type="button" role="tab" data-hero-view="cofres">${ICONS.piggyCoin}<span>Cofrinhos</span><i class="hero-seg-n" id="heroSegN"></i></button>`;
+    }
+    seg.querySelectorAll('[data-hero-view]').forEach(b => { const on = b.dataset.heroView === heroView; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    const n = $('heroSegN'); if (n){ n.textContent = D.cofs.length; n.style.display = D.cofs.length ? '' : 'none'; }
+  }
+  const eye = $('heroEye');
+  if (eye){
+    eye.innerHTML = heroHide ? HERO_EYE_OFF : HERO_EYE_ON;
+    eye.setAttribute('aria-pressed', heroHide ? 'true' : 'false');
+    const txt = heroHide ? 'Mostrar saldos' : 'Ocultar saldos';
+    eye.setAttribute('aria-label', txt); eye.title = txt;
+  }
+  const hero = $('saldoHero');
+  if (hero){
+    hero.classList.toggle('is-hidden-values', heroHide);
+    if (!hero.dataset.bound){
+      hero.dataset.bound = '1';
+      hero.addEventListener('click', (e) => {
+        const v = e.target.closest && e.target.closest('[data-hero-view]');
+        if (v){
+          const nv = v.getAttribute('data-hero-view') === 'cofres' ? 'cofres' : 'avail';
+          if (nv !== heroView){
+            heroView = nv; heroBalCur = null; heroSwap = true; heroDetFresh = false;
+            try { localStorage.setItem('norte_hero_view', heroView); } catch (err){}
+            renderHeroBalance();
+          }
+          return;
+        }
+        if (e.target.closest && e.target.closest('[data-hero-eye]')){
+          heroHide = !heroHide;
+          try { localStorage.setItem('norte_hide_balance', heroHide ? '1' : '0'); } catch (err){}
+          renderHeroBalance();
+        }
+      });
+    }
+  }
   renderHeroAccounts();
 }
+
 function renderDashboard(){
   if (!state.accounts.length){
     renderOnboarding();
@@ -3130,15 +3317,7 @@ function renderDashboard(){
 
   renderHeroBalance();
 
-  // Projeção de saldo até o fim do mês, considerando contas fixas pendentes
-  const pendingBillsList = state.fixedBills.filter(b => !b.finished && isBillStarted(b) && !b.launchedMonths.includes(currentPeriodKey(b.frequency)));
-  const pendingImpact = pendingBillsList.reduce((s,b) => s + (b.type === 'income' ? Number(b.value) : -Number(b.value)), 0);
-  const projected = totalBalance() + pendingImpact;
-  $('projectedBalance').textContent = fmtBRL(projected);
-  $('projectedBalance').className = 'value num ' + (projected >= 0 ? '' : 'neg');
-  $('projectedBalanceNote').textContent = pendingBillsList.length
-    ? `Considerando ${pendingBillsList.length} conta(s) fixa(s) ainda não lançada(s) este mês.`
-    : 'Todas as contas fixas do mês já foram lançadas.';
+  renderShortProjection();
   renderLongProjection(longProjectionMonths);
 
   const cur = monthIncomeExpense(ym);
@@ -5253,7 +5432,7 @@ function runSimulation(){
     setTimeout(() => openGoalModal(null, {
       name: 'Meta simulada',
       target: goal === 'final' ? Math.round(resultValue) : target,
-      deadline: deadline.toISOString().slice(0,10)
+      deadline: localISO(deadline)
     }), 0);
   });
 
@@ -6025,7 +6204,7 @@ function goalCompareCardHtml(g){
     <div class="nums" style="margin-top:8px;"><span>${fmtBRL(saved)} / ${fmtBRL(g.target)}</span><span>${pct.toFixed(0)}%</span></div>
     <div class="sim-breakdown" style="margin-top:14px; padding-top:14px;">
       <div class="item"><div class="label">Ritmo estimado</div><div class="value">${monthlyRate===null?'—':fmtBRL(monthlyRate)+'/mês'}</div></div>
-      <div class="item"><div class="label">Conclusão prevista</div><div class="value">${projectedDate ? fmtDate(projectedDate.toISOString().slice(0,10)) : (saved>=g.target?'Concluída':'—')}</div></div>
+      <div class="item"><div class="label">Conclusão prevista</div><div class="value">${projectedDate ? fmtDate(localISO(projectedDate)) : (saved>=g.target?'Concluída':'—')}</div></div>
     </div>
   </div>`;
 }
@@ -7398,7 +7577,7 @@ setInterval(checkReminders, 30000);
 /* -------------------- RENDER: REPORTS -------------------- */
 function defaultReportRange(){
   const now = new Date();
-  const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const first = localISO(new Date(now.getFullYear(), now.getMonth(), 1));
   return { from: first, to: todayISO() };
 }
 let reportRangeInit = false;
@@ -7409,12 +7588,12 @@ function computeComparisonRange(from, to, mode){
     const lengthMs = toD - fromD;
     const newTo = new Date(fromD.getTime() - 86400000);
     const newFrom = new Date(newTo.getTime() - lengthMs);
-    return { from: newFrom.toISOString().slice(0,10), to: newTo.toISOString().slice(0,10) };
+    return { from: localISO(newFrom), to: localISO(newTo) };
   }
   if (mode === 'lastyear'){
     const newFrom = new Date(fromD.getFullYear()-1, fromD.getMonth(), fromD.getDate());
     const newTo = new Date(toD.getFullYear()-1, toD.getMonth(), toD.getDate());
-    return { from: newFrom.toISOString().slice(0,10), to: newTo.toISOString().slice(0,10) };
+    return { from: localISO(newFrom), to: localISO(newTo) };
   }
   return null;
 }
